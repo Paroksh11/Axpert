@@ -1,3 +1,0 @@
-Release Notes:
-============
-	• Task ID-010875 -QA- Issue in Design mode for the Tabbed Dc's 
