@@ -1,5 +1,8 @@
+<<
 drop view vw_axlanguage_export;
+>>
 
+<<
 CREATE OR REPLACE VIEW vw_axlanguage_export
 AS SELECT 'tstruct'::text AS comptype,
     0 AS ord,
@@ -259,9 +262,10 @@ UNION ALL
          SELECT 'pop11'::text AS text,
             'View Attachment'::text AS text,
             15) a;
+>>
 
 
-
+<<
 CREATE OR REPLACE VIEW v_genmap
 AS SELECT a.stransid,
     a.name,
@@ -297,8 +301,10 @@ AS SELECT a.stransid,
            FROM axpdef_genmaprowctrl c_1
           GROUP BY c_1.axpdef_genmapid) c ON a.axpdef_genmapid = c.axpdef_genmapid
   GROUP BY a.name, a.caption, a.dcname, a.targettstruct, a.basedondc, a.stransid, a.controlfieldname, a.schemaoftarget, a.onpost, a.purpose, a.active, a.onapprove, a.onreject, c.rowcontrol, a.targettrasid, a.groupfield;
+>>
 
 
+<<
 CREATE OR REPLACE VIEW vw_dc
 AS SELECT a.stransid AS transid,
     a.name,
@@ -336,4 +342,6 @@ AS SELECT a.stransid AS transid,
     a.defaultstate
    FROM axpdef_dc a
   ORDER BY a.ctdc;
+>>
+
 
