@@ -119,9 +119,9 @@
 
         <script type="text/javascript" src="../Js/noConflict.min.js?v=1"></script>
         <script type="text/javascript" src="../ThirdParty/jquery-confirm-master/jquery-confirm.min.js?v=2"></script>
-        <script type="text/javascript" src="../Js/common.min.js?v=144"></script>
+        <script type="text/javascript" src="../Js/common.min.js?v=141"></script>
         <script type="text/javascript" src="../Js/alerts.min.js?v=32"></script>
-        <script type="text/javascript" src="../Js/umgmt.min.js?v=28"></script>
+        <script type="text/javascript" src="../Js/umgmt.min.js?v=27"></script>
         <script type="text/javascript" src="../Js/lang/content-<%=langType%>.js?v=64"></script>
         <script type="text/javascript" src="../ThirdParty/fancytree-master/dist/jquery.fancytree-all-deps.min.js?v=1"></script>
         <script type="text/javascript" src="../ThirdParty/fancytree-master/src/jquery-ui-dependencies/jquery.fancytree.ui-deps.js"></script>

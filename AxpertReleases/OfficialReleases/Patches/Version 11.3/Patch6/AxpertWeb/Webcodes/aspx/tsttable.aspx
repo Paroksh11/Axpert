@@ -25,10 +25,10 @@
     <script src="../UI/axpertUI/datatables.bundle.js"></script>
     <script src="../Js/noConflict.min.js"></script>
     <script type="text/javascript" src="../Js/iFrameHandler.min.js"></script>
-    <script src="../Js/common.min.js?v=144"></script>
-    <script src="../Js/tstructvars.min.js?v=86"></script>
-    <script src="../Js/tstruct.min.js?v=604"></script>
-    <script src="../Js/tstTable.min.js?v=24"></script>
+    <script src="../Js/common.min.js?v=143"></script>
+    <script src="../Js/tstructvars.min.js?v=84"></script>
+    <script src="../Js/tstruct.min.js?v=589"></script>
+    <script src="../Js/tstTable.min.js?v=23"></script>
 </head>
 <body dir="<%=direction%>">
     <form id="form1" runat="server">

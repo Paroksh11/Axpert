@@ -123,12 +123,7 @@ var dtInitalising = false;
 var dtInitCompleted = false;
 
 var axhideselectallmulti = false;
-var actClickselXML = "";
 
-var subtoaltColor = "";
-var grandtoaltColor = "";
-var ivFreezeColumn = [];
-var ivCurrentRows = "";
 //This function clears the cache files on unload and on opening another iview.
 function DeleteIviewCacheFiles() {
 
@@ -712,16 +707,6 @@ function pageLoad(sender, args) {
         KTApp?.initBootstrapTooltips();
         
         HeaderText.includes("axzipfilepath") && HeaderText.includes("axzipfiles") && HeaderText.includes("axzipfilename") && $("#rowsTxtCount").before(`<div class="d-flex mx-2"><a id="btnZipDownloadAll" title="Download All" class="btn btn-sm btn-icon btn-active-light-primary shadow-sm " href="Javascript:downloadZipFile();"><i class="material-icons material-icons-style material-icons-2">download</i></a></div>`);        
-        
-        $(".axpFilePopOver").off("hidden.bs.popover").on('shown.bs.popover', function (ele) {
-            // Get the unescaped HTML content from data-bs-content attribute
-            var unescapedContent = $(ele.currentTarget).attr('data-bs-content');
-            // Escape the HTML content
-            var escapedContent = $('<div>').append(unescapedContent);
-            // Update the popover body with the escaped content
-            $(ele.target).parents("body").find(".popover").find('.popover-body').html("").append(escapedContent);
-        });
-        
     } catch (error) { }
 
     setSmartViewHeight();
@@ -734,15 +719,6 @@ function pageLoad(sender, args) {
     $("#dvRefreshParamIcon").off("click").on("click", refreshIview);
 
     $(".btn.btn-icon").addClass("btn-sm").find(".material-icons").addClass("material-icons-style material-icons-2");
-    try {
-        if (ivFreezeColumn.length > 0) {
-            setTimeout(function () {
-                const _lastIndex = ivFreezeColumn.lastIndexOf('T');
-                if (_lastIndex > -1)
-                    freezeColumn(_lastIndex, this);
-            }, 0);
-        }
-    } catch (ex) { }
 }
 
 
@@ -1617,10 +1593,10 @@ function callActWithFile(aname, fileup, iName, confirm, appl) {
         var ivKey = $j("#hdnKey").val();
         if (confirm != "") {
             if (confirm(confirm)) {
-                ASB.WebService.CallActionWS(dummyArray, dummyArray, dummyArray, dummyArray, dummyArray, "", "", txt, fup, "i", "", "", ivKey, "", isScript, "", false, "", CActSucceededCallback);
+                ASB.WebService.CallActionWS(dummyArray, dummyArray, dummyArray, dummyArray, dummyArray, "", "", txt, fup, "i", "", "", ivKey, "", isScript, "", false, CActSucceededCallback);
             }
         } else {
-            ASB.WebService.CallActionWS(dummyArray, dummyArray, dummyArray, dummyArray, dummyArray, "", "", txt, fup, "i", "", "", ivKey, "", isScript, "", false, "", CActSucceededCallback);
+            ASB.WebService.CallActionWS(dummyArray, dummyArray, dummyArray, dummyArray, dummyArray, "", "", txt, fup, "i", "", "", ivKey, "", isScript, "", false, CActSucceededCallback);
         }
     }
     closeParentFrame();
@@ -1728,7 +1704,7 @@ function callAction(a, x, conf, appl) {
     var dummyArray = new Array();
     try {
         var ivKey = $j("#hdnKey").val();
-        ASB.WebService.CallActionWS(dummyArray, dummyArray, dummyArray, dummyArray, dummyArray, "", "", actXML, fup, "i", "", "", ivKey, "", isScript, "", false, "", CActSucceededCallback);
+        ASB.WebService.CallActionWS(dummyArray, dummyArray, dummyArray, dummyArray, dummyArray, "", "", actXML, fup, "i", "", "", ivKey, "", isScript, "", false, CActSucceededCallback);
 
     } catch (ex) { showAlertDialog("error", ex.toString()); }
 
@@ -1996,7 +1972,8 @@ function callHLaction(a, x, name) {
 
 
     selXML = jsonToXml(x.toString());
-     actClickselXML = selXML;
+
+
     var dummyArray = new Array();
     var trace = traceSplitStr + "CallHLAction-" + a + traceSplitChar;
     var pa = generateParamX() + ConstructFldDataNodes(selXML);
@@ -2009,7 +1986,7 @@ function callHLaction(a, x, name) {
     }
     catch (e) { }
     GetProcessTime();
-    ASB.WebService.CallActionWS(dummyArray, dummyArray, dummyArray, dummyArray, dummyArray, "", "", actXML, fup, "i", "", "", ivKey, "", isScript, "", false, "", CHlActSucceededCallback);
+    ASB.WebService.CallActionWS(dummyArray, dummyArray, dummyArray, dummyArray, dummyArray, "", "", actXML, fup, "i", "", "", ivKey, "", isScript, "", false, CHlActSucceededCallback);
 }
 
 function ConstructFldDataNodes(selXML) {
@@ -2056,36 +2033,6 @@ function CHlActSucceededCallback(result, eventArgs) {
         return;
     }
     try {
-        try {
-            var _srposition = Math.round($(".dataTables_scrollBody").scrollTop());
-            var doc = $.parseXML(actClickselXML);
-            actClickselXML = "";
-            var _rwxml = doc.getElementsByTagName("rowno").length > 0 ? doc.getElementsByTagName("rowno")[0].innerHTML : undefined;
-            if (typeof _rwxml != "undefined") {
-                let _rowno = _rwxml;
-                var rowData = ivDatas.find(function (item) {
-                    return item.rowno === _rowno;
-                });
-                var appUrl = top.window.location.href.toLowerCase().substring("0", top.window.location.href.indexOf("/aspx/"));
-                localStorage["drilldownScrollInfo-" + appUrl] = JSON.stringify({
-                    ...JSON.parse(localStorage["drilldownScrollInfo-" + appUrl] || "{}"),
-                    [iName]: {
-                        scroll: _srposition,
-                        rowIndex: _rowno,
-                        params: (function () {
-                            if (rowData["recordid"]) {
-                                return {
-                                    recordid: rowData["recordid"]
-                                };
-                            } else {
-                                return rowData;
-                            }
-                        })()
-                    }
-                });
-            }
-        } catch (ex) { }
-
         AssignLoadValues(result, "Iview");
         AxWaitCursor(false);
         var resval = result.split("*$*");
@@ -2100,7 +2047,7 @@ function CHlActSucceededCallback(result, eventArgs) {
                 if (cmd !== "opentstruct" && cmd !== "openfile" && cmd !== "openiview")
                     callParentNew("closeFrame()", "function");
             }
-        }       
+        }
     } catch (ex) {
         AxWaitCursor(false);
         ShowDimmer(false);
@@ -2277,17 +2224,6 @@ function SetExport(url, params, iviewName) {
         }
     }
 }
-
-function SetExportWord(url, params, iviewName) {
-    if (iviewName != "") {
-        try {
-            ShowDimmer(false);
-            ASB.WebService.SetExportParams(url, params, iviewName, SuccSetExportParams);
-        } catch (ex) {
-            ShowDimmer(false);
-        }
-    }
-}
 function SuccSetExportParams(obj, eventArgs) {
     if (obj && obj.url) {
         var isHtmlIv = obj.url.indexOf("htmliv.aspx") > -1;
@@ -2313,13 +2249,7 @@ function SuccSetExportParams(obj, eventArgs) {
             if (!isHtmlIv) {
                 fixUnloadOnWindowSelfDownloads(window);
             }
-            if (ivCurrentRows != "" && obj.url.indexOf('wordview.aspx') > -1) {
-                let _thisivCurrentRows = ivCurrentRows;
-                ivCurrentRows = "";
-                curWin = window.open(obj.url + (obj.url.indexOf("?") > -1 ? "&axpCache=true" : "") + "&curRecord=" + _thisivCurrentRows, (isHtmlIv ? "toHTML" : "_self"), "width=" + $(window).width() + ",height=" + $(window).width() + ",scrollbars=yes,top=" + 0 + ",left=" + 0 + "");
-            }
-            else
-                curWin = window.open(obj.url + (obj.url.indexOf("?") > -1 ? "&axpCache=true" : ""), (isHtmlIv ? "toHTML" : "_self"), "width=" + $(window).width() + ",height=" + $(window).width() + ",scrollbars=yes,top=" + 0 + ",left=" + 0 + "");
+            curWin = window.open(obj.url + (obj.url.indexOf("?") > -1 ? "&axpCache=true" : ""), (isHtmlIv ? "toHTML" : "_self"), "width=" + $(window).width() + ",height=" + $(window).width() + ",scrollbars=yes,top=" + 0 + ",left=" + 0 + "");
         } catch (ex) {
             if (isHtmlIv) {
                 showAlertDialog("warning", appGlobalVarsObject.lcm[356]);
@@ -2366,7 +2296,7 @@ function SetDatatableExport(url) {
     }
 }
 
-function ExecuteDatatableExport(crtype='') {
+function ExecuteDatatableExport() {
     if (ivirDataTableApi) {
         let internalExportType = exportType;
         switch (exportType) {
@@ -2424,12 +2354,6 @@ function ExecuteDatatableExport(crtype='') {
                     GetTotalElapsTime();
                 }, 0);
                 break;
-            case "word":
-                ShowDimmer(true);
-                setTimeout(() => {                    
-                    toWord(iName, 'Iview', crtype);
-                }, 0);
-                break;
             default:
                 exportType = "";
                 break;
@@ -2465,18 +2389,13 @@ function toPDF(a, c) {
     SetExport("../aspx/pdfiview.aspx?ivname=" + a + "&ivtype=" + c + ivKey + "&params=", pa, a);
 }
 
-function toWord(a, c, crtype = '') {
+function toWord(a, c) {
     var pa = form1.param.value;
     var ivKey = "";
     if ($j("#hdnKey").length > 0 && $j("#hdnKey").val() != "") {
         ivKey = "&ivKey=" + $j("#hdnKey").val();
     }
-    //SetExport("../aspx/wordview.aspx?ivname=" + a + "&ivtype=" + c + ivKey + "&params=", pa, a);
-    if (crtype != "")
-        ivCurrentRows = dtDbTotalRecords;
-    else
-        ivCurrentRows = "";
-    SetExportWord("../aspx/wordview.aspx?ivname=" + a + "&ivtype=" + c + ivKey + "&params=", pa, a);
+    SetExport("../aspx/wordview.aspx?ivname=" + a + "&ivtype=" + c + ivKey + "&params=", pa, a);
 }
 
 function fixUnloadOnWindowSelfDownloads(curWin) {
@@ -2914,32 +2833,7 @@ function callOpenAction(a, b) {
 
         callParentNew("loadFrame()", "function");
         GetProcessTime();
-
-
-        var _TstlocalStorage = "";
-        try {
-            if (typeof (Storage) !== "undefined") {
-                let appSUrl = top.window.location.href.toLowerCase().substring("0", top.window.location.href.indexOf("/aspx/"));
-                let _thisKey = callParentNew("getKeysWithPrefix(tstHtml♠" + b + "-" + appSUrl + "♥)", "function");
-                _TstlocalStorage = localStorage[_thisKey[0]];
-                if (typeof _TstlocalStorage == "undefined") {
-                    _TstlocalStorage = "";
-                }
-            }
-        } catch (e) {
-        }
-        let _isDummyLoad = "";
-        if (_TstlocalStorage != "") {
-            let _thisTst = _TstlocalStorage.split('♠♠♠')[1];
-            let _thisTstId = _thisTst.split('*$*')[11];
-            _isDummyLoad = "&dummyload=true♠" + _thisTstId;
-        } else {
-            _isDummyLoad = "&dummyload=false♠";
-        }
-        let _tstURI = "./tstruct.aspx?transid=" + b + "&hdnbElapsTime=" + callParentNew("browserElapsTime") + "" + `&openerIV=${iName}&isIV=${!isListView}&isDupTab=${callParentNew('isDuplicateTab')}${_isDummyLoad}`;
-        _tstURI = _tstURI.replace(/♠/g, '%e2%99%a0');
-        callParentNew("lastLoadtstId=", _tstURI);
-        $j(location).attr("href", "../aspx/tstruct.aspx?transid=" + b + "&hdnbElapsTime=" + callParentNew("browserElapsTime") + "" + `&openerIV=${iName}&isIV=${!isListView}&isDupTab=${callParentNew('isDuplicateTab')}${_isDummyLoad}`);
+        $j(location).attr("href", "../aspx/tstruct.aspx?transid=" + b + "&hdnbElapsTime=" + callParentNew("browserElapsTime") + "" + `&openerIV=${iName}&isIV=${!isListView}&isDupTab=${callParentNew('isDuplicateTab')}`);
         ResetNavGlobalVariables();
     }
 }
@@ -8283,7 +8177,6 @@ function SetPickVal(vall, dataObj = {}) {
 }
 
 function CallSearchOpen(plEle = "") {
-    ShowDimmer(true);
     if ($j("#hdnparamValues").val() != "") {
         isPlDepParBound = true;
     } else {
@@ -8296,7 +8189,7 @@ function CallSearchOpen(plEle = "") {
             GetParamValues("clear");
             let thisDfVal = window[`dfval${plEle.id}`] || "";
             let thisPType = $(window[`${plEle.id}`]).hasClass('trySelect');
-            var plAdvanceSearchUrl = `./iviewAutoComplete.aspx?isIV=${!isListView}&srchTxt=${""}&fldname=${plEle.id}&fldcaption=${CheckParamNameSplChars(plEle.dataset.caption)}&transid=${iName}&key=${$("#hdnKey").val()}&params=${CheckParamNameSplChars($("#hdnparamValues").val())}&dF=${thisDfVal}&isSelect=${thisPType}`;
+            var plAdvanceSearchUrl = `./iviewAutoComplete.aspx?isIV=${!isListView}&srchTxt=${""}&fldname=${plEle.id}&fldcaption=${plEle.dataset.caption}&transid=${iName}&key=${$("#hdnKey").val()}&params=${CheckUrlSpecialChars($("#hdnparamValues").val())}&dF=${thisDfVal}&isSelect=${thisPType}`;
 
             var plAdvSearchHtml = `<iframe id="loadPopUpPage" name="loadPopUpPage" class="col-12 flex-column-fluid w-100 h-100 p-0 my-n1" src="${plAdvanceSearchUrl}" frameborder="0" allowtransparency="True"></iframe>`;
 
@@ -8452,7 +8345,6 @@ function createIvir(jsonString) {
                 FieldName.push(key);
                 HeaderText.push(value["#text"] || "");
                 ColumnType.push(value["@type"] || "c");
-                ivFreezeColumn.push(value["@freezecol"] || "F");
                 HideColumn.push(value["@hide"].toString() || "true");
 
                 if (key.startsWith("p_v_") && !ivHeadRows[key]["@align"]) { //align pivot numeric columns to right
@@ -8742,12 +8634,8 @@ function resetSmartViewVariables() {
 }
 
 function valdDecPts(obj, actValue) {
-    if (!isNaN(parseFloat(obj.value)) && /\./.test(obj.value) && $(obj).attr('onfocus') == 'ExprHandler(this.name,this.value, false);') {
-        //todo nothing 
-    } else {
-        var newVal = !isNaN(parseFloat(obj.value)) ? parseFloat(obj.value).toFixed(actValue) : "";
-        obj.value = newVal;
-    }
+    var newVal = !isNaN(parseFloat(obj.value)) ? parseFloat(obj.value).toFixed(actValue) : "";
+    obj.value = newVal;
 }
 
 function setRefreshParent(val) {
@@ -8974,7 +8862,7 @@ function LoadTstFrmIview(srcUrl, ivname, navigationType) {
         LoadPopPage(srcUrl + params)
     }
     else if (navigationType === "default" || navigationType == "") {
-        ReloadIframe(srcUrl + params, true);
+        ReloadIframe(srcUrl + params);
     }
     else if (navigationType === "newpage") {
         popupFullPage(srcUrl + params);
@@ -8983,7 +8871,7 @@ function LoadTstFrmIview(srcUrl, ivname, navigationType) {
 
 }
 
-function ReloadIframe(NavigationURL, isLoadHyp = false) {
+function ReloadIframe(NavigationURL) {
     var parFrm = $(window.frameElement);
     try {
         parFrm = reloadingFrameSwitch() || parFrm;
@@ -8991,48 +8879,8 @@ function ReloadIframe(NavigationURL, isLoadHyp = false) {
     GetProcessTime();
     // parFrm.attr("src", NavigationURL + "&hdnbElapsTime=" + callParentNew("browserElapsTime"));
     try {
-        if (isLoadHyp) {
-            ShowDimmer(true);
-            let _openingTransID = decodeURI(NavigationURL)
-                .split('?')[1]
-                .split('&')
-                .map(param => param.split('='))
-                .reduce((values, [key, value]) => {
-                    if (key.toLowerCase() == 'transid' || key.toLowerCase() == 'tstname') {
-                        values['transid'] = value
-                    }
-                    return values
-                }, {});
-
-            var _TstlocalStorage = "";
-            try {
-                if (typeof (Storage) !== "undefined") {
-                    let appSUrl = top.window.location.href.toLowerCase().substring("0", top.window.location.href.indexOf("/aspx/"));
-                    let _thisKey = callParentNew("getKeysWithPrefix(tstHtml♠" + _openingTransID.transid + "-" + appSUrl + "♥)", "function");
-                    _TstlocalStorage = localStorage[_thisKey[0]];
-                    if (typeof _TstlocalStorage == "undefined") {
-                        _TstlocalStorage = "";
-                    }
-                }
-            } catch (e) {
-            }
-            if (_TstlocalStorage != "") {
-                let _thisTst = _TstlocalStorage.split('♠♠♠')[1];
-                let _thisTstId = _thisTst.split('*$*')[11];
-                NavigationURL += "&dummyload=true♠" + _thisTstId;
-            } else {
-                NavigationURL += "&dummyload=false♠";
-            }
-            if (NavigationURL.indexOf('tstruct.aspx?') > -1) {
-                let _tstURI = NavigationURL.replace(/♠/g, '%e2%99%a0');
-                callParentNew("lastLoadtstId=", _tstURI + "&hdnbElapsTime=" + callParentNew("browserElapsTime"));
-            }
-            else
-                callParentNew("lastLoadtstId=", "fromiview");
-        }
-
         parFrm[0].contentWindow.location.href = NavigationURL + "&hdnbElapsTime=" + callParentNew("browserElapsTime");
-    } catch (ex) { }
+    } catch (ex) {}
 
 }
 function popupFullPage(NavigationURL) {
@@ -9089,144 +8937,52 @@ function getAllRecords() {
             }
         });
     } else {
-        if (exportType == "excel") {
-            var ConfirmDeleteCB = $.confirm({
-                theme: 'modern',
-                title: appGlobalVarsObject.lcm[164],
-                onContentReady: function () {
-                    disableBackDrop('bind');
+        var ConfirmDeleteCB = $.confirm({
+            theme: 'modern',
+            title: appGlobalVarsObject.lcm[164],
+            onContentReady: function () {
+                disableBackDrop('bind');
+            },
+            backgroundDismiss: 'false',
+            rtl: isRTL,
+            escapeKey: 'buttonB',
+            content: appGlobalVarsObject.lcm[499],
+            columnClass: 'medium',
+            buttons: {
+                buttonA: {
+                    text: appGlobalVarsObject.lcm[500],
+                    btnClass: 'btn btn-primary',
+                    action: function () {
+                        ConfirmDeleteCB.close();
+                        ShowDimmer(true);
+                        setTimeout(function () {
+                            setTimeout(() => {
+                                getNextDtRecords(0);
+                            }, 0);
+                        }, 100);
+                    }
                 },
-                backgroundDismiss: 'buttonA',
-                rtl: isRTL,
-                escapeKey: 'buttonA',
-                content: appGlobalVarsObject.lcm[534],
-                columnClass: 'medium',
-                buttons: {
-                    buttonA: {
-                        text: appGlobalVarsObject.lcm[281],
-                        btnClass: 'btn btn-primary',
-                        action: function () {
-                            ConfirmDeleteCB.close();
-                            ShowDimmer(true);
-                            setTimeout(function () {
-                                setTimeout(() => {
-                                    showExportConfirmforARM();
-                                }, 0);
-                            }, 100);
-                        }
+                buttonB: {
+                    text: appGlobalVarsObject.lcm[501],
+                    btnClass: 'btn btn-bg-light btn-color-danger btn-active-light-danger',
+                    action: function () {
+                        ConfirmDeleteCB.close();
+                        ExecuteDatatableExport();
+                        return;
+                    }
+                },
+                buttonC: {
+                    text: appGlobalVarsObject.lcm[192],
+                    btnClass: 'btn btn-bg-light btn-color-danger btn-active-light-danger',
+                    action: function () {
+                        disableBackDrop('destroy');
+                        ShowDimmer(false);
+                        exportType = "";
+                        return;
                     }
                 }
-            });
-        } else if (exportType == "word") {
-            ExecuteDatatableExport('currentrecords');
-        }
-        else {
-            var ConfirmDeleteCB = $.confirm({
-                theme: 'modern',
-                title: appGlobalVarsObject.lcm[164],
-                onContentReady: function () {
-                    disableBackDrop('bind');
-                },
-                backgroundDismiss: 'false',
-                rtl: isRTL,
-                escapeKey: 'buttonB',
-                content: appGlobalVarsObject.lcm[499],
-                columnClass: 'medium',
-                buttons: {
-                    buttonA: {
-                        text: appGlobalVarsObject.lcm[500],
-                        btnClass: 'btn btn-primary',
-                        action: function () {
-                            ConfirmDeleteCB.close();
-                            ShowDimmer(true);
-                            setTimeout(function () {
-                                setTimeout(() => {
-                                    if (exportType != "excel")
-                                        getNextDtRecords(0);
-                                    else
-                                        showExportConfirmforARM();
-                                }, 0);
-                            }, 100);
-                        }
-                    },
-                    buttonB: {
-                        text: appGlobalVarsObject.lcm[501],
-                        btnClass: 'btn btn-bg-light btn-color-danger btn-active-light-danger',
-                        action: function () {
-                            ConfirmDeleteCB.close();
-                            ExecuteDatatableExport('currentrecords');
-                            return;
-                        }
-                    },
-                    buttonC: {
-                        text: appGlobalVarsObject.lcm[192],
-                        btnClass: 'btn btn-bg-light btn-color-danger btn-active-light-danger',
-                        action: function () {
-                            disableBackDrop('destroy');
-                            ShowDimmer(false);
-                            exportType = "";
-                            return;
-                        }
-                    }
-                }
-            });
-        }
-    }
-}
-
-function showExportConfirmforARM() {
-    var pa = form1.param.value;
-    ASB.WebService.ExportARMPushToQueue(iName, pa, SuccessCallbackARMQueue);
-
-    //var glType = callParentNew('gllangType');
-    //var isRTL = glType == "ar" ? true : false;
-    //$.confirm({
-    //    theme: 'modern',
-    //    title: appGlobalVarsObject.lcm[155],
-    //    rtl: isRTL,
-    //    onContentReady: function () {
-    //        disableBackDrop('bind');
-    //    },
-    //    backgroundDismiss: 'buttonB',
-    //    escapeKey: 'buttonB',
-    //    content: appGlobalVarsObject.lcm[533],
-    //    buttons: {
-    //        buttonA: {
-    //            text: appGlobalVarsObject.lcm[279],
-    //            btnClass: 'btn btn-primary',
-    //            action: function () {
-    //                var pa = form1.param.value;
-    //                ASB.WebService.ExportARMPushToQueue(iName, pa, SuccessCallbackARMQueue);
-    //            }
-    //        },
-    //        buttonB: {
-    //            text: appGlobalVarsObject.lcm[280],
-    //            btnClass: 'btn btn-bg-light btn-color-danger btn-active-light-danger',
-    //            action: function () {
-    //                getNextDtRecords(0);
-    //            }
-    //        }
-    //    }
-    //});
-}
-function SuccessCallbackARMQueue(result, eventArgs) {
-    if (CheckSessionTimeout(result))
-        return;
-    try {
-        var resJson = $j.parseJSON(result);
-    } catch (ex) {
-        ShowDimmer(false);
-    }
-    ShowDimmer(false);
-    AxWaitCursor(false);
-    if (resJson != undefined) {
-        if (resJson.result.success == true) {
-            showAlertDialog('success', "Data submitted to Queue successfully.");
-        } else {
-            showAlertDialog('error', "There was an error please try again");
-        }
-    } else {
-        showAlertDialog('error', "There was an error please try again");
+            }
+        });
     }
 }
 
@@ -9649,7 +9405,7 @@ function loadAxTstruct(urlNavigationPath) {
             if (tstRecId != "" && tstRecId != "0")
                 $j("#axpiframe", parent.document)[0].contentWindow.GetLoadData(tstRecId, tstQureystr);
             else
-                $j("#axpiframe", parent.document)[0].contentWindow.GetFormLoadData(tstQureystr, "false", "false", "true");
+                $j("#axpiframe", parent.document)[0].contentWindow.GetFormLoadData(tstQureystr);
             AxWaitCursor(false);
             ShowDimmer(false);
         }
@@ -10066,7 +9822,7 @@ function iconsNewLogicFunction(buttonNew, parentRoot) {
         $("#iconsExportExcel").removeClass("d-none").find("a").attr("href", thisHref);
         return true;
     } else if (thisHref = (buttonNew.href && buttonNew.href.indexOf(`javascript:SetDatatableExport(`) == 0 && buttonNew.href) || (buttonNew.onclick && buttonNew.onclick.indexOf(`javascript:SetDatatableExport(`) == 0 && buttonNew.onclick)) {
-        $("#iconsExportHTML,#iconsExporJSON,#iconsExportCopy,#iconsExportWord").removeClass("d-none");
+        $("#iconsExportHTML,#iconsExporJSON,#iconsExportCopy").removeClass("d-none");
         return true;
     }
 }
@@ -10341,20 +10097,6 @@ function processIvConfiguration(InnerIvConfigurations) {
             })[0], ["PROPSVAL"]).toString().toLowerCase() == "true");
         } catch (ex) { }
     }
-
-    try {
-        subtoaltColor = getCaseInSensitiveJsonProperty(ivConfigurations.filter((val, ind) => {
-            var thisVal = getCaseInSensitiveJsonProperty(val, "PROPS");
-            return thisVal && thisVal.toString() && thisVal.toString().toLowerCase() == "set iview subtotal default color as axpert desktop"
-        })[0], ["PROPSVAL"]).toString().toLowerCase() == "true";
-    } catch (ex) { }    
-
-    try {
-        grandtoaltColor = getCaseInSensitiveJsonProperty(ivConfigurations.filter((val, ind) => {
-            var thisVal = getCaseInSensitiveJsonProperty(val, "PROPS");
-            return thisVal && thisVal.toString() && thisVal.toString().toLowerCase() == "set iview grand total default color as axpert desktop"
-        })[0], ["PROPSVAL"]).toString().toLowerCase() == "true";
-    } catch (ex) { }
 }
 
 /**
@@ -10629,7 +10371,7 @@ function createSmartSelect(paramName) {
 
 function createSmartSelectDF(paramName) {
     const _thisSmartSelect = $(paramName);
-    var isPlOpen = true;
+    var isPlOpen = false;
     var plSelected = "";
     let _plS2InitOpt = {
         allowClear: true,
@@ -10638,7 +10380,7 @@ function createSmartSelectDF(paramName) {
     _thisSmartSelect.select2(_plS2InitOpt).on('select2:open', (selectEv) => {
         let _thisDd = $(selectEv.currentTarget).data("select2")?.$dropdown;
         if (isPlOpen) {
-            // isPlOpen = false;
+            isPlOpen = false;
             $(_thisDd).removeClass("opacity-0").addClass("opacity-100");
             _extendSelect2OpenOptions(selectEv);
         } else {
@@ -10672,92 +10414,92 @@ function createSmartSelectDF(paramName) {
                         $(`#${plId} option`).remove();
                         $(`#${plId}`).select2({ data: [] });
                     }
-                        $.ajax({
-                            async: false,
-                            cache: false,
-                            contentType: "application/json;charset=utf-8",
-                            dataType: "json",
-                            type: "POST",
-                            url: "../aspx/iview.aspx/GetIviewPickListData",
-                            data: JSON.stringify({
-                                iviewName: iName,
-                                pageNo: plpageNo++,
-                                pageSize: 100,
-                                fieldName: plId,
-                                fieldValue: plSelected || "",
-                                depParamVal: $("#hdnparamValues").val()
-                            }),
-                            success: (data) => {
-                                try {
-                                    if (CheckSessionTimeout(data.d)) {
-                                        ShowDimmer(false);
-                                        return;
-                                    }
-
-                                    if (data.d.toLowerCase().indexOf("\"error\":") > -1) {
-                                            showAlertDialog("error", appGlobalVarsObject.lcm[10]);
-                                        ShowDimmer(false);
-                                        return;
-                                    } else {
-                                        let processPlData = JSON.parse(data.d.replace(/@/g, ''));
-
-                                        if (processPlData.sqlresultset.response != null) {
-                                            if (typeof processPlData.sqlresultset.response.totalrows != "undefined") {
-                                                data.total_count = (+processPlData.sqlresultset.response.totalrows) || 10;
-                                            }
-
-                                            if (processPlData.sqlresultset.response.row.length == undefined) {
-                                                processPlData.sqlresultset.response.row = [processPlData.sqlresultset.response.row];
-                                            }
-                                            data.items = [];
-                                            data.items = processPlData.sqlresultset.response.row.map((row, index) => {
-                                                var plRowData = $(`<span>${row[Object.keys(row)[0]]["#text"]}</span>`).text();
-                                                return {
-                                                    id: plRowData,
-                                                    text: plRowData,
-                                                    row
-                                                };
-                                            });
-                                            if (plSelected != "") {
-                                                var datapl = {
-                                                    id: plSelected,
-                                                    text: plSelected,
-                                                    tag: true
-                                                };
-                                                var newOption = new Option(datapl.text, datapl.id, false, false);
-                                                $(`#${plId}`).append(newOption).trigger('change');
-                                            }
-                                            _plS2InitOpt.data = data.items || [];
-                                        } else if (processPlData.sqlresultset.response == null) {
-                                            _plS2InitOpt.data = [{ id: plSelected, text: plSelected}];
-                                        }
-                                        isPlOpen = true;
-                                        $(`#${plId}`).select2(_plS2InitOpt);
-                                        $(`#${plId}`).select2('close');
-                                        $(`#${plId}`).select2('open');
-                                        if (para.originalEvent.keyCode == 13 && para.originalEvent.type == 'keypress') {
-                                            $(`#${plId}`).parent().find(".selection textarea").val('');
-                                            $(`#${plId}`).parent().find(".selection textarea").addClass("w-100");
-                                        } else {
-                                            $(`#${plId}`).parent().find(".selection textarea").val(plSelected);
-                                            $(`#${plId}`).parent().find(".selection textarea").addClass("w-100");
-                                        }
-                                    }
+                    $.ajax({
+                        async: false,
+                        cache: false,
+                        contentType: "application/json;charset=utf-8",
+                        dataType: "json",
+                        type: "POST",
+                        url: "../aspx/iview.aspx/GetIviewPickListData",
+                        data: JSON.stringify({
+                            iviewName: iName,
+                            pageNo: plpageNo++,
+                            pageSize: 100,
+                            fieldName: plId,
+                            fieldValue: plSelected || "",
+                            depParamVal: $("#hdnparamValues").val()
+                        }),
+                        success: (data) => {
+                            try {
+                                if (CheckSessionTimeout(data.d)) {
                                     ShowDimmer(false);
-                                } catch (error) {
-                                    showAlertDialog("error", error.message);
-                                    ShowDimmer(false);
+                                    return;
                                 }
-                            },
-                            error: (response) => {
-                                showAlertDialog("error", appGlobalVarsObject.lcm[10]);
+
+                                if (data.d.toLowerCase().indexOf("\"error\":") > -1) {
+                                    showAlertDialog("error", appGlobalVarsObject.lcm[10]);
+                                    ShowDimmer(false);
+                                    return;
+                                } else {
+                                    let processPlData = JSON.parse(data.d.replace(/@/g, ''));
+
+                                    if (processPlData.sqlresultset.response != null) {
+                                        if (typeof processPlData.sqlresultset.response.totalrows != "undefined") {
+                                            data.total_count = (+processPlData.sqlresultset.response.totalrows) || 10;
+                                        }
+
+                                        if (processPlData.sqlresultset.response.row.length == undefined) {
+                                            processPlData.sqlresultset.response.row = [processPlData.sqlresultset.response.row];
+                                        }
+                                        data.items = [];
+                                        data.items = processPlData.sqlresultset.response.row.map((row, index) => {
+                                            var plRowData = $(`<span>${row[Object.keys(row)[0]]["#text"]}</span>`).text();
+                                            return {
+                                                id: plRowData,
+                                                text: plRowData,
+                                                row
+                                            };
+                                        });
+                                        if (plSelected != "") {
+                                            var datapl = {
+                                                id: plSelected,
+                                                text: plSelected,
+                                                tag: true
+                                            };
+                                            var newOption = new Option(datapl.text, datapl.id, false, false);
+                                            $(`#${plId}`).append(newOption).trigger('change');
+                                        }
+                                        _plS2InitOpt.data = data.items || [];
+                                    } else if (processPlData.sqlresultset.response == null) {
+                                        _plS2InitOpt.data = [{ id: plSelected, text: plSelected}];
+                                    }
+                                    isPlOpen = true;
+                                    $(`#${plId}`).select2(_plS2InitOpt);
+                                    $(`#${plId}`).select2('close');
+                                    $(`#${plId}`).select2('open');
+                                    if (para.originalEvent.keyCode == 13 && para.originalEvent.type == 'keypress') {
+                                        $(`#${plId}`).parent().find(".selection textarea").val('');
+                                        $(`#${plId}`).parent().find(".selection textarea").addClass("w-100");
+                                    } else {
+                                        $(`#${plId}`).parent().find(".selection textarea").val(plSelected);
+                                        $(`#${plId}`).parent().find(".selection textarea").addClass("w-100");
+                                    }
+                                }
                                 ShowDimmer(false);
-                            },
-                            failure: (response) => {
-                                showAlertDialog("error", appGlobalVarsObject.lcm[10]);
+                            } catch (error) {
+                                showAlertDialog("error", error.message);
                                 ShowDimmer(false);
                             }
-                        });
+                        },
+                        error: (response) => {
+                            showAlertDialog("error", appGlobalVarsObject.lcm[10]);
+                            ShowDimmer(false);
+                        },
+                        failure: (response) => {
+                            showAlertDialog("error", appGlobalVarsObject.lcm[10]);
+                            ShowDimmer(false);
+                        }
+                    });
                 }, 0);
                 
             } catch (error) {
@@ -10854,7 +10596,7 @@ function createPlSmartSelect(paramName) {
                                 }
 
                                 if (data.d.toLowerCase().indexOf("\"error\":") > -1) {
-                                        showAlertDialog("error", appGlobalVarsObject.lcm[10]);
+                                    showAlertDialog("error", appGlobalVarsObject.lcm[10]);
                                     ShowDimmer(false);
                                     return;
                                 } else {
@@ -10969,7 +10711,7 @@ function createPlSmartSelect(paramName) {
                                 }
 
                                 if (data.d.toLowerCase().indexOf("\"error\":") > -1) {
-                                        showAlertDialog("error", appGlobalVarsObject.lcm[10]);
+                                    showAlertDialog("error", appGlobalVarsObject.lcm[10]);
                                     ShowDimmer(false);
                                     return;
                                 } else {
@@ -11137,20 +10879,7 @@ function _extendSelect2OpenOptions(selectEv) {
                 else
                     navigator.clipboard.writeText("");
             } catch (ex) {
-                if (typeof navigator.clipboard == "undefined" && $(`#${$(copied.currentTarget).data("copy")}`).val() != null) {
-                    const copyText = document.createElement('textarea');
-                    copyText.value = $(`#${$(copied.currentTarget).data("copy")}`).val();
-                    document.body.prepend(copyText);
-                    copyText.select();
-                    try {
-                        document.execCommand('copy');
-                    } catch (err) {
-                        //console.log(err);
-                    } finally {
-                        copyText.remove();
-                    }
-                } else if (typeof navigator.clipboard != "undefined")
-                    navigator.clipboard.writeText("");
+                navigator.clipboard.writeText("");
             }
         });
     }
@@ -11199,7 +10928,7 @@ function CallSelectRefreshParam(fldname, value, pageNo, pagesize, id, ClearPCach
             }
             if (data.d.toLowerCase().indexOf("\"error\":") > -1) {
                 ;
-                    showAlertDialog("error", appGlobalVarsObject.lcm[10]);
+                showAlertDialog("error", appGlobalVarsObject.lcm[10]);
                 ShowDimmer(false);
             } else {
                 try {
@@ -11375,23 +11104,5 @@ function paramsSplCharsCheck(str) {
         
     str = str.replace(/&#94;/g, "^");
     str = str.replace(/&#64;/g, "@");
-    return str;
-}
-
-function CheckParamNameSplChars(str) {
-    if (str == undefined || str == null)
-        return "";
-    str = str.replace(/%/g, '%25');
-    str = str.replace(/#/g, '%23');
-    str = str.replace(/&/g, '%26');
-    str = str.replace(/'/g, '%27');
-    str = str.replace(/\"/g, '%22');
-    str = str.replace(/\+/g, '%2b');
-    str = str.replace(/</g, '%3C');
-    str = str.replace(/>/g, '%3E'); 
-    str = str.replace(/\\/g, '%5C');
-    str = str.replace(/ /g, '%20');
-    str = str.replace(/\[/g, '%5B');
-    str = str.replace(/\]/g, '%5D');
     return str;
 }

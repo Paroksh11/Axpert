@@ -65,14 +65,14 @@
     <link href="../App_Themes/Gray/Stylesheet.min.css?v=23" rel="stylesheet" />
     <link id="themecss" type="text/css" href="" rel="stylesheet" />
     <script src="../Js/Message.min.js?v=2" type="text/javascript"></script>
-    <script src="../Js/common.min.js?v=144" type="text/javascript"></script>
+    <script src="../Js/common.min.js?v=141" type="text/javascript"></script>
 </head>
 <body onload="ChangeDir('<%=direction%>');">
     <form id="form1" runat="server">
         <div>
             <asp:ScriptManager ID="ScriptManager1" runat="server">
                 <Scripts>
-                    <asp:ScriptReference Path="../Js/helper.min.js?v=165" />
+                    <asp:ScriptReference Path="../Js/helper.min.js?v=159" />
                 </Scripts>
                 <Services>
                     <asp:ServiceReference Path="../WebService.asmx" />

@@ -1048,17 +1048,6 @@ window.addEventListener('storage', SignOutAllTabs, false);
         callParentNew("updateAppLinkObj")?.(newLoadUrl,0,window?.frameElement?.id == "axpiframe", {...window?.frameElement?.dataset});
     });
 
-function updatedBackHistory() {
-    if ($(window.frameElement).hasClass('bootStrapModal')) return false;
-    if (window && window.frameElement && window.frameElement.id == "popupIframeRemodal") return false;
-    if (window && window.frameElement && window.frameElement.id == "loadPopUpPage") return false;
-    // if (window && window.frameElement && window.frameElement.id == "axpiframeac") return false;     
-    if (window && window.frameElement && window.frameElement.id.indexOf('iFrame') === 0) return false;
-    if (typeof window.location.href != "undefined" && window.location.href.indexOf("adminconsole.aspx?") > 0) return false;
-    var newLoadUrl = window.location.href;
-    callParentNew("updateAppLinkObj")?.(newLoadUrl, 0, window?.frameElement?.id == "axpiframe", { ...window?.frameElement?.dataset });
-}
-
     //when settings dropdown option & utilities down option clicks on same time 2 popup's will appear at a time, to avoid this once click on one dropdown making other dropdown unclickable, once the first popup is loaded successfully then remove that dropdown unclickable class
     function removeUnclickableMenuCssClass() {
         $("#settingdropdown, #ExportImportCogIcon").removeClass("menu-not-allowed");
@@ -1947,14 +1936,9 @@ function createPopup (modalBodyLink, delayLoad = false, shownCallBack = "", hide
                     window.location.href = window.location.href;
 
             } else if (isTstAxPop && (window.document.title == "Load Tstruct" || window.document.title == "Tstruct") && eval(callParent('isRefreshParentOnClose'))) {
-                setTimeout(function () {
-                    eval(callParent('isRefreshParentOnClose') + "= false");
-                    ShowDimmer(true);
-                    if (recordid != "" && recordid != '0' && window.location.href.toLowerCase().indexOf('&recordid=') == -1)
-                        window.location.href = window.location.href + "&recordid=" + recordid;
-                    else
-                        window.location.href = window.location.href;
-                }, 0);
+                eval(callParent('isRefreshParentOnClose') + "= false");
+                ShowDimmer(true);
+                window.location.href = window.location.href;
             }
         }
         );

@@ -1104,7 +1104,6 @@ public class TStructDef
         string fldSqlQuery;
         string fldSelAPI;
         string fieldSelApiParams;
-        string fieldSelApiName;
         string fldSelectMode;
         string fldMoeValue;
         string fldTooltip;
@@ -1464,12 +1463,6 @@ public class TStructDef
         {
             get { return fieldSelApiParams; }
             set { fieldSelApiParams = value; }
-        }
-
-        public string fieldSelAPIName
-        {
-            get { return fieldSelApiName; }
-            set { fieldSelApiName = value; }
         }
 
         public int fldframeno
@@ -3664,8 +3657,6 @@ public class TStructDef
                         //if (moeDetailNode.Attributes["stype"] != null && moeDetailNode.Attributes["stype"].Value.ToLower() == "accept")
                         if (moeDetailNode.Attributes["stype"] != null && moeDetailNode.Attributes["stype"].Value.ToLower() == "from api")
                         {
-                            if (moeDetailNode.Attributes["apiname"] != null)
-                                fld.fieldSelAPIName = moeDetailNode.Attributes["apiname"].Value;
                             if (moeDetailNode.Attributes["url"] != null)
                                 fld.fieldSelAPI = moeDetailNode.Attributes["url"].Value;
                             if (moeDetailNode.Attributes["mapname"] != null)
@@ -3743,8 +3734,6 @@ public class TStructDef
                         if (moeDetailNode.Attributes["stype"] != null && moeDetailNode.Attributes["stype"].Value == "Select From API")
                         {
                             fld.isFieldApi = "true";
-                            if (moeDetailNode.Attributes["apiname"] != null)
-                                fld.fieldSelAPIName = moeDetailNode.Attributes["apiname"].Value;
                             if (moeDetailNode.Attributes["url"] != null)
                                 fld.fieldSelAPI = moeDetailNode.Attributes["url"].Value;
                             if (moeDetailNode.Attributes["mapname"] != null)
@@ -4336,8 +4325,8 @@ public class TStructDef
                                     if (action == "Custom")
                                         btnFunction = " onclick='javascript:" + btnId + "onclick(this);' ";
                                     else
-                                        btnFunction = " onclick=\"javascript:CallAction('" + action + "','','','','','','" + script.ToString().ToLower() + "');\" ";
-                                    string gsbtn = "<a href=\"javascript:void(0)\" class=\"Grdlnk axpBtnCustom\" id=\"" + btnId + "\" " + btnFunction + ">" + caption + "</a>";
+                                        btnFunction = " onclick=javascript:CallAction('" + action + "','','','','','','" + script.ToString().ToLower() + "'); ";
+                                    string gsbtn = "<a href=\"javascript:void(0)\" class=\"Grdlnk axpBtnCustom\" id=\"" + btnId + "\" onclick=" + btnFunction + ">" + caption + "</a>";
                                     gridScriptButtons.Add("<th id=\"th-" + btnId + "\" style=\"width:100px;\" class=\"fw-boldest\"><div id=\"th-" + btnId + "-sizer\"></div><div class='thhead'></div></th>♠<div class=\"gridElement form-group grid-stack-item\" style=\"\"><div class=\"fld-wrap3\"><div>" + gsbtn + "</div></div>♠<div class=\"gridElement form-group grid-stack-item\" " + xywhGridStack(dummy) + " id=\"dvGrid" + btnId + "\" style=\"\"><span class=\"badge-grid-stack position-absolute top-0 end-0\">1</span><div class=\"grid-stack-item-content ui-draggable-handle\"></div><div class=\"grid-stack-item-content\"><div>" + gsbtn + "</div></div></div>");
                                     gridScriptDcNo.Add(dcs.Count.ToString());
                                 }
@@ -4347,7 +4336,7 @@ public class TStructDef
                                     if (action == "Custom")
                                         btnFunction = " onclick='javascript:" + btnId + "onclick();' ";
                                     else
-                                        btnFunction = " onclick=\"javascript:CallAction('" + action + "','','','','','','" + script.ToString().ToLower() + "');\" ";
+                                        btnFunction = " onclick=javascript:CallAction('" + action + "','','','','','','" + script.ToString().ToLower() + "'); ";
                                     gridHeaderScriptButtons.Add("<a class=\"btn btn-sm btn-icon btn-white btn-color-gray-600 btn-active-primary me-2 shadow-sm gridheaderbutton\" id=\"" + btnId + "\" " + btnFunction + " title=\"" + caption + "\"><span class=\"material-icons material-icons-style material-icons-3\">check_box_outline_blank</span></a>");
                                     gridHeaderScriptDcNo.Add(dcs.Count.ToString());
                                 }
@@ -5588,8 +5577,7 @@ public class TStructDef
         //getDesignData();
         if (HttpContext.Current.Session["IsCustomHtml"] == null || HttpContext.Current.Session["IsCustomHtml"].ToString() == string.Empty)
             getDesignDataPerf();
-        if (HttpContext.Current.Session["IsCustomHtml"] != null && HttpContext.Current.Session["IsCustomHtml"].ToString() == "true")
-            IsObjCustomHtml = true;
+
 
         XmlDocument formbtnnode = new System.Xml.XmlDocument();
         XmlNode toolbarcomps = xmlDoc.SelectSingleNode("//root/comps");
@@ -5764,9 +5752,9 @@ public class TStructDef
 
         IsWsPerfDeleteGridRow();
 
-        //FDR fastData = (FDR)HttpContext.Current.Session["FDR"];
-        //fastDataFlds = fastData.GetRedisServerFields(this);
-        //fastData.GetFastDataRefEvents(this);
+        FDR fastData = (FDR)HttpContext.Current.Session["FDR"];
+        fastDataFlds = fastData.GetRedisServerFields(this);
+        fastData.GetFastDataRefEvents(this);
     }
 
     /// <summary>
@@ -7036,8 +7024,8 @@ public class TStructDef
                     if (isGrid)
                     {
                         string ddetails = String.Empty;
-                        //if (fld.tooltip != null && fld.tooltip != "")
-                        //    ddetails = "<span class=\"material-icons material-icons-style align-middle material-icons-3 cursor-pointer spanddetails\" title=\"Click on any row in this column to know more about the data in the cell.\">info</span>";
+                        if (fld.tooltip != null && fld.tooltip != "")
+                            ddetails = "<span class=\"material-icons material-icons-style align-middle material-icons-3 cursor-pointer spanddetails\" title=\"Click on any row in this column to know more about the data in the cell.\">info</span>";
                         string allowemptycss = "";
                         if (!fld.allowempty && fld.caption != "")
                             allowemptycss = " required ";
@@ -7077,8 +7065,8 @@ public class TStructDef
                         //    gridHeadHtml.Append("<span class=\"allowempty\">*</span>");
                         //}
 
-                        //if (!string.IsNullOrEmpty(fld.fieldPurpose))
-                        //    gridHeadHtml.Append("<span><i tabindex=\"-1\" data-bs-trigger=\"hover\" class=\"icon-arrows-question material-icons material-icons-style material-icons-4 align-middle ms-2 cursor-pointer\" id=\"ico_cl\" data-bs-toggle=\"tooltip\" data-bs-placement=\"right\" data-bs-dismiss=\"click\" data-bs-original-title=\"" + fld.fieldPurpose + "\">help_outline</i></span>");
+                        if (!string.IsNullOrEmpty(fld.fieldPurpose))
+                            gridHeadHtml.Append("<span><i tabindex=\"-1\" data-bs-trigger=\"hover\" class=\"icon-arrows-question material-icons material-icons-style material-icons-4 align-middle ms-2 cursor-pointer\" id=\"ico_cl\" data-bs-toggle=\"tooltip\" data-bs-placement=\"right\" data-bs-dismiss=\"click\" data-bs-original-title=\"" + fld.fieldPurpose + "\">help_outline</i></span>");
                         gridHeadHtml.Append(ddetails + "</div></th>");
                     }
                     else
@@ -7170,15 +7158,15 @@ public class TStructDef
                                 fieldHtml.Append("<label class=\"form-label col-form-label pb-1 fw-boldest \" style=\"text-decoration:underline;cursor: pointer;" + (designFontStyle == "" ? color : designFontStyle) + "\"  for=\"" + name + "\" " + (name.ToLower().Contains("axp_url_") ? "data-axp-url='true'" : "") + " >" + fld.caption + "</label >");
                             else
                                 fieldHtml.Append("<label class=\"form-label col-form-label pb-1 fw-boldest \" style=\"" + (designFontStyle == "" ? color : designFontStyle) + "\"  for=\"" + name + "\" " + (name.ToLower().Contains("axp_url_") ? "data-axp-url='true'" : "") + " >" + fld.caption + "</label >");//if the tstruct field contains axp_url_ then add an attribute 'data-axp-url' to display hyperlink instead of label
-                            //if (fld.tooltip != null && fld.tooltip != "")
-                            //{
-                            //    fieldHtml.Append("<span class=\"material-icons material-icons-style ms-1 align-middle material-icons-3 cursor-pointer spanddetails\" title=\"Display details\">info</span>");
-                            //}
+                            if (fld.tooltip != null && fld.tooltip != "")
+                            {
+                                fieldHtml.Append("<span class=\"material-icons material-icons-style ms-1 align-middle material-icons-3 cursor-pointer spanddetails\" title=\"Display details\">info</span>");
+                            }
                             if (isHyper || designHyperLink != "")
                                 fieldHtml.Append("</a>");
 
-                            //if (!string.IsNullOrEmpty(fld.fieldPurpose))
-                            //    fieldHtml.Append("<span><i tabindex=\"-1\" data-bs-trigger=\"hover\" class=\"icon-arrows-question material-icons material-icons-style material-icons-4 align-middle ms-2 cursor-pointer\" id=\"ico_cl\" data-bs-toggle=\"tooltip\" data-bs-placement=\"right\" data-bs-dismiss=\"click\" data-bs-original-title=\"" + fld.fieldPurpose + "\">help_outline</i></span>");
+                            if (!string.IsNullOrEmpty(fld.fieldPurpose))
+                                fieldHtml.Append("<span><i tabindex=\"-1\" data-bs-trigger=\"hover\" class=\"icon-arrows-question material-icons material-icons-style material-icons-4 align-middle ms-2 cursor-pointer\" id=\"ico_cl\" data-bs-toggle=\"tooltip\" data-bs-placement=\"right\" data-bs-dismiss=\"click\" data-bs-original-title=\"" + fld.fieldPurpose + "\">help_outline</i></span>");
                             fieldHtml.Append("</div>");
                         }
                         else
@@ -7215,8 +7203,8 @@ public class TStructDef
                                 fieldHtml.Append("<span class=\"allowempty\">*</span>");
                             }
 
-                            //if (!string.IsNullOrEmpty(fld.fieldPurpose))
-                            //    fieldHtml.Append("<span><i tabindex=\"-1\" data-bs-trigger=\"hover\" class=\"icon-arrows-question material-icons material-icons-style material-icons-4 align-middle ms-2 cursor-pointer\" id=\"ico_cl\" data-bs-toggle=\"tooltip\" data-bs-placement=\"right\" data-bs-dismiss=\"click\" data-bs-original-title=\"" + fld.fieldPurpose + "\">help_outline</i></span>");
+                            if (!string.IsNullOrEmpty(fld.fieldPurpose))
+                                fieldHtml.Append("<span><i tabindex=\"-1\" data-bs-trigger=\"hover\" class=\"icon-arrows-question material-icons material-icons-style material-icons-4 align-middle ms-2 cursor-pointer\" id=\"ico_cl\" data-bs-toggle=\"tooltip\" data-bs-placement=\"right\" data-bs-dismiss=\"click\" data-bs-original-title=\"" + fld.fieldPurpose + "\">help_outline</i></span>");
 
                             if (popImg != "")
                             {
@@ -7252,8 +7240,8 @@ public class TStructDef
                                 gridInSlackGridX = 0;
                                 gridInSlackGridY += 1;
                             }
-                            //if (!string.IsNullOrEmpty(fld.fieldPurpose))
-                            //    fieldHtml.Append("<span><i tabindex=\"-1\" data-bs-trigger=\"hover\" class=\"icon-arrows-question material-icons material-icons-style material-icons-4 align-middle ms-2 cursor-pointer\" id=\"ico_cl\" data-bs-toggle=\"tooltip\" data-bs-placement=\"right\" data-bs-dismiss=\"click\" data-bs-original-title=\"" + fld.fieldPurpose + "\">help_outline</i></span>");
+                            if (!string.IsNullOrEmpty(fld.fieldPurpose))
+                                fieldHtml.Append("<span><i tabindex=\"-1\" data-bs-trigger=\"hover\" class=\"icon-arrows-question material-icons material-icons-style material-icons-4 align-middle ms-2 cursor-pointer\" id=\"ico_cl\" data-bs-toggle=\"tooltip\" data-bs-placement=\"right\" data-bs-dismiss=\"click\" data-bs-original-title=\"" + fld.fieldPurpose + "\">help_outline</i></span>");
 
                             fieldHtml.Append("</div>");
                             if (popImg != "")
@@ -7273,8 +7261,8 @@ public class TStructDef
                             gridHiddenHtml.Append("<div class=\"fld-wrap3 required\">");
                         gridHiddenHtml.Append("<label>" + fld.caption + "</label>");
 
-                        //if (!string.IsNullOrEmpty(fld.fieldPurpose))
-                        //    fieldHtml.Append("<span><i tabindex=\"-1\" data-bs-trigger=\"hover\" class=\"icon-arrows-question material-icons material-icons-style material-icons-4 align-middle ms-2 cursor-pointer\" id=\"ico_cl\" data-bs-toggle=\"tooltip\" data-bs-placement=\"right\" data-bs-dismiss=\"click\" data-bs-original-title=\"" + fld.fieldPurpose + "\">help_outline</i></span>");
+                        if (!string.IsNullOrEmpty(fld.fieldPurpose))
+                            fieldHtml.Append("<span><i tabindex=\"-1\" data-bs-trigger=\"hover\" class=\"icon-arrows-question material-icons material-icons-style material-icons-4 align-middle ms-2 cursor-pointer\" id=\"ico_cl\" data-bs-toggle=\"tooltip\" data-bs-placement=\"right\" data-bs-dismiss=\"click\" data-bs-original-title=\"" + fld.fieldPurpose + "\">help_outline</i></span>");
 
                         gridHiddenHtml.Append("</div>");
                         gridHiddenHtml.Append("<div>");
@@ -9227,8 +9215,8 @@ public class TStructDef
 
                     chkHTML.Append("<span class='" + checkBoxClass + "'>" + Fld.caption);
 
-                    //if (!string.IsNullOrEmpty(Fld.fieldPurpose))
-                    //    chkHTML.Append("<span><i tabindex=\"-1\" data-bs-trigger=\"hover\" class=\"icon-arrows-question material-icons material-icons-style material-icons-4 align-middle ms-2 cursor-pointer\" id=\"ico_cl\" data-bs-toggle=\"tooltip\" data-bs-placement=\"right\" data-bs-dismiss=\"click\" data-bs-original-title=\"" + Fld.fieldPurpose + "\">help_outline</i></span>");
+                    if (!string.IsNullOrEmpty(Fld.fieldPurpose))
+                        chkHTML.Append("<span><i tabindex=\"-1\" data-bs-trigger=\"hover\" class=\"icon-arrows-question material-icons material-icons-style material-icons-4 align-middle ms-2 cursor-pointer\" id=\"ico_cl\" data-bs-toggle=\"tooltip\" data-bs-placement=\"right\" data-bs-dismiss=\"click\" data-bs-original-title=\"" + Fld.fieldPurpose + "\">help_outline</i></span>");
                     chkHTML.Append("</span></label>");
                 }
             }
@@ -9252,8 +9240,8 @@ public class TStructDef
                 // bool columnModeEnabled = axdesignJObject.dcLayout != null && axdesignJObject.dcLayout != "" && axdesignJObject.dcLayout != "default";
 
                 chkHTML.Append("<span class='" + checkBoxClass + " " + /*(!columnModeEnabled ? " d-none " : "")*/ " d-none " + " '>" + Fld.caption);
-                //if (!string.IsNullOrEmpty(Fld.fieldPurpose))
-                //    chkHTML.Append("<span><i tabindex=\"-1\" data-bs-trigger=\"hover\" class=\"icon-arrows-question material-icons material-icons-style material-icons-4 align-middle ms-2 cursor-pointer\" id=\"ico_cl\" data-bs-toggle=\"tooltip\" data-bs-placement=\"right\" data-bs-dismiss=\"click\" data-bs-original-title=\"" + Fld.fieldPurpose + "\">help_outline</i></span>");
+                if (!string.IsNullOrEmpty(Fld.fieldPurpose))
+                    chkHTML.Append("<span><i tabindex=\"-1\" data-bs-trigger=\"hover\" class=\"icon-arrows-question material-icons material-icons-style material-icons-4 align-middle ms-2 cursor-pointer\" id=\"ico_cl\" data-bs-toggle=\"tooltip\" data-bs-placement=\"right\" data-bs-dismiss=\"click\" data-bs-original-title=\"" + Fld.fieldPurpose + "\">help_outline</i></span>");
                 chkHTML.Append("</span></div>");
             }
         }
@@ -10295,8 +10283,8 @@ public class TStructDef
                     if (fld.moe == "AutoGenerate")
                         cssAutoGen = "class=\"autogen\"";
                     string ddetails = String.Empty;
-                    //if (fld.tooltip != null && fld.tooltip != "")
-                    //    ddetails = "<span class=\"material-icons material-icons-style align-middle material-icons-3 cursor-pointer spanddetails\" title=\"Display details\">info</span>";
+                    if (fld.tooltip != null && fld.tooltip != "")
+                        ddetails = "<span class=\"material-icons material-icons-style align-middle material-icons-3 cursor-pointer spanddetails\" title=\"Display details\">info</span>";
                     if (name.StartsWith("axp_recid"))
                     {
                         fieldHtml.Append("<div class=\"gridElement d-none form-group\" id=\"dvGrid" + fld.name.Replace(" ", "") + "\"><div class=\"fldhdn" + i + "\"><INPUT id=\"" + name + "\" type=\"hidden\" value=\"0\" name=\"" + name + "\" value=\"" + fld.Value + "\" /></div></div>");
@@ -10384,8 +10372,8 @@ public class TStructDef
                     if (isGrid)
                     {
                         string ddetails = String.Empty;
-                        //if (fld.tooltip != null && fld.tooltip != "")
-                        //    ddetails = "<span class=\"material-icons material-icons-style align-middle material-icons-3 cursor-pointer spanddetails\" title=\"Click on any row in this column to know more about the data in the cell.\">info</span>";
+                        if (fld.tooltip != null && fld.tooltip != "")
+                            ddetails = "<span class=\"material-icons material-icons-style align-middle material-icons-3 cursor-pointer spanddetails\" title=\"Click on any row in this column to know more about the data in the cell.\">info</span>";
                         string allowemptycss = "";
                         if (!fld.allowempty && fld.caption != "")
                             allowemptycss = " required ";
@@ -10419,8 +10407,8 @@ public class TStructDef
                         //if (!fld.allowempty && fld.caption != "")
                         //    gridHeadHtml.Append("<span class=\"allowempty\">*</span>");
 
-                        //if (!string.IsNullOrEmpty(fld.fieldPurpose))
-                        //    gridHeadHtml.Append("<span><i tabindex=\"-1\" data-bs-trigger=\"hover\" class=\"icon-arrows-question material-icons material-icons-style material-icons-4 align-middle ms-2 cursor-pointer\" id=\"ico_cl\" data-bs-toggle=\"tooltip\" data-bs-placement=\"right\" data-bs-dismiss=\"click\" data-bs-original-title=\"" + fld.fieldPurpose + "\">help_outline</i></span>");
+                        if (!string.IsNullOrEmpty(fld.fieldPurpose))
+                            gridHeadHtml.Append("<span><i tabindex=\"-1\" data-bs-trigger=\"hover\" class=\"icon-arrows-question material-icons material-icons-style material-icons-4 align-middle ms-2 cursor-pointer\" id=\"ico_cl\" data-bs-toggle=\"tooltip\" data-bs-placement=\"right\" data-bs-dismiss=\"click\" data-bs-original-title=\"" + fld.fieldPurpose + "\">help_outline</i></span>");
                         gridHeadHtml.Append(ddetails + "</div></th>");
                     }
                     else
@@ -10450,8 +10438,8 @@ public class TStructDef
                             // to handle the mandatory fields.
                             //if (!fld.allowempty && fld.caption != "")
                             //    fieldHtml.Append("<span class=\"allowempty\">*</span>");
-                            //if (!string.IsNullOrEmpty(fld.fieldPurpose))
-                            //    fieldHtml.Append("<span><i tabindex=\"-1\" data-bs-trigger=\"hover\" class=\"icon-arrows-question material-icons material-icons-style material-icons-4 align-middle ms-2 cursor-pointer\" id=\"ico_cl\" data-bs-toggle=\"tooltip\" data-bs-placement=\"right\" data-bs-dismiss=\"click\" data-bs-original-title=\"" + fld.fieldPurpose + "\">help_outline</i></span>");
+                            if (!string.IsNullOrEmpty(fld.fieldPurpose))
+                                fieldHtml.Append("<span><i tabindex=\"-1\" data-bs-trigger=\"hover\" class=\"icon-arrows-question material-icons material-icons-style material-icons-4 align-middle ms-2 cursor-pointer\" id=\"ico_cl\" data-bs-toggle=\"tooltip\" data-bs-placement=\"right\" data-bs-dismiss=\"click\" data-bs-original-title=\"" + fld.fieldPurpose + "\">help_outline</i></span>");
                             fieldHtml.Append("</div>");
                         }
                         else if (fld.datatype.ToUpper() == "DATE/TIME")
@@ -10503,8 +10491,8 @@ public class TStructDef
                                 fieldHtml.Append("<div class=\"fld-wrap3 required\">");
                             fieldHtml.Append("<label>" + fld.caption + "</label>");
 
-                            //if (!string.IsNullOrEmpty(fld.fieldPurpose))
-                            //    fieldHtml.Append("<span><i tabindex=\"-1\" data-bs-trigger=\"hover\" class=\"icon-arrows-question material-icons material-icons-style material-icons-4 align-middle ms-2 cursor-pointer\" id=\"ico_cl\" data-bs-toggle=\"tooltip\" data-bs-placement=\"right\" data-bs-dismiss=\"click\" data-bs-original-title=\"" + fld.fieldPurpose + "\">help_outline</i></span>");
+                            if (!string.IsNullOrEmpty(fld.fieldPurpose))
+                                fieldHtml.Append("<span><i tabindex=\"-1\" data-bs-trigger=\"hover\" class=\"icon-arrows-question material-icons material-icons-style material-icons-4 align-middle ms-2 cursor-pointer\" id=\"ico_cl\" data-bs-toggle=\"tooltip\" data-bs-placement=\"right\" data-bs-dismiss=\"click\" data-bs-original-title=\"" + fld.fieldPurpose + "\">help_outline</i></span>");
                             fieldHtml.Append("</div>");//closing for fld-wrap2 and closing for fld-wrap1
                         }
 
@@ -11155,8 +11143,8 @@ public class TStructDef
                     if (name.StartsWith("axp_recid") && fld.Value == "")
                         fld.Value = "0";
                     string ddetails = String.Empty;
-                    //if (fld.tooltip != null && fld.tooltip != "")
-                    //    ddetails = "<span class=\"material-icons material-icons-style align-middle material-icons-3 cursor-pointer spanddetails\" title=\"Display details\">info</span>";
+                    if (fld.tooltip != null && fld.tooltip != "")
+                        ddetails = "<span class=\"material-icons material-icons-style align-middle material-icons-3 cursor-pointer spanddetails\" title=\"Display details\">info</span>";
                     if (isGrid)
                     {
                         fieldHtml.Append("<td class=\"d-none form-group\"><label>" + fld.caption + "</label><textarea class=\"form-control w-100 border bg-transparent overflow-hidden resize-none \" data-style=\"height:0px;width:0px;\" maxlength=\"\" data-hidden=\"\"   id=\"" + name + "\" data-type=\"hidden\" name=\"" + name + "\" readonly>" + fld.Value + "</textarea></td>");
@@ -11212,8 +11200,8 @@ public class TStructDef
                     if (isGrid)
                     {
                         string ddetails = String.Empty;
-                        //if (fld.tooltip != null && fld.tooltip != "")
-                        //    ddetails = "<span class=\"material-icons material-icons-style align-middle material-icons-3 cursor-pointer spanddetails\" title=\"Click on any row in this column to know more about the data in the cell.\">info</span>";
+                        if (fld.tooltip != null && fld.tooltip != "")
+                            ddetails = "<span class=\"material-icons material-icons-style align-middle material-icons-3 cursor-pointer spanddetails\" title=\"Click on any row in this column to know more about the data in the cell.\">info</span>";
                         string allowemptycss = "";
                         if (!fld.allowempty && fld.caption != "")
                             allowemptycss = " required ";
@@ -11646,19 +11634,6 @@ public class TStructDef
             }
         }
         if (isGrid && hiddenFldsHtml.ToString() != string.Empty) fieldHtml.Append("<td>" + hiddenFldsHtml.ToString() + "</td>");
-
-        if (isGrid)
-        {
-            for (int m = 0; m < gridScriptDcNo.Count; m++)
-            {
-                if (dcNo == Convert.ToInt32(gridScriptDcNo[m].ToString()))
-                {
-                    gridHeadHtml.Append(gridScriptButtons[m].ToString().Split('♠')[0]);
-                    gridHiddenHtml.Append(gridScriptButtons[m].ToString().Split('♠')[1]);
-                    fieldHtml.Append("<td>" + gridScriptButtons[m].ToString().Split('♠')[2] + "</td>");
-                }
-            }
-        }
         return fieldHtml.ToString();
     }
 
@@ -11768,19 +11743,6 @@ public class TStructDef
             {
                 gridHdHtml.Append("<div id=\"gridheaddiv\"><span id=\"disgridhead" + dcNo + "\"></span></div><div class=\"clear\"></div>");
                 string hideClass = "d-none";
-                bool ishtmlhd = false;
-                for (int m = 0; m < gridScriptDcNo.Count; m++)
-                {
-                    if (dcNo == Convert.ToInt32(gridScriptDcNo[m].ToString()))
-                    {
-                        ishtmlhd = true;
-                        if (m == 0)
-                            fillGriddcRowone = fillGriddcRowone.Substring(0, fillGriddcRowone.Length - 6);
-                        fillGriddcRowone += gridScriptButtons[m].ToString().Split('♠')[1] + "</div>";
-                    }
-                }
-                if (ishtmlhd)
-                    fillGriddcRowone += "</div>";
 
                 gridHdHtml.Append("<div class='row " + hideClass + "' id=\"wrapperForEditFields" + dcNo + "\">" + fillGriddcRowone + "<div class=\"col-sm-12 editLayoutFooter\"> <div class=\"GridHelpdiv\"><i class=\"fa fa-question-circle\" aria-hidden=\"true\"></i> <span>Use <b>Ctrl+Left arrow</b> &amp; <b>Ctrl+Right arrow</b> to navigate between record(s).</span></div><div><div class=\"btn-group previousNextEditButton\" role=\"group\"><button  title=\"Previous Record\" class=\"btn prevRec coldbtn disabled lblprevious\" disabled=\"disabled\" onclick=\"editThePreviousNextRow('','" + dcNo + "','');\">&lt; prev</button><button title=\"Next Record\" class=\"btn nextRec disabled coldbtn lblNext\" disabled=\"disabled\" onclick=\"editThePreviousNextRow('','" + dcNo + "','');\">Next &gt;</button></div><button  title=\"Save &amp; New Record\" class=\"btn hotbtn lblSaveNew\" id=\"newRecordBtn" + dcNo + "\" onclick=\"addTheValuesToGrid(" + dcNo + ",this)\">Save &amp; New</button></div></div></div>");
                 //gridHdHtml.Append("</div>");
@@ -11810,14 +11772,6 @@ public class TStructDef
 
             if (IsFillGridCall)
             {
-                for (int m = 0; m < gridScriptDcNo.Count; m++)
-                {
-                    if (dcNo == Convert.ToInt32(gridScriptDcNo[m].ToString()))
-                    {
-                        gridHeadHtml.Append(gridScriptButtons[m].ToString().Split('♠')[0]);
-                        //gridHiddenHtml.Append(gridScriptButtons[m].ToString().Split('♠')[1]);
-                    }
-                }
                 gridHdHtml.Append(gridHeadHtml.ToString() + "</tr></thead><tbody>" + fieldhtml + "</tbody></table></div>");
             }
             else

@@ -1544,22 +1544,20 @@ namespace Util
         {
             try
             {
-                if (HttpContext.Current.Session["tstautosaveDraftt"] != null && HttpContext.Current.Session["tstautosaveDraftt"].ToString() == "true")
+                FDW fdwObj = FDW.Instance;
+                FDR fObj = (FDR)HttpContext.Current.Session["FDR"];
+                var draftrediskey = (key + "-" + HttpContext.Current.Session["user"].ToString() + Constants.UNIQUE_DRAFT_KEY_PHRASE);
+                var draftallkeys = fObj.GetAllKeys(HttpContext.Current.Session["dbuser"].ToString() + "-" + draftrediskey);
+                if (draftallkeys.Count > 0)
                 {
-                    FDW fdwObj = FDW.Instance;
-                    FDR fObj = (FDR)HttpContext.Current.Session["FDR"];
-                    var draftrediskey = (key + "-" + HttpContext.Current.Session["user"].ToString() + Constants.UNIQUE_DRAFT_KEY_PHRASE);
-                    var draftallkeys = fObj.GetAllKeys(HttpContext.Current.Session["dbuser"].ToString() + "-" + draftrediskey);
-                    if (draftallkeys.Count > 0)
-                    {
 
-                        string schemaName = string.Empty;
-                        if (HttpContext.Current.Session["dbuser"] != null)
-                            schemaName = HttpContext.Current.Session["dbuser"].ToString();
-                        fdwObj.DeleteAllKeys(draftallkeys[0].ToString(), schemaName);
+                    string schemaName = string.Empty;
+                    if (HttpContext.Current.Session["dbuser"] != null)
+                        schemaName = HttpContext.Current.Session["dbuser"].ToString();
+                    fdwObj.DeleteAllKeys(draftallkeys[0].ToString(), schemaName);
 
-                    }
                 }
+
             }
             catch (Exception ex)
             {
@@ -4377,21 +4375,6 @@ namespace Util
                 case Constants.REDISFREEZEGRDCOLS:
                     key = transId + "-FreezeGridCols-" + user;
                     break;
-                case Constants.REDISTSTHTMLLS:
-                    key = transId + "-tstHtmlLs-" + lang;
-                    break;
-                case Constants.REDISTSTHTMLLSGLOBALVARS:
-                    key = transId + "-tstHtmlLsGlbVars" + '-' + AxRole + '-' + lang;
-                    break;
-                case Constants.REDISTSTRUCTDOPTIME:
-                    key = transId + "-TstflDopTime-" + user + "-" + lang;
-                    break;
-                case Constants.REDISTSTFLDFROMAPI:
-                    key = transId + "-TstFldFromApi-" + user + "-" + AxRole + "-" + lang;
-                    break;
-                case Constants.REDISTSTCUSTOMJSCSS:
-                    key = transId + "-TstCustomJsCss-" + AxRole + "-" + lang;
-                    break;
                 default:
                     key = "General-" + AxRole + '-' + lang;
                     break;
@@ -4728,30 +4711,6 @@ namespace Util
                     }
                 }
                 HttpContext.Current.Session["attGridFileServer"] = "";
-            }
-
-            if (HttpContext.Current.Session["tstGridDbFiles"] != null && HttpContext.Current.Session["tstGridDbFiles"].ToString() != string.Empty)
-            {
-                string _attGrFileNames = HttpContext.Current.Session["tstGridDbFiles"].ToString();
-                HttpContext.Current.Session["tstGridDbFiles"] = "";
-                string scriptsPath = HttpContext.Current.Application["ScriptsPath"].ToString();
-                string sessionid = HttpContext.Current.Session["nsessionid"] != null ? HttpContext.Current.Session["nsessionid"].ToString() : "";
-                if (sessionid != "")
-                {
-                    string sFileDir = scriptsPath + "Axpert\\" + sessionid + "\\";
-                    foreach (var lstFile in _attGrFileNames.Split(','))
-                    {
-                        if (lstFile != "")
-                        {
-                            string filePath = sFileDir + lstFile;
-                            try
-                            {
-                                File.Delete(filePath);
-                            }
-                            catch (Exception) { }
-                        }
-                    }
-                }
             }
 
             if (HttpContext.Current.Session["AxpAttFileServer"] != null)
@@ -5410,31 +5369,14 @@ namespace Util
             string flgvValue = string.Empty;
             try
             {
-                string flKey = "";
-                string flGlobalVars = "";
-                string devOption = "";
-                string matchflGlobalVar = "";
-                if (flGblExistingKeys.ToString() != "")
-                {
-                    flKey = flGblExistingKeys.GetType().GetProperty("flKey").GetValue(flGblExistingKeys, null);
-                    flGlobalVars = flGblExistingKeys.GetType().GetProperty("flGlobalVars").GetValue(flGblExistingKeys, null);
-                    devOption = flGblExistingKeys.GetType().GetProperty("devOption").GetValue(flGblExistingKeys, null);
-                    matchflGlobalVar = flGblExistingKeys.GetType().GetProperty("matchflGlobalVar").GetValue(flGblExistingKeys, null);
-                }
+                string flKey = flGblExistingKeys.GetType().GetProperty("flKey").GetValue(flGblExistingKeys, null);
+                string flGlobalVars = flGblExistingKeys.GetType().GetProperty("flGlobalVars").GetValue(flGblExistingKeys, null);
+                string devOption = flGblExistingKeys.GetType().GetProperty("devOption").GetValue(flGblExistingKeys, null);
+                string matchflGlobalVar = flGblExistingKeys.GetType().GetProperty("matchflGlobalVar").GetValue(flGblExistingKeys, null);
 
-                string stsGlobal = "";
-                if (loadRes != "true" && loadRes != "false")
-                {
-                    string stsResult = loadRes.Replace("*$*", "¿");
-                    stsResult = stsResult.Split('¿').Last();
-                    stsGlobal = ParseJSonResultNode(stsResult);
-                }
-                else
-                {
-                    FDR fdrObj = (FDR)HttpContext.Current.Session["FDR"];
-                    flKey = fdrObj.MakeKeyName(Constants.FORMLOADRES, transId);
-                    stsGlobal = transId;
-                }
+                string stsResult = loadRes.Replace("*$*", "¿");
+                stsResult = stsResult.Split('¿').Last();
+                string stsGlobal = ParseJSonResultNode(stsResult);
                 string strflKeys = string.Empty, strSignleKey = string.Empty;
                 if (flGlobalVars == string.Empty)
                 {
@@ -5480,19 +5422,7 @@ namespace Util
                 }
                 flgvValue = strflKeys;
                 FDW fdwObj = FDW.Instance;
-                HttpContext.Current.Session["formloadsubkey-" + transId] = strSignleKey;
                 fdwObj.HashSetKey(flKey, strSignleKey, loadRes);
-
-                try
-                {
-                    string schemaName = string.Empty;
-                    if (HttpContext.Current.Session["dbuser"] != null)
-                        schemaName = HttpContext.Current.Session["dbuser"].ToString();
-                    string fldKeyDop = Constants.REDISTSTRUCTDOPTIME;
-                    fdwObj.SaveInRedisServer(GetRedisServerkey(fldKeyDop, transId, stsGlobal), strSignleKey, Constants.REDISTSTRUCT, schemaName);
-                }
-                catch (Exception ex)
-                { }
             }
             catch (Exception ex)
             {
@@ -6592,89 +6522,6 @@ namespace Util
             }
         }
 
-        public void GetAxConfigFileServer(string strProj)
-        {
-            string jsoncontents = string.Empty;
-            if (strProj != string.Empty)
-            {
-                try
-                {
-                    FDR fdrObj = new FDR();
-                    jsoncontents = fdrObj.StringFromRedis(Constants.AXFileServer_CONN_KEY, strProj);
-                    if (jsoncontents == string.Empty)
-                    {
-                        FileInfo fi = new FileInfo(ScriptsPath + "\\fileconfig.ini");
-                        if (fi.Exists)
-                        {
-                            string scriptsPathAxFile = ScriptsPath + "\\fileconfig.ini";
-                            string filePatharm = @" " + scriptsPathAxFile + "";
-                            string existingJsonAxFile = File.ReadAllText(filePatharm);
-                            JObject jsonAxFile = JObject.Parse(existingJsonAxFile);
-                            if (jsonAxFile[strProj] != null)
-                            {
-                                jsoncontents = jsonAxFile[strProj].ToString();
-                                try
-                                {
-                                    JObject _jsonAxFile = JObject.Parse(jsoncontents);
-                                    if (_jsonAxFile["FileUploadPath"] != null)
-                                        HttpContext.Current.Session["AxConfigFileUploadPath"] = _jsonAxFile["FileUploadPath"].ToString();
-                                    if (_jsonAxFile["FileDownloadPath"] != null)
-                                        HttpContext.Current.Session["AxConfigFileDownloadPath"] = _jsonAxFile["FileDownloadPath"].ToString();
-                                    if (_jsonAxFile["FileServerMapUsername"] != null)
-                                        HttpContext.Current.Session["AxConfigFileMapUser"] = _jsonAxFile["FileServerMapUsername"].ToString();
-                                    if (_jsonAxFile["FileServerMapPwd"] != null)
-                                        HttpContext.Current.Session["AxConfigFileMapPwd"] = _jsonAxFile["FileServerMapPwd"].ToString();
-                                }
-                                catch (Exception ex)
-                                {
-                                    LogFile.Log logobj = new LogFile.Log();
-                                    logobj.CreateLog("Exception in GetAxConfigFileServer while reading from file - util.cs- jsoncontents:" + jsoncontents + " Exception:" + ex.Message, HttpContext.Current.Session["nsessionid"].ToString(), "GetAxConfigFileServer-ex", "new");
-                                }
-
-                                FDW fdwObj = FDW.Instance;
-                                fdwObj.SaveInRedisServer(Constants.AXFileServer_CONN_KEY, jsoncontents, Constants.AXFileServer_CONN_KEY, strProj);
-                            }
-                            else
-                            {
-                                FDW fdwObj = FDW.Instance;
-                                fdwObj.SaveInRedisServer(Constants.AXFileServer_CONN_KEY, "nofileserverconnection", Constants.AXFileServer_CONN_KEY, strProj);
-                            }
-                        }
-                        else
-                        {
-                            FDW fdwObj = FDW.Instance;
-                            fdwObj.SaveInRedisServer(Constants.AXFileServer_CONN_KEY, "nofileserverconnection", Constants.AXFileServer_CONN_KEY, strProj);
-                        }
-                    }
-                    else if (jsoncontents != "nofileserverconnection")
-                    {
-                        try
-                        {
-                            JObject _jsonAxFile = JObject.Parse(jsoncontents);
-                            if (_jsonAxFile["FileUploadPath"] != null)
-                                HttpContext.Current.Session["AxConfigFileUploadPath"] = _jsonAxFile["FileUploadPath"].ToString();
-                            if (_jsonAxFile["FileDownloadPath"] != null)
-                                HttpContext.Current.Session["AxConfigFileDownloadPath"] = _jsonAxFile["FileDownloadPath"].ToString();
-                            if (_jsonAxFile["FileServerMapUsername"] != null)
-                                HttpContext.Current.Session["AxConfigFileMapUser"] = _jsonAxFile["FileServerMapUsername"].ToString();
-                            if (_jsonAxFile["FileServerMapPwd"] != null)
-                                HttpContext.Current.Session["AxConfigFileMapPwd"] = _jsonAxFile["FileServerMapPwd"].ToString();
-                        }
-                        catch (Exception ex)
-                        {
-                            LogFile.Log logobj = new LogFile.Log();
-                            logobj.CreateLog("Exception in GetAxConfigFileServer while reading from cache - util.cs- jsoncontents:" + jsoncontents + " Exception:" + ex.Message, HttpContext.Current.Session["nsessionid"].ToString(), "GetAxConfigFileServer-Exception", "new");
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LogFile.Log logobj = new LogFile.Log();
-                    logobj.CreateLog("Exception in GetAxConfigFileServer - util.cs-" + ex.Message, HttpContext.Current.Session["nsessionid"].ToString(), "GetAxConfigFileServer", "new");
-                }
-            }
-        }
-
         public void SaveOTPAuth(string _otp, string _uname, string otpAuthExpiry)
         {
             try
@@ -6708,195 +6555,6 @@ namespace Util
             catch (Exception ex)
             { }
             return _otpAuth;
-        }
-
-        public string GetReGenTstDataObj(string _Key, string _result)
-        {
-            string objtstDatakey = string.Empty;
-            try
-            {
-                string _thistrId = "";
-                if (_result != "" && !_result.StartsWith("{"))
-                {
-                    _thistrId = _result;
-                    _result = "";
-                }
-                else if (_result != "" && _result.StartsWith("{"))
-                {
-                    string[] splitRes = _result.Split(new[] { "♠*$" }, StringSplitOptions.None);
-                    _thistrId = splitRes[1];
-                    _result = splitRes[0];
-                }
-                TStructData tstData = (TStructData)HttpContext.Current.Session[_Key];
-                if (tstData == null)
-                {
-                    CacheManager cacheMgr = GetCacheObject();
-                    TStructDef strObj = GetStrObject(cacheMgr, _thistrId);
-                    string _transId = _thistrId;
-                    TStructData strDataObj = null;
-                    string recId = "0";
-                    if (_result != "" && _result.StartsWith("{"))
-                    {
-                        JObject _tstData = JObject.Parse(_result);
-                        foreach (var _dtNode in _tstData["data"])
-                        {
-                            if (_dtNode["n"].ToString() == "axp_recid1")
-                            {
-                                recId = _dtNode["v"].ToString();
-                                break;
-                            }
-                        }
-                    }
-                    strDataObj = new TStructData(_result, _transId, recId, strObj);
-                    strDataObj.transid = _transId.ToString();
-                    objtstDatakey = GetTstDataId(_transId);
-                    HttpContext.Current.Session.Add(objtstDatakey, strDataObj);
-                }
-                else
-                {
-                    TStructDef strObj = tstData.tstStrObj;
-                    string _transId = tstData.transID;
-                    TStructData strDataObj = null;
-                    string recId = "0";
-                    if (_result != "" && _result.StartsWith("{"))
-                    {
-                        JObject _tstData = JObject.Parse(_result);
-                        foreach (var _dtNode in _tstData["data"])
-                        {
-                            if (_dtNode["n"].ToString() == "axp_recid1")
-                            {
-                                recId = _dtNode["v"].ToString();
-                                break;
-                            }
-                        }
-                    }
-                    strDataObj = new TStructData(_result, _transId, recId, strObj);
-                    strDataObj.transid = _transId.ToString();
-                    objtstDatakey = GetTstDataId(_transId);
-                    HttpContext.Current.Session.Add(objtstDatakey, strDataObj);
-                }
-            }
-            catch (Exception ex)
-            {
-                objtstDatakey = "";
-            }
-            return objtstDatakey;
-        }
-
-
-        public object GetTstHtmllsKey(string transId, string flGlobalVarNode)
-        {
-            string flKey = string.Empty, devOptionKey = string.Empty, matchflGlobalVar = string.Empty;
-            try
-            {
-                int keyIndex = -1;
-                DataTable dtConfig = GetStructConfig(transId);
-                string cacheTime = GetConfigSettings(transId, dtConfig);
-                if (cacheTime != "none")
-                {
-                    FDR fdrObj = (FDR)HttpContext.Current.Session["FDR"];
-                    flKey = fdrObj.MakeKeyName(Constants.REDISTSTHTMLLS, transId);
-                    devOptionKey = cacheTime;
-                    if (flGlobalVarNode != string.Empty)
-                    {
-                        flGlobalVarNode = flGlobalVarNode.Replace(";bkslh", "\\");
-                        var keyList = flGlobalVarNode.Split('¿').ToList();
-                        keyIndex = fdrObj.MakeVarKeyName(keyList);
-                        if (keyIndex != -1)
-                            matchflGlobalVar = keyList[keyIndex];
-                    }
-                }
-                else
-                    flKey = "none";
-            }
-            catch (Exception ex)
-            {
-                LogFile.Log logobj = new LogFile.Log();
-                logobj.CreateLog("GetTstHtmlFormLoadKey -" + ex.Message, HttpContext.Current.Session["nsessionid"].ToString(), "Exception in GetTstHtmlFormLoadKey", "new");
-            }
-            return new { flKey = flKey, flGlobalVars = flGlobalVarNode, devOption = devOptionKey, matchflGlobalVar = matchflGlobalVar };
-        }
-
-        public string SetTstHtmlLs(string loadRes, string transId, dynamic flGblExistingKeys, string usedVars)
-        {
-            string flgvValue = string.Empty;
-            try
-            {
-                string flKey = flGblExistingKeys.GetType().GetProperty("flKey").GetValue(flGblExistingKeys, null);
-                string flGlobalVars = flGblExistingKeys.GetType().GetProperty("flGlobalVars").GetValue(flGblExistingKeys, null);
-                string devOption = flGblExistingKeys.GetType().GetProperty("devOption").GetValue(flGblExistingKeys, null);
-                string matchflGlobalVar = flGblExistingKeys.GetType().GetProperty("matchflGlobalVar").GetValue(flGblExistingKeys, null);
-
-                string stsGlobal = usedVars;// ParseJSonResultNode(usedVars);
-                string strflKeys = string.Empty, strSignleKey = string.Empty;
-                if (flGlobalVars == string.Empty)
-                {
-                    if (devOption != string.Empty)
-                        strflKeys = stsGlobal + "♦" + DateTime.Now.ToString("dd/MM/yyyy HH:mm");
-                    else
-                        strflKeys = stsGlobal + "♦" + DateTime.Now.ToString("dd/MM/yyyy");
-                    strSignleKey = strflKeys;
-                }
-                else
-                {
-                    if (matchflGlobalVar == string.Empty)
-                    {
-                        if (devOption != string.Empty)
-                        {
-                            strSignleKey = stsGlobal + "♦" + DateTime.Now.ToString("dd/MM/yyyy HH:mm");
-                            strflKeys = flGlobalVars + "¿" + strSignleKey;
-                        }
-                        else
-                        {
-                            strSignleKey = stsGlobal + "♦" + DateTime.Now.ToString("dd/MM/yyyy");
-                            strflKeys = flGlobalVars + "¿" + strSignleKey;
-                        }
-                    }
-                    else
-                    {
-                        string replKey = string.Empty;
-
-                        try
-                        {
-                            FDW fdwObjNew = FDW.Instance;
-                            fdwObjNew.HashDeletekey(flKey, matchflGlobalVar);
-                        }
-                        catch (Exception exd) { }
-                        string existingKey = "";
-                        if (matchflGlobalVar.LastIndexOf('♦') > -1)
-                            existingKey = matchflGlobalVar.Substring(0, matchflGlobalVar.LastIndexOf('♦'));
-                        else
-                            existingKey = matchflGlobalVar;
-                        if (devOption != string.Empty)
-                            replKey = existingKey + "♦" + DateTime.Now.ToString("dd/MM/yyyy HH:mm");
-                        else
-                            replKey = existingKey + "♦" + DateTime.Now.ToString("dd/MM/yyyy");
-
-                        strSignleKey = replKey;
-                        strflKeys = flGlobalVars.Replace(matchflGlobalVar, replKey);
-                    }
-                }
-                flgvValue = strflKeys;
-                FDW fdwObj = FDW.Instance;
-                fdwObj.HashSetKey(flKey, strSignleKey, loadRes);
-            }
-            catch (Exception ex)
-            {
-                LogFile.Log logobj = new LogFile.Log();
-                logobj.CreateLog("SetTstHtmlLs -" + ex.Message, HttpContext.Current.Session["nsessionid"].ToString(), "Exception in SetTstHtmlLs", "new");
-            }
-            return flgvValue;
-        }
-
-        public string ReplaceFirstOccurrence(string source, string find, string replace)
-        {
-            int place = source.IndexOf(find);
-            if (place == -1)
-            {
-                return source; 
-            }
-            string result = source.Remove(place, find.Length).Insert(place, replace);
-            return result;
         }
     }
 

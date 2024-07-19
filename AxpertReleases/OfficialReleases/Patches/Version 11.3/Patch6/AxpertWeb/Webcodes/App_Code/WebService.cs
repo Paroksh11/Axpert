@@ -95,20 +95,14 @@ namespace ASB
         }
 
         [WebMethod(EnableSession = true)]
-        public string SaveDataXML(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, ArrayList deletedFldArrayValues, string files, string rid, string delRows, string changedRows, string key, string axRulesFlds = "", string axPegApprovalSave = "", string resTstHtmlLS = "")
+        public string SaveDataXML(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, ArrayList deletedFldArrayValues, string files, string rid, string delRows, string changedRows, string key, string axRulesFlds = "", string axPegApprovalSave = "")
         {
             string requestProcess_logtime = string.Empty;
             ObjExecTr.SetCurrentTime();
             DateTime sTime1 = DateTime.Now;
             if (HttpContext.Current.Session["project"] == null)
                 return utilObj.SESSTIMEOUT;
-            string _tstKeyChanged = "";
-            if (resTstHtmlLS != "")
-            {
-                utilObj.DeleteTstIvObject(key.Split('_')[0]);
-                key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
-                _tstKeyChanged = key;
-            }
+
             TStructData tstData = (TStructData)Session[key];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
@@ -147,10 +141,6 @@ namespace ASB
             requestProcess_logtime += ObjExecTr.RequestProcessTime("Response", result);
             string serverprocesstime = ObjExecTr.TotalServerElapsTime();
             result = serverprocesstime + "*♠*" + requestProcess_logtime + "*♠*" + result;
-            if (_tstKeyChanged != "")
-            {
-                result = _tstKeyChanged + "♠*♠" + result;
-            }
             return result;
         }
 
@@ -217,7 +207,7 @@ namespace ASB
         }
 
         [WebMethod(EnableSession = true)]
-        public string DeleteDataXML(string rid, string s, string key, bool allowCancel = true, string resTstHtmlLS = "")
+        public string DeleteDataXML(string rid, string s, string key, bool allowCancel = true)
         {
             DateTime sTime1 = DateTime.Now;
             if (HttpContext.Current.Session["project"] == null)
@@ -231,13 +221,7 @@ namespace ASB
                 logobj.CreateLog("Delete Data: This transaction cannot be deleted. In workflow, 'Allow cancel after approval' is 'false'.", sessionid, "Delete-" + key, "new");
                 return "{\"error\":[{\"msg\":\"This transaction cannot be deleted.\"}]}";
             }
-            string _tstKeyChanged = "";
-            if (resTstHtmlLS != "")
-            {
-                utilObj.DeleteTstIvObject(key.Split('_')[0]);
-                key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
-                _tstKeyChanged = key;
-            }
+
             TStructData tstData = (TStructData)Session[key];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
@@ -253,23 +237,14 @@ namespace ASB
             DateTime eTime2 = DateTime.Now;
             if (tstData.logTimeTaken)
                 tstData.strServerTime = (tstData.webTime1 + (eTime1.Subtract(sTime1).TotalMilliseconds)) + "," + tstData.asbTime + "," + (tstData.webTime2 + (eTime2.Subtract(sTime2).TotalMilliseconds));
-            if (_tstKeyChanged != "")
-                result = _tstKeyChanged + "♠*♠" + result;
             return result;
         }
 
         [WebMethod(EnableSession = true)]
-        public string DeleteRowWS(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string ArrActionLog, string s, string key, string dcNo, string resTstHtmlLS)
+        public string DeleteRowWS(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string ArrActionLog, string s, string key, string dcNo)
         {
             if (HttpContext.Current.Session["project"] == null)
                 return utilObj.SESSTIMEOUT;
-            string _tstKeyChanged = "";
-            if (resTstHtmlLS != "")
-            {
-                utilObj.DeleteTstIvObject(key.Split('_')[0]);
-                key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
-                _tstKeyChanged = key;
-            }
             TStructData tstData = (TStructData)Session[key];
 
             if (Util.Util.CheckCrossScriptingInString(String.Join(",", fldValueArray.ToArray())))
@@ -286,23 +261,15 @@ namespace ASB
             result = tstData.CallDeleteRowWS(tstData, fldArray, fldDbRowNo, fldValueArray, fldDeletedArray, s, dcNo);
             //TStructDef tstObj = utilObj.GetTstructDefObj("GetStructure", tstData.transid);
             tstData.JsonToArray(result, tstData.tstStrObj, "", "DeleteRow");
-            if (_tstKeyChanged != "")
-                result = _tstKeyChanged + "♠*♠" + result;
             return result;
         }
 
         [WebMethod(EnableSession = true)]
-        public string DeleteRowPerfWS(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string ArrActionLog, string s, string key, string dcNo, ArrayList DeletedRowNos, string resTstHtmlLS)
+        public string DeleteRowPerfWS(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string ArrActionLog, string s, string key, string dcNo, ArrayList DeletedRowNos)
         {
             if (HttpContext.Current.Session["project"] == null)
                 return utilObj.SESSTIMEOUT;
-            string _tstKeyChanged = "";
-            if (resTstHtmlLS != "")
-            {
-                utilObj.DeleteTstIvObject(key.Split('_')[0]);
-                key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
-                _tstKeyChanged = key;
-            }
+
             TStructData tstData = (TStructData)Session[key];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
@@ -321,13 +288,11 @@ namespace ASB
             string errorLog = logobj.CreateLog("Delete row webservice", sessionid, "DeleteRow-" + tstData.transid, "new");
             result = tstData.CallDeleteRowPerfWS(tstData, fldArray, fldDbRowNo, fldValueArray, fldDeletedArray, s, dcNo, DeletedRowNos);
             tstData.JsonToArray(result, tstData.tstStrObj, "", "DeleteRow");
-            if (_tstKeyChanged != "")
-                result = _tstKeyChanged + "♠*♠" + result;
             return result;
         }
 
         [WebMethod(EnableSession = true)]
-        public string AddRowWS(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string s, string dcNo, string key, string resTstHtmlLS = "")
+        public string AddRowWS(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string s, string dcNo, string key)
         {
             if (HttpContext.Current.Session["project"] == null)
                 return utilObj.SESSTIMEOUT;
@@ -336,13 +301,7 @@ namespace ASB
             {
                 return Constants.MALICIOUSNPUTDETECTED;
             }
-            string _tstKeyChanged = "";
-            if (resTstHtmlLS != "")
-            {
-                utilObj.DeleteTstIvObject(key.Split('_')[0]);
-                key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
-                _tstKeyChanged = key;
-            }
+
             TStructData tstData = (TStructData)Session[key];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
@@ -352,13 +311,11 @@ namespace ASB
             result = tstData.CallAddRowWS(tstData, fldArray, fldDbRowNo, fldValueArray, fldDeletedArray, s, dcNo);
             //TStructDef tstObj = utilObj.GetTstructDefObj("GetStructure", tstData.transid);
             tstData.JsonToArray(result, tstData.tstStrObj, "", "AddRow");
-            if (_tstKeyChanged != "")
-                result = _tstKeyChanged + "♠*♠" + result;
             return result;
         }
 
         [WebMethod(EnableSession = true)]
-        public string AddRowPerfWS(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string s, string dcNo, string key, bool isFromScript = false, string resTstHtmlLS = "")
+        public string AddRowPerfWS(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string s, string dcNo, string key, bool isFromScript = false)
         {
             string requestProcess_logtime = string.Empty;
             ObjExecTr.SetCurrentTime();
@@ -369,13 +326,7 @@ namespace ASB
             {
                 return Constants.MALICIOUSNPUTDETECTED;
             }
-            string _tstKeyChanged = "";
-            if (resTstHtmlLS != "")
-            {
-                utilObj.DeleteTstIvObject(key.Split('_')[0]);
-                key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
-                _tstKeyChanged = key;
-            }
+
             TStructData tstData = (TStructData)Session[key];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
@@ -433,36 +384,26 @@ namespace ASB
             requestProcess_logtime += ObjExecTr.RequestProcessTime("Response", result);
             string serverprocesstime = ObjExecTr.TotalServerElapsTime();
             result = serverprocesstime + "*♠*" + requestProcess_logtime + "*♠*" + result;
-            if (_tstKeyChanged != "")
-                result = _tstKeyChanged + "♠*♠" + result;
+
             return result;
         }
 
         [WebMethod(EnableSession = true)]
-        public string CreatePDF(string s, string key, string resTstHtmlLS)
+        public string CreatePDF(string s, string key)
         {
             if (HttpContext.Current.Session["project"] == null)
                 return utilObj.SESSTIMEOUT;
-            string _tstKeyChanged = "";
-            if (resTstHtmlLS != "")
-            {
-                utilObj.DeleteTstIvObject(key.Split('_')[0]);
-                key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
-                _tstKeyChanged = key;
-            }
             TStructData tstData = (TStructData)Session[key];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
             //s = s + HttpContext.Current.Session["axApps"].ToString() + HttpContext.Current.Application["axProps"].ToString() + HttpContext.Current.Session["axGlobalVars"].ToString() + HttpContext.Current.Session["axUserVars"].ToString() + "</root>";
             string result = string.Empty;
             result = tstData.CallCreatePDFWS(s);
-            if (_tstKeyChanged != "")
-                result = _tstKeyChanged + "♠*♠" + result;
             return result;
         }
 
         [WebMethod(EnableSession = true)]
-        public string CreateFastReportPDF(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string s, string key, string resTstHtmlLS)
+        public string CreateFastReportPDF(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string s, string key)
         {
             if (HttpContext.Current.Session["project"] == null)
                 return utilObj.SESSTIMEOUT;
@@ -471,13 +412,7 @@ namespace ASB
             {
                 return Constants.MALICIOUSNPUTDETECTED;
             }
-            string _tstKeyChanged = "";
-            if (resTstHtmlLS != "")
-            {
-                utilObj.DeleteTstIvObject(key.Split('_')[0]);
-                key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
-                _tstKeyChanged = key;
-            }
+
             TStructData tstData = (TStructData)Session[key];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
@@ -486,13 +421,11 @@ namespace ASB
             //s += HttpContext.Current.Session["axApps"].ToString() + HttpContext.Current.Application["axProps"].ToString() + HttpContext.Current.Session["axGlobalVars"].ToString() + HttpContext.Current.Session["axUserVars"].ToString() + "</root>";
             string result = string.Empty;
             result = tstData.CallCreateFastPDFWS(s);
-            if (_tstKeyChanged != "")
-                result = _tstKeyChanged + "♠*♠" + result;
             return result;
         }
 
         [WebMethod(EnableSession = true)]
-        public string CallActionWS(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, ArrayList deletedFldArrayValues, string ArrActionLog, string visibleDcs, string s, string f, string source, string delRows, string changedRows, string key, string files = "", bool isScript = false, string axRulesFlds = "", bool axRulesScript = false, string resTstHtmlLS = "")
+        public string CallActionWS(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, ArrayList deletedFldArrayValues, string ArrActionLog, string visibleDcs, string s, string f, string source, string delRows, string changedRows, string key, string files = "", bool isScript = false, string axRulesFlds = "", bool axRulesScript = false)
         {
             string requestProcess_logtime = string.Empty;
             ObjExecTr.SetCurrentTime();
@@ -559,7 +492,7 @@ namespace ASB
                 {
                     filename = "Script-" + transid;
                     logobj.CreateLog("Call to RemoteDoScript Web Service", sessionid, filename, string.Empty);
-                    result = asbExt.callRemoteDoScriptWS("", s, ires, asbExt.asbScript.Timeout);
+                    result = asbExt.callRemoteDoScriptWS("", s, ires, asbExt.asbAction.Timeout);
                 }
                 else
                 {
@@ -572,10 +505,6 @@ namespace ASB
                 result = result.Split('♠')[1];
                 logobj.CreateLog("End Time : " + DateTime.Now.ToString(), sessionid, filename, string.Empty);
 
-                requestProcess_logtime += ObjExecTr.RequestProcessTime("Response", result);
-                string serverprocesstime = ObjExecTr.TotalServerElapsTime();
-                result = serverprocesstime + "*♠*" + requestProcess_logtime + "*♠*" + result;
-                return result;
             }
             else
             {
@@ -586,13 +515,6 @@ namespace ASB
                         data = File.ReadAllText(f);
 
                     utilObj.UploadFiles(f, sessionid);
-                }
-                string _tstKeyChanged = "";
-                if (resTstHtmlLS != "")
-                {
-                    utilObj.DeleteTstIvObject(key.Split('_')[0]);
-                    key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
-                    _tstKeyChanged = key;
                 }
                 TStructData tstData = (TStructData)Session[key];
                 if (tstData == null)
@@ -617,29 +539,19 @@ namespace ASB
                 }
                 else
                     result = "{\"error\":[{\"msg\":\"Error: Please reload the page and try again.\"}]}";
-
-                requestProcess_logtime += ObjExecTr.RequestProcessTime("Response", result);
-                string serverprocesstime = ObjExecTr.TotalServerElapsTime();
-                result = serverprocesstime + "*♠*" + requestProcess_logtime + "*♠*" + result;
-                if (_tstKeyChanged != "")
-                    result = _tstKeyChanged + "♠*♠" + result;
-                return result;
             }
+            requestProcess_logtime += ObjExecTr.RequestProcessTime("Response", result);
+            string serverprocesstime = ObjExecTr.TotalServerElapsTime();
+            result = serverprocesstime + "*♠*" + requestProcess_logtime + "*♠*" + result;
+            return result;
         }
 
         [WebMethod(EnableSession = true)]
-        public string ViewAttachment(string s, string key, string resTstHtmlLS)
+        public string ViewAttachment(string s, string key)
         {
             if (HttpContext.Current.Session["project"] == null)
                 return utilObj.SESSTIMEOUT;
             sessionid = HttpContext.Current.Session["nsessionid"].ToString();
-            string _tstKeyChanged = "";
-            if (resTstHtmlLS != "")
-            {
-                utilObj.DeleteTstIvObject(key.Split('_')[0]);
-                key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
-                _tstKeyChanged = key;
-            }
             TStructData tstData = (TStructData)Session[key];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
@@ -651,24 +563,15 @@ namespace ASB
             string result = string.Empty;
             s = s + HttpContext.Current.Session["axApps"].ToString() + HttpContext.Current.Application["axProps"].ToString() + HttpContext.Current.Session["axGlobalVars"].ToString() + HttpContext.Current.Session["axUserVars"].ToString() + "</root>";
             result = tstData.CallViewAttachWS(s, tstObj.structRes);
-            if (_tstKeyChanged != "")
-                result = _tstKeyChanged + "♠*♠" + result;
             return result;
         }
 
         [WebMethod(EnableSession = true)]
-        public string RemoveAttachment(string s, string key, string resTstHtmlLS)
+        public string RemoveAttachment(string s, string key)
         {
             if (HttpContext.Current.Session["project"] == null)
                 return utilObj.SESSTIMEOUT;
             sessionid = HttpContext.Current.Session["nsessionid"].ToString();
-            string _tstKeyChanged = "";
-            if (resTstHtmlLS != "")
-            {
-                utilObj.DeleteTstIvObject(key.Split('_')[0]);
-                key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
-                _tstKeyChanged = key;
-            }
             TStructData tstData = (TStructData)Session[key];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
@@ -680,8 +583,6 @@ namespace ASB
             //TStructDef tstObj = utilObj.GetTstructDefObj(errorLog, transid);
             TStructDef tstObj = tstData.tstStrObj;
             result = tstData.CallRemoveAttachWS(s, tstObj.structRes);
-            if (_tstKeyChanged != "")
-                result = _tstKeyChanged + "♠*♠" + result;
             return result;
         }
 
@@ -703,7 +604,7 @@ namespace ASB
         }
 
         [WebMethod(EnableSession = true)]
-        public string GetDepFlds(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string ArrActionLog, string visibleDcs, string s, string tid, string key, string frameNo, string rowNo, string fieldName, string subGridInfo, string parentInfo, string resTstHtmlLS)
+        public string GetDepFlds(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string ArrActionLog, string visibleDcs, string s, string tid, string key, string frameNo, string rowNo, string fieldName, string subGridInfo, string parentInfo)
         {
             string requestProcess_logtime = string.Empty;
             DateTime sTime1 = DateTime.Now;
@@ -714,13 +615,7 @@ namespace ASB
             {
                 return Constants.MALICIOUSNPUTDETECTED;
             }
-            string _tstKeyChanged = "";
-            if (resTstHtmlLS != "")
-            {
-                utilObj.DeleteTstIvObject(key.Split('_')[0]);
-                key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
-                _tstKeyChanged = key;
-            }
+
             TStructData tstData = (TStructData)Session[key];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
@@ -757,13 +652,11 @@ namespace ASB
             requestProcess_logtime += ObjExecTr.RequestProcessTime("Response", result);
             string serverprocesstime = ObjExecTr.TotalServerElapsTime();
             result = serverprocesstime + "*♠*" + requestProcess_logtime + "*♠*" + result;
-            if (_tstKeyChanged != "")
-                result = _tstKeyChanged + "♠*♠" + result;
             return result;
         }
 
         [WebMethod(EnableSession = true)]
-        public string GetDepFldsPerf(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, ArrayList RegVarFldList, string ArrActionLog, string visibleDcs, string s, string tid, string key, string frameNo, string rowNo, string perfDepFldName, string fieldName, string subGridInfo, string parentInfo, ArrayList acceptExpressionFlds, string resTstHtmlLS)
+        public string GetDepFldsPerf(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, ArrayList RegVarFldList, string ArrActionLog, string visibleDcs, string s, string tid, string key, string frameNo, string rowNo, string perfDepFldName, string fieldName, string subGridInfo, string parentInfo, ArrayList acceptExpressionFlds)
         {
             string requestProcess_logtime = string.Empty;
             ObjExecTr.SetCurrentTime();
@@ -775,13 +668,7 @@ namespace ASB
             {
                 return Constants.MALICIOUSNPUTDETECTED;
             }
-            string _tstKeyChanged = "";
-            if (resTstHtmlLS != "")
-            {
-                utilObj.DeleteTstIvObject(key.Split('_')[0]);
-                key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
-                _tstKeyChanged = key;
-            }
+
             TStructData tstData = (TStructData)Session[key];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
@@ -818,14 +705,12 @@ namespace ASB
             requestProcess_logtime += ObjExecTr.RequestProcessTime("Response", result);
             string serverprocesstime = ObjExecTr.TotalServerElapsTime();
             result = serverprocesstime + "*♠*" + requestProcess_logtime + "*♠*" + result;
-            if (_tstKeyChanged != "")
-                result = _tstKeyChanged + "♠*♠" + result;
             return result;
         }
 
 
         [WebMethod(EnableSession = true)]
-        public string GetRapidDepFlds(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string ArrActionLog, string visibleDcs, string s, string tid, string key, string frameNo, string rowNo, string fieldName, string subGridInfo, string parentInfo, string resTstHtmlLS)
+        public string GetRapidDepFlds(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string ArrActionLog, string visibleDcs, string s, string tid, string key, string frameNo, string rowNo, string fieldName, string subGridInfo, string parentInfo)
         {
             DateTime sTime1 = DateTime.Now;
             if (HttpContext.Current.Session["project"] == null)
@@ -835,13 +720,7 @@ namespace ASB
             {
                 return Constants.MALICIOUSNPUTDETECTED;
             }
-            string _tstKeyChanged = "";
-            if (resTstHtmlLS != "")
-            {
-                utilObj.DeleteTstIvObject(key.Split('_')[0]);
-                key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
-                _tstKeyChanged = key;
-            }
+
             TStructData tstData = (TStructData)Session[key];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
@@ -870,14 +749,13 @@ namespace ASB
             DateTime eTime2 = DateTime.Now;
             if (tstData.logTimeTaken)
                 tstData.strServerTime = (tstData.webTime1 + (eTime1.Subtract(sTime1).TotalMilliseconds)) + "," + tstData.asbTime + "," + (tstData.webTime2 + (eTime2.Subtract(sTime2).TotalMilliseconds));
-            if (_tstKeyChanged != "")
-                result = _tstKeyChanged + "♠*♠" + result;
+
             return result;
         }
 
 
         [WebMethod(EnableSession = true)]
-        public string GetSearchResult(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string fldName, string fldValue, string pageNo, string pageSize, string key, string frameNo, string activerow, string parentInfo, string subGridInfo, string includeDcs, string resTstHtmlLS = "")
+        public string GetSearchResult(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string fldName, string fldValue, string pageNo, string pageSize, string key, string frameNo, string activerow, string parentInfo, string subGridInfo, string includeDcs)
         {
             if (HttpContext.Current.Session["project"] == null)
                 return utilObj.SESSTIMEOUT;
@@ -889,13 +767,6 @@ namespace ASB
 
             GetGlobalVars();
             string result = "";
-            string _tstKeyChanged = "";
-            if (resTstHtmlLS != "")
-            {
-                utilObj.DeleteTstIvObject(key.Split('_')[0]);
-                key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
-                _tstKeyChanged = key;
-            }
             TStructData tstData = (TStructData)Session[key];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
@@ -918,13 +789,11 @@ namespace ASB
             iXml += " sqlfield='' trace='" + errorLog + "' transid='" + transid + "'  pageno='" + pageNo + "' ";
             iXml += "pagesize='" + pageSize + "'>";
             result = tstData.GetPickListResult(fldArray, fldDbRowNo, fldValueArray, fldDeletedArray, iXml, tstData.tstStrObj.structRes, fldName, frameNo, parentInfo, subGridInfo, activerow, includeDcs);
-            if (_tstKeyChanged != "")
-                result = _tstKeyChanged + "♠*♠" + result;
             return result;
         }
 
         [WebMethod(EnableSession = true)]
-        public string CallLoadDcData(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string ArrActionLog, string iXml, string dcNo, Boolean isFillGrid, string isDisable, string key, string resTstHtmlLS = "")
+        public string CallLoadDcData(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string ArrActionLog, string iXml, string dcNo, Boolean isFillGrid, string isDisable, string key)
         {
             DateTime sTime1 = DateTime.Now;
             if (HttpContext.Current.Session["project"] == null)
@@ -937,13 +806,6 @@ namespace ASB
 
             string result = string.Empty;
             string tabHTML = string.Empty;
-            string _tstKeyChanged = "";
-            if (resTstHtmlLS != "")
-            {
-                utilObj.DeleteTstIvObject(key.Split('_')[0]);
-                key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
-                _tstKeyChanged = key;
-            }
             TStructData tstData = (TStructData)Session[key];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
@@ -1025,13 +887,12 @@ namespace ASB
             DateTime eTime2 = DateTime.Now;
             if (tstData.logTimeTaken)
                 tstData.strServerTime = (tstData.webTime1 + (eTime1.Subtract(sTime1).TotalMilliseconds)) + "," + tstData.asbTime + "," + (tstData.webTime2 + (eTime2.Subtract(sTime2).TotalMilliseconds));
-            if (_tstKeyChanged != "")
-                tabHTML = _tstKeyChanged + "♠*♠" + tabHTML;
+
             return tabHTML;
         }
 
         [WebMethod(EnableSession = true)]
-        public string GetFillGridData(string paramXml, ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string dcNo, string fgName, string transid, string src, string key, string exprResult, string resTstHtmlLS)
+        public string GetFillGridData(string paramXml, ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string dcNo, string fgName, string transid, string src, string key, string exprResult)
         {
             string requestProcess_logtime = string.Empty;
             ObjExecTr.SetCurrentTime();
@@ -1045,13 +906,6 @@ namespace ASB
 
             string result = string.Empty;
             GetGlobalVars();
-            string _tstKeyChanged = "";
-            if (resTstHtmlLS != "")
-            {
-                utilObj.DeleteTstIvObject(key.Split('_')[0]);
-                key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
-                _tstKeyChanged = key;
-            }
             TStructData tstData = (TStructData)Session[key];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
@@ -1071,13 +925,12 @@ namespace ASB
             requestProcess_logtime += ObjExecTr.RequestProcessTime("Response", result);
             string serverprocesstime = ObjExecTr.TotalServerElapsTime();
             result = serverprocesstime + "*♠♠*" + requestProcess_logtime + "*♠♠*" + result;
-            if (_tstKeyChanged != "")
-                result = _tstKeyChanged + "♠*♠" + result;
+
             return result;
         }
 
         [WebMethod(EnableSession = true)]
-        public string GetFastFillGridData(string dcNo, string fgName, string transid, string src, string key, string exprResult, string resTstHtmlLS)
+        public string GetFastFillGridData(string dcNo, string fgName, string transid, string src, string key, string exprResult)
         {
             string requestProcess_logtime = string.Empty;
             ObjExecTr.SetCurrentTime();
@@ -1085,13 +938,6 @@ namespace ASB
                 return utilObj.SESSTIMEOUT;
             string result = string.Empty;
             GetGlobalVars();
-            string _tstKeyChanged = "";
-            if (resTstHtmlLS != "")
-            {
-                utilObj.DeleteTstIvObject(key.Split('_')[0]);
-                key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
-                _tstKeyChanged = key;
-            }
             TStructData tstData = (TStructData)Session[key];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
@@ -1110,24 +956,16 @@ namespace ASB
             requestProcess_logtime += ObjExecTr.RequestProcessTime("Response", result);
             string serverprocesstime = ObjExecTr.TotalServerElapsTime();
             result = serverprocesstime + "*♠*" + requestProcess_logtime + "*♠*" + result;
-            if (_tstKeyChanged != "")
-                result = _tstKeyChanged + "♠*♠" + result;
+
             return result;
         }
 
         [WebMethod(EnableSession = true)]
-        public string ExecuteFormatFill(string transid, string frameNo, string selection, string key, string resTstHtmlLS)
+        public string ExecuteFormatFill(string transid, string frameNo, string selection, string key)
         {
             if (HttpContext.Current.Session["project"] == null)
                 return utilObj.SESSTIMEOUT;
             GetGlobalVars();
-            string _tstKeyChanged = "";
-            if (resTstHtmlLS != "")
-            {
-                utilObj.DeleteTstIvObject(key.Split('_')[0]);
-                key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
-                _tstKeyChanged = key;
-            }
             TStructData tstData = (TStructData)Session[key];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
@@ -1138,13 +976,11 @@ namespace ASB
             string dcHTML = string.Empty;
             string errorLog = logobj.CreateLog("GetFormatFillGrid.", sessionid, fileName, "new");
             dcHTML = tstObj.GetFormatHtmlForGroups(selection, tstData, "false");
-            if (_tstKeyChanged != "")
-                dcHTML = _tstKeyChanged + "♠*♠" + dcHTML;
             return dcHTML;
         }
 
         [WebMethod(EnableSession = true)]
-        public string ExecuteAction(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string ArrActionLog, string rid, string transid, string frameNo, string s, string selection, string delRows, string changedRows, string key, string resTstHtmlLS)
+        public string ExecuteAction(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string ArrActionLog, string rid, string transid, string frameNo, string s, string selection, string delRows, string changedRows, string key)
         {
             if (HttpContext.Current.Session["project"] == null)
                 return utilObj.SESSTIMEOUT;
@@ -1155,13 +991,6 @@ namespace ASB
             }
 
             GetGlobalVars();
-            string _tstKeyChanged = "";
-            if (resTstHtmlLS != "")
-            {
-                utilObj.DeleteTstIvObject(key.Split('_')[0]);
-                key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
-                _tstKeyChanged = key;
-            }
             TStructData tstData = (TStructData)Session[key];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
@@ -1197,13 +1026,12 @@ namespace ASB
                 }
                 dcHTML = tstData.tabJson.ToString() + "*♠*" + tstObj.GetTabDcHTML(Convert.ToInt32(frameNo), tstData, "false");
             }
-            if (_tstKeyChanged != "")
-                dcHTML = _tstKeyChanged + "♠*♠" + dcHTML;
+
             return dcHTML;
         }
 
         [WebMethod(EnableSession = true)]
-        public string DoGetFillGrid(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string frameNo, string fgName, string s, string key, string resTstHtmlLS)
+        public string DoGetFillGrid(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string frameNo, string fgName, string s, string key)
         {
             string requestProcess_logtime = string.Empty;
             ObjExecTr.SetCurrentTime();
@@ -1219,13 +1047,6 @@ namespace ASB
             GetGlobalVars();
 
             string dcHTML = string.Empty;
-            string _tstKeyChanged = "";
-            if (resTstHtmlLS != "")
-            {
-                utilObj.DeleteTstIvObject(key.Split('_')[0]);
-                key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
-                _tstKeyChanged = key;
-            }
             TStructData tstData = (TStructData)Session[key];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
@@ -1257,14 +1078,13 @@ namespace ASB
             requestProcess_logtime += ObjExecTr.RequestProcessTime("Response", dcHTML);
             string serverprocesstime = ObjExecTr.TotalServerElapsTime();
             dcHTML = serverprocesstime + "*♠♠*" + requestProcess_logtime + "*♠♠*" + dcHTML;
-            if (_tstKeyChanged != "")
-                dcHTML = _tstKeyChanged + "♠*♠" + dcHTML;
+
             return dcHTML;
         }
 
         [WebMethod(EnableSession = true)]
 
-        public string DoGetFillGridNonMS(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string frameNo, string fgName, string key, string resTstHtmlLS)
+        public string DoGetFillGridNonMS(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string frameNo, string fgName, string key)
         {
             string requestProcess_logtime = string.Empty;
             ObjExecTr.SetCurrentTime();
@@ -1278,13 +1098,7 @@ namespace ASB
             }
 
             GetGlobalVars();
-            string _tstKeyChanged = "";
-            if (resTstHtmlLS != "")
-            {
-                utilObj.DeleteTstIvObject(key.Split('_')[0]);
-                key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
-                _tstKeyChanged = key;
-            }
+
             TStructData tstData = (TStructData)Session[key];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
@@ -1311,13 +1125,12 @@ namespace ASB
             requestProcess_logtime += ObjExecTr.RequestProcessTime("Response", result);
             string serverprocesstime = ObjExecTr.TotalServerElapsTime();
             result = serverprocesstime + "*♠♠*" + requestProcess_logtime + "*♠♠*" + result;
-            if (_tstKeyChanged != "")
-                result = _tstKeyChanged + "♠*♠" + result;
+
             return result;
         }
 
         [WebMethod(EnableSession = true)]
-        public string GetSubGridDropdown(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string frameNo, string key, string recordid, int parRowNo, string parDcNo, int popRowNo, string resTstHtmlLS)
+        public string GetSubGridDropdown(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string frameNo, string key, string recordid, int parRowNo, string parDcNo, int popRowNo)
         {
             string result = string.Empty;
 
@@ -1327,13 +1140,6 @@ namespace ASB
             }
 
             GetGlobalVars();
-            string _tstKeyChanged = "";
-            if (resTstHtmlLS != "")
-            {
-                utilObj.DeleteTstIvObject(key.Split('_')[0]);
-                key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
-                _tstKeyChanged = key;
-            }
             TStructData tstData = (TStructData)Session[key];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
@@ -1341,8 +1147,6 @@ namespace ASB
             string errorLog = logobj.CreateLog("Calling GetSubGrid dropdown.", sessionid, "GetSubGridDDL", "new");
             string iXml = "<sqlresultset axpapp='" + project + "' transid='" + tstData.transid + "' recordid='" + recordid + "' dcname='dc" + frameNo + "' sessionid='" + sessionid + "' trace='" + errorLog + "' activerow='1' frameno ='" + frameNo + "' pardc='" + parDcNo + "' pdc='" + parDcNo + "' prow='" + parRowNo + "'>";
             result = tstData.GetSubGridCombos(fldArray, fldDbRowNo, fldValueArray, fldDeletedArray, iXml, frameNo, parDcNo, popRowNo, parRowNo);
-            if (_tstKeyChanged != "")
-                result = _tstKeyChanged + "♠*♠" + result;
             return result;
         }
 
@@ -1361,7 +1165,7 @@ namespace ASB
 
 
         [WebMethod(EnableSession = true)]
-        public string RefreshDc(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string frameNo, string key, string recordid, string includeDcs, string resTstHtmlLS)
+        public string RefreshDc(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string frameNo, string key, string recordid, string includeDcs)
         {
             string result = string.Empty;
 
@@ -1371,13 +1175,6 @@ namespace ASB
             }
 
             GetGlobalVars();
-            string _tstKeyChanged = "";
-            if (resTstHtmlLS != "")
-            {
-                utilObj.DeleteTstIvObject(key.Split('_')[0]);
-                key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
-                _tstKeyChanged = key;
-            }
             TStructData tstData = (TStructData)Session[key];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
@@ -1386,13 +1183,11 @@ namespace ASB
             string iXml = "<sqlresultset axpapp='" + project + "' transid='" + tstData.transid + "' recordid='" + recordid + "' dcname='dc" + frameNo + "' sessionid='" + sessionid + "' trace='" + errorLog + "' >";
             result = tstData.CallRefreshDc(fldArray, fldDbRowNo, fldValueArray, fldDeletedArray, iXml, frameNo, includeDcs);
             tstData.JsonToArray(result, tstData.tstStrObj, "", "RefreshDc");
-            if (_tstKeyChanged != "")
-                result = _tstKeyChanged + "♠*♠" + result;
             return result;
         }
 
         [WebMethod(EnableSession = true)]
-        public string ProcessWFActionChanges(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string files, string rid, string inputXml, string key, string resTstHtmlLS)
+        public string ProcessWFActionChanges(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string files, string rid, string inputXml, string key)
         {
             if (HttpContext.Current.Session["project"] == null)
                 return utilObj.SESSTIMEOUT;
@@ -1403,13 +1198,6 @@ namespace ASB
             }
 
             inputXml = GetTraceString(inputXml);
-            string _tstKeyChanged = "";
-            if (resTstHtmlLS != "")
-            {
-                utilObj.DeleteTstIvObject(key.Split('_')[0]);
-                key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
-                _tstKeyChanged = key;
-            }
             TStructData tstData = (TStructData)Session[key];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
@@ -1418,8 +1206,6 @@ namespace ASB
             {
                 result = tstData.CallWorkFlowActionWS(tstData, fldArray, fldDbRowNo, fldValueArray, fldDeletedArray, files, rid, inputXml);
             }
-            if (_tstKeyChanged != "")
-                result = _tstKeyChanged + "♠*♠" + result;
             return result;
         }
 
@@ -1516,7 +1302,7 @@ namespace ASB
         }
 
         [WebMethod(EnableSession = true)]
-        public string GetAddGroupsHtml(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string dcNo, string transid, string key, string resTstHtmlLS)
+        public string GetAddGroupsHtml(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string dcNo, string transid, string key)
         {
             if (HttpContext.Current.Session["project"] == null)
                 return utilObj.SESSTIMEOUT;
@@ -1525,13 +1311,7 @@ namespace ASB
             {
                 return Constants.MALICIOUSNPUTDETECTED;
             }
-            string _tstKeyChanged = "";
-            if (resTstHtmlLS != "")
-            {
-                utilObj.DeleteTstIvObject(key.Split('_')[0]);
-                key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
-                _tstKeyChanged = key;
-            }
+
             TStructData tstData = (TStructData)Session[key];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
@@ -1574,23 +1354,15 @@ namespace ASB
                 fgHTML = "<div style=\"width:100%;max-height:300px;overflow-x:auto;overflow-y:scroll;padding-top:10px\"><table id='tblFillGrid" + dcNo + "' class='gridData'><thead><tr><th width=\"15\"><input type=checkbox name='chkall' class='fgHdrChk' id='chkall' onclick=\"javascript:CheckAll(this);\" ></th>" + headRow + "</tr></thead><tbody>" + rowHtml + "</tbody></table>";
                 fgHTML += "<div style='text-align:center;'><input type='button' class='button' value='Ok' onclick=\"javascript:ProcessAddGroup('" + dcNo + "')\"/></div></div>";
             }
-            if (_tstKeyChanged != "")
-                fgHTML = _tstKeyChanged + "♠*♠" + fgHTML;
+
             return fgHTML;
         }
 
         [WebMethod(EnableSession = true)]
-        public string GetNewGroupsHtml(int dcNo, string transid, string selectedGroups, string lastRowNo, string key, string resTstHtmlLS)
+        public string GetNewGroupsHtml(int dcNo, string transid, string selectedGroups, string lastRowNo, string key)
         {
             if (HttpContext.Current.Session["project"] == null)
                 return utilObj.SESSTIMEOUT;
-            string _tstKeyChanged = "";
-            if (resTstHtmlLS != "")
-            {
-                utilObj.DeleteTstIvObject(key.Split('_')[0]);
-                key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
-                _tstKeyChanged = key;
-            }
             TStructData tstData = (TStructData)Session[key];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
@@ -1603,8 +1375,6 @@ namespace ASB
                 groups.Add(strGroups[i].ToString());
             }
             string grpHtml = strObj.GetGroupRowHtml(dcNo, groups, lastRowNo, tstData);
-            if (_tstKeyChanged != "")
-                grpHtml = _tstKeyChanged + "♠*♠" + grpHtml;
             return grpHtml;
         }
 
@@ -1638,7 +1408,7 @@ namespace ASB
         }
 
         [WebMethod(EnableSession = true)]
-        public string CreateFastReportDoc(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string tid, string selectedDoc, string rid, string key, string resTstHtmlLS)
+        public string CreateFastReportDoc(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string tid, string selectedDoc, string rid, string key)
         {
             if (Util.Util.CheckCrossScriptingInString(String.Join(",", fldValueArray.ToArray())))
             {
@@ -1646,13 +1416,6 @@ namespace ASB
             }
 
             GetGlobalVars();
-            string _tstKeyChanged = "";
-            if (resTstHtmlLS != "")
-            {
-                utilObj.DeleteTstIvObject(key.Split('_')[0]);
-                key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
-                _tstKeyChanged = key;
-            }
             TStructData tstData = (TStructData)Session[key];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
@@ -1667,22 +1430,13 @@ namespace ASB
             //iXml = iXml + HttpContext.Current.Session["axApps"].ToString() + HttpContext.Current.Application["axProps"].ToString() + HttpContext.Current.Session["axGlobalVars"].ToString() + HttpContext.Current.Session["axUserVars"].ToString() + "</root>";
             string result = string.Empty;
             result = tstData.CallCreateFastPDFWS(iXml);
-            if (_tstKeyChanged != "")
-                result = _tstKeyChanged + "♠*♠" + result;
             return result;
         }
 
         [WebMethod(EnableSession = true)]
-        public string AddPrintDoc(string tid, string selectedDoc, string rid, string key, string docType, string resTstHtmlLS)
+        public string AddPrintDoc(string tid, string selectedDoc, string rid, string key, string docType)
         {
             string result = string.Empty;
-            string _tstKeyChanged = "";
-            if (resTstHtmlLS != "")
-            {
-                utilObj.DeleteTstIvObject(key.Split('_')[0]);
-                key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
-                _tstKeyChanged = key;
-            }
             TStructData tstData = (TStructData)Session[key];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
@@ -1736,8 +1490,6 @@ namespace ASB
                     printDocs.Add(docName + "~" + Constants.PROGRESS);
                     Session["printingDocs"] = printDocs;
                 }
-                if (_tstKeyChanged != "")
-                    result = _tstKeyChanged + "♠*♠" + result;
                 return result;
             }
         }
@@ -1857,7 +1609,7 @@ namespace ASB
         }
 
         [WebMethod(EnableSession = true)]
-        public string AppendRowToDataObj(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string ArrActionLog, string key, string resTstHtmlLS)
+        public string AppendRowToDataObj(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string ArrActionLog, string key)
         {
             if (Util.Util.CheckCrossScriptingInString(String.Join(",", fldValueArray.ToArray())))
             {
@@ -1867,19 +1619,10 @@ namespace ASB
             string result = string.Empty;
             GetGlobalVars();
             logobj.CreateActionLog(ArrActionLog, sessionid, "ActionLog", "");
-            string _tstKeyChanged = "";
-            if (resTstHtmlLS != "")
-            {
-                utilObj.DeleteTstIvObject(key.Split('_')[0]);
-                key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
-                _tstKeyChanged = key;
-            }
             TStructData tstData = (TStructData)Session[key];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
             tstData.GetFieldValueXml(fldArray, fldDbRowNo, fldValueArray, fldDeletedArray, "-1", "UpdateNewRow", "ALL", "");
-            if (_tstKeyChanged != "")
-                result = _tstKeyChanged + "♠*♠" + result;
             return result;
         }
 
@@ -1893,7 +1636,7 @@ namespace ASB
 
         #region Save As Draft
         [WebMethod(EnableSession = true)]
-        public string SaveAsDraft(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string transid, string key, string tabDCStatusStr, string resTstHtmlLS)
+        public string SaveAsDraft(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string transid, string key, string tabDCStatusStr)
         {
             if (Util.Util.CheckCrossScriptingInString(String.Join(",", fldValueArray.ToArray())))
             {
@@ -1902,13 +1645,6 @@ namespace ASB
 
             GetGlobalVars();
             string result = string.Empty;
-            string _tstKeyChanged = "";
-            if (resTstHtmlLS != "")
-            {
-                utilObj.DeleteTstIvObject(key.Split('_')[0]);
-                key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
-                _tstKeyChanged = key;
-            }
             TStructData tstData = (TStructData)Session[key];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
@@ -1930,8 +1666,6 @@ namespace ASB
             {
                 result = "error:" + ex.Message;
             }
-            if (_tstKeyChanged != "")
-                result = _tstKeyChanged + "♠*♠" + result;
             return result;
         }
         [WebMethod(EnableSession = true)]
@@ -1969,17 +1703,10 @@ namespace ASB
 
         //AddToDataCache
         [WebMethod(EnableSession = true)]
-        public string AddToDataCache(string html, string key, string jsArrays, string recId, string resTstHtmlLS)
+        public string AddToDataCache(string html, string key, string jsArrays, string recId)
         {
             GetGlobalVars();
             string result = string.Empty;
-            string _tstKeyChanged = "";
-            if (resTstHtmlLS != "")
-            {
-                utilObj.DeleteTstIvObject(key.Split('_')[0]);
-                key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
-                _tstKeyChanged = key;
-            }
             TStructData tstData = (TStructData)Session[key];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
@@ -2002,8 +1729,6 @@ namespace ASB
                 result = "error:" + ex.Message;
                 logobj.CreateLog(ex.StackTrace.ToString(), sessionid, "Exception-SaveHtml" + transid, "");
             }
-            if (_tstKeyChanged != "")
-                result = _tstKeyChanged + "♠*♠" + result;
             return result;
         }
 
@@ -2163,16 +1888,11 @@ namespace ASB
 
 
         [WebMethod(EnableSession = true)]
-        public void CreateTimeLog(string clientStartTime, string clientTime1, string clientTime2, string asbTot, string asbDb, string serviceName, string dataKey, string resTstHtmlLS)
+        public void CreateTimeLog(string clientStartTime, string clientTime1, string clientTime2, string asbTot, string asbDb, string serviceName, string dataKey)
         {
             GetGlobalVars();
             string path = utilObj.ScriptsPath + "\\log\\" + sessionid;
             string serverTime = string.Empty;
-            if (resTstHtmlLS != "")
-            {
-                utilObj.DeleteTstIvObject(dataKey.Split('_')[0]);
-                dataKey = utilObj.GetReGenTstDataObj(dataKey, resTstHtmlLS);
-            }
             TStructData tstData = (TStructData)Session[dataKey];
             if (tstData != null)
                 serverTime = tstData.strServerTime;
@@ -3997,11 +3717,10 @@ namespace ASB
 
 
         [System.Web.Services.WebMethod(EnableSession = true)]
-        public string GetFastDepFlds(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string ArrActionLog, string visibleDcs, string str, string tid, string key, string frameNo, string rowNo, string changeFieldName, string subGridInfo, string parentInfo, string fieldName, string resTstHtmlLS)
+        public string GetFastDepFlds(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string ArrActionLog, string visibleDcs, string str, string tid, string key, string frameNo, string rowNo, string changeFieldName, string subGridInfo, string parentInfo, string fieldName)
         {
             DateTime stDate = DateTime.Now;
             string result = string.Empty;
-            string _tstKeyChanged = "";
             try
             {
                 if (HttpContext.Current.Session["project"] == null)
@@ -4013,12 +3732,6 @@ namespace ASB
                 }
 
                 DateTime sTime1 = DateTime.Now;
-                if (resTstHtmlLS != "")
-                {
-                    utilObj.DeleteTstIvObject(key.Split('_')[0]);
-                    key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
-                    _tstKeyChanged = key;
-                }
                 TStructData tstData = (TStructData)Session[key];
                 if (tstData == null)
                     return Constants.DUPLICATESESS;
@@ -4038,9 +3751,6 @@ namespace ASB
             }
             DateTime edTime = DateTime.Now;
             logobj.CreateLog("Timetaken in GetFastDepFlds- Field" + fieldName + "-" + stDate.Subtract(edTime).TotalMilliseconds.ToString(), sessionid, "LogTimeTaken", "");
-
-            if (_tstKeyChanged != "")
-                result = _tstKeyChanged + "♠*♠" + result;
             return result;
         }
 
@@ -4123,7 +3833,7 @@ namespace ASB
             return saved;
         }
 
-        public string GetdllAutoComplete(string tstDataId, string fldName, string fldValue, ArrayList ChangedFields, ArrayList ChangedFieldDbRowNo, ArrayList ChangedFieldValues, ArrayList DeletedDCRows, string pageData, string fastdll, string fldNameAc, string refreshAC, string pickArrow, string parentFlds, string rfSave, string IsApiFld, string tblSourceParams, string isTstHtmlLs)
+        public string GetdllAutoComplete(string tstDataId, string fldName, string fldValue, ArrayList ChangedFields, ArrayList ChangedFieldDbRowNo, ArrayList ChangedFieldValues, ArrayList DeletedDCRows, string pageData, string fastdll, string fldNameAc, string refreshAC, string pickArrow, string parentFlds, string rfSave, string IsApiFld, string tblSourceParams)
         {
             HttpContext.Current.Session["LastUpdatedSess"] = DateTime.Now.ToString();//.ToShortTimeString();
             DateTime stTime = DateTime.Now;
@@ -4144,14 +3854,6 @@ namespace ASB
             if (fldValue != "" && Util.Util.CheckCrossScriptingInString(fldValue))
             {
                 return Constants.MALICIOUSNPUTDETECTED;
-            }
-
-            string _tstKeyChanged = "";
-            if (isTstHtmlLs != "")
-            {
-                utilObj.DeleteTstIvObject(tstDataId.Split('_')[0]);
-                tstDataId = utilObj.GetReGenTstDataObj(tstDataId, isTstHtmlLs);
-                _tstKeyChanged = tstDataId;
             }
 
             string result = string.Empty;
@@ -4250,8 +3952,6 @@ namespace ASB
                         {
                             result = dllData;
                             isCache = true;
-                            if (_tstKeyChanged != "")
-                                result = _tstKeyChanged + "♣*♣" + result;
                             return result;
                         }
                     }
@@ -4262,8 +3962,6 @@ namespace ASB
                         {
                             result = Session[sessCacheKey].ToString();
                             isCache = true;
-                            if (_tstKeyChanged != "")
-                                result = _tstKeyChanged + "♣*♣" + result;
                             return result;
                         }
                     }
@@ -4285,16 +3983,12 @@ namespace ASB
                             string json = new JavaScriptSerializer().Serialize(data.GetRange(50 * (pgNumber - 1), perPage));
                             result = "{\"pickdata\":[{\"rcount\":\"" + rcount + "\"},{\"fname\":\"" + fname + "\"},{\"dfname\":\"" + dfname + "\"},{\"data\":" + json + "}]}";
                             isCache = true;
-                            if (_tstKeyChanged != "")
-                                result = _tstKeyChanged + "♣*♣" + result;
                             return result;
                         }
                     }
                     else if (fastdll == "False" && fldValue.Length < 2)//Fetching data from session for Picklist field if the input is 1 or 2 character. that means filterig empty picklist session values if the same session is empty user will get this message "Please enter minimum of 2 character to search".
                     {
                         result = "{\"pickdata\":[{\"rcount\":\"0\"},{\"fname\":\"" + fldName + "\"},{\"data\":[{\"i\":\"Please enter minimum of 2 characters to search\",\"v\":\"\",\"d\":\"\"}]}]}";
-                        if (_tstKeyChanged != "")
-                            result = _tstKeyChanged + "♣*♣" + result;
                         return result;
                     }
                     else if (fastdll == "False" && fldValue.Length >= 2)//Fetching data from session for Picklist field and input values is >=2 characters, if not match the pattern of input will delete the existing session key and will create new session key with matched data.
@@ -4360,8 +4054,6 @@ namespace ASB
                                     string json = new JavaScriptSerializer().Serialize(data.GetRange(50 * (pgNumber - 1), perPage));
                                     result = "{\"pickdata\":[{\"rcount\":\"" + rcount + "\"},{\"fname\":\"" + fname + "\"},{\"dfname\":\"" + dfname + "\"},{\"data\":" + json + "}]}";
                                     isCache = true;
-                                    if (_tstKeyChanged != "")
-                                        result = _tstKeyChanged + "♣*♣" + result;
                                     return result;
                                 }
                             }
@@ -4385,8 +4077,6 @@ namespace ASB
 
                 if (utils.ParseJSonErrorNode(result) != "")//To check is there error node.
                 {
-                    if (_tstKeyChanged != "")
-                        result = _tstKeyChanged + "♣*♣" + result;
                     return result;
                 }
                 try
@@ -4459,10 +4149,7 @@ namespace ASB
                 {
                 }
             }
-            result = result + "♠" + requestProcess_logtime;
-            if (_tstKeyChanged != "")
-                result = _tstKeyChanged + "♣*♣" + result;
-            return result;
+            return result + "♠" + requestProcess_logtime;
         }
 
         public bool ParseJSonResultNode(string result)
@@ -4500,61 +4187,12 @@ namespace ASB
             string result = string.Empty;
             int fldidx = tstStrObj.GetFieldIndex(fldName);
             TStructDef.FieldStruct fld = (TStructDef.FieldStruct)tstStrObj.flds[fldidx];
-
-            string api = string.Empty;
-            string mapname = string.Empty;
-            string apiType = string.Empty;
-            string contType = string.Empty;
-            string contBody = string.Empty;
-
-            string _apiname = fld.fieldSelAPIName;
-            if (_apiname != null && _apiname != string.Empty)
-            {
-                try
-                {
-                    string _apiData = GetFromAPIInfo(_apiname, fldName, tstStrObj.transId);
-                    JArray returnArray = new JArray();
-                    JObject resultRows = JObject.Parse(_apiData);
-                    if (_apiData != string.Empty)
-                    {
-                        JArray _apiEle = (JArray)resultRows["result"]["row"];
-                        foreach (JObject row in _apiEle)
-                        {
-                            JObject modifiedRow = new JObject();
-                            foreach (var property in row.Properties())
-                            {
-                                if (property.Name.ToLower() == "execapiurl")
-                                    api = property.Value.ToString();
-                                if (property.Name.ToLower() == "apiresponsetype")
-                                    apiType = property.Value.ToString();
-                                if (property.Name.ToLower() == "apiresponseformat")
-                                    contType = property.Value.ToString();
-                                if (property.Name.ToLower() == "execapirequeststring")
-                                    contBody = property.Value.ToString();
-                            }
-                        }
-                    }
-
-                    string apiParams = fld.fieldSelAPIParams;
-                    string[] strDetails = apiParams.Split('♠');
-                    mapname = strDetails[0];
-                }
-                catch (Exception ex) { }
-            }
-            else
-            {
-                api = fld.fieldSelAPI;
-                string apiParams = fld.fieldSelAPIParams;
-                string[] strDetails = apiParams.Split('♠');
-                mapname = strDetails[0];
-                apiType = strDetails[1];
-                contType = strDetails[2];
-                contBody = strDetails[5];
-            }
-            if (api == string.Empty)
-            {
-                return "";
-            }
+            string api = fld.fieldSelAPI;
+            string apiParams = fld.fieldSelAPIParams;
+            string[] strDetails = apiParams.Split('♠');
+            string mapname = strDetails[0];
+            string apiType = strDetails[1];
+            string contType = strDetails[2];
 
             ArrayList fromApiName = new ArrayList();
             ArrayList fromApiExp = new ArrayList();
@@ -4584,7 +4222,7 @@ namespace ASB
             {
                 request.Method = "POST";
                 request.ContentType = "application/" + contType;
-                DATA = contBody;// strDetails[5];
+                DATA = strDetails[5];
                 DATA = ParseAxpertApiParams(DATA, "sqlparams", fieldValueXml, tstStrObj);
                 request.ContentLength = DATA.Length;
                 StreamWriter requestWriter = new StreamWriter(request.GetRequestStream(), System.Text.Encoding.ASCII);
@@ -4651,32 +4289,6 @@ namespace ASB
                 logobj.CreateLog("AutoComplete from API.-" + ex.Message, sessionid, "FromApi-" + fldName, "new");
             }
             return result;
-        }
-
-        public string GetFromAPIInfo(string _apiname, string _fieldName, string _transid)
-        {
-            string _apiData = string.Empty;
-            try
-            {
-                string schemaName = string.Empty;
-                if (HttpContext.Current.Session["dbuser"] != null)
-                    schemaName = HttpContext.Current.Session["dbuser"].ToString();
-                FDR fdrObj = (FDR)HttpContext.Current.Session["FDR"];
-                _apiData = fdrObj.StringFromRedis(utilObj.GetRedisServerkey(Constants.REDISTSTFLDFROMAPI, _transid, _fieldName + "-" + _apiname));
-                if (_apiData == string.Empty)
-                {
-                    string sqlInput = "select execapidefname,execapiurl,apiresponsetype,apiresponseformat,execapirequeststring from EXECUTEAPIDEF where execapidefname = '" + _apiname + "'";
-                    ASBExt.WebServiceExt objWebServiceExt = new ASBExt.WebServiceExt();
-                    _apiData = asbExt.ExecuteSQL("", sqlInput, "JSON");
-                    if (_apiData != string.Empty)
-                    {
-                        FDW fdwObj = FDW.Instance;
-                        fdwObj.SaveInRedisServer(utilObj.GetRedisServerkey(Constants.REDISTSTFLDFROMAPI, _transid, _fieldName + "-" + _apiname), _apiData, Constants.REDISTSTFLDFROMAPI, schemaName);
-                    }
-                }
-            }
-            catch (Exception ex) { }
-            return _apiData;
         }
 
         private string ApiResultParser(string response, string contType, string mapname, string fldName, ArrayList fromApiName, ArrayList fromApiExp)
@@ -4878,15 +4490,8 @@ namespace ASB
         }
 
         [System.Web.Services.WebMethod(EnableSession = true)]
-        public string GetListViewNext(string transId, string key, string resTstHtmlLS)
+        public string GetListViewNext(string transId, string key)
         {
-            string _tstKeyChanged = "";
-            if (resTstHtmlLS != "" && HttpContext.Current.Session[key] == null)
-            {
-                utilObj.DeleteTstIvObject(key.Split('_')[0]);
-                key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
-                _tstKeyChanged = key;
-            }
             TStructData tstData = (TStructData)Session[key];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
@@ -4914,21 +4519,12 @@ namespace ASB
                 }
             }
             catch (Exception ex) { }
-            if (_tstKeyChanged != "")
-                returnQuery = _tstKeyChanged + "♠*♠" + returnQuery;
             return returnQuery;
 
         }
         [System.Web.Services.WebMethod(EnableSession = true)]
-        public string GetListViewPrev(string transId, string key, string resTstHtmlLS)
+        public string GetListViewPrev(string transId, string key)
         {
-            string _tstKeyChanged = "";
-            if (resTstHtmlLS != "" && HttpContext.Current.Session[key] == null)
-            {
-                utilObj.DeleteTstIvObject(key.Split('_')[0]);
-                key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
-                _tstKeyChanged = key;
-            }
             TStructData tstData = (TStructData)Session[key];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
@@ -4956,8 +4552,6 @@ namespace ASB
                 }
             }
             catch (Exception ex) { }
-            if (_tstKeyChanged != "")
-                returnQuery = _tstKeyChanged + "♠*♠" + returnQuery;
             return returnQuery;
 
         }
@@ -5698,7 +5292,7 @@ namespace ASB
             return result;
         }
 
-        public string GetMultiSelectValues(string tstDataId, string fldName, string fldValue, ArrayList ChangedFields, ArrayList ChangedFieldDbRowNo, ArrayList ChangedFieldValues, ArrayList DeletedDCRows, string fldNameMs, string refreshMs, string parentFlds, string rfSave, string pageData, string isTstHtmlLs)
+        public string GetMultiSelectValues(string tstDataId, string fldName, string fldValue, ArrayList ChangedFields, ArrayList ChangedFieldDbRowNo, ArrayList ChangedFieldValues, ArrayList DeletedDCRows, string fldNameMs, string refreshMs, string parentFlds, string rfSave, string pageData)
         {
             HttpContext.Current.Session["LastUpdatedSess"] = DateTime.Now.ToString();
             string result = string.Empty;
@@ -5707,13 +5301,6 @@ namespace ASB
             string[] pgData = pageData.Split('~');
             string activeRow = pgData[3];
             string errorLog = logobj.CreateLog("MultiSelect- GetMultiSelectValues.", sessionid, "MultiSelect-" + fldName, "new");
-            string _tstKeyChanged = "";
-            if (isTstHtmlLs != "")
-            {
-                utilObj.DeleteTstIvObject(tstDataId.Split('_')[0]);
-                tstDataId = utilObj.GetReGenTstDataObj(tstDataId, isTstHtmlLs);
-                _tstKeyChanged = tstDataId;
-            }
             TStructData tstData = (TStructData)Session[tstDataId];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
@@ -5768,8 +5355,6 @@ namespace ASB
                     {
                         result = dllData;
                         isCache = true;
-                        if (_tstKeyChanged != "")
-                            result = _tstKeyChanged + "♣*♣" + result;
                         return result;
                     }
                 }
@@ -5780,8 +5365,6 @@ namespace ASB
                     {
                         result = Session[sessCacheKey].ToString();
                         isCache = true;
-                        if (_tstKeyChanged != "")
-                            result = _tstKeyChanged + "♣*♣" + result;
                         return result;
                     }
                 }
@@ -5817,8 +5400,6 @@ namespace ASB
             {
                 logobj.CreateLog("MultiSelect from GetMultiSelectValues.-" + ex.Message, sessionid, "MultiSelect-cache-" + fldName, "");
             }
-            if (_tstKeyChanged != "")
-                result = _tstKeyChanged + "♣*♣" + result;
             return result;
         }
 
@@ -6711,89 +6292,24 @@ namespace ASB
         }
 
         [WebMethod(EnableSession = true)]
-        public string GetAcceptDataFromAPI(string tstDataId, string fldname, string apiInfo, string resTstHtmlLS)
+        public string GetAcceptDataFromAPI(string tstDataId, string fldname, string apiInfo)
         {
             string result = string.Empty;
             if (HttpContext.Current.Session["project"] == null)
                 return utilObj.SESSTIMEOUT;
-            string _tstKeyChanged = "";
             try
             {
-                if (resTstHtmlLS != "")
-                {
-                    utilObj.DeleteTstIvObject(tstDataId.Split('_')[0]);
-                    tstDataId = utilObj.GetReGenTstDataObj(tstDataId, resTstHtmlLS);
-                    _tstKeyChanged = tstDataId;
-                }
                 TStructData tstData = (TStructData)Session[tstDataId];
                 if (tstData == null)
                     return Constants.DUPLICATESESS;
                 TStructDef tstStrObj = tstData.tstStrObj;
                 int fldidx = tstStrObj.GetFieldIndex(fldname);
                 TStructDef.FieldStruct fld = (TStructDef.FieldStruct)tstStrObj.flds[fldidx];
-                //string api = fld.fieldSelAPI;
-                //string apiParams = fld.fieldSelAPIParams;
-                //string[] strDetails = apiParams.Split('♠');
-                //string apiType = strDetails[1];
-                //string contType = strDetails[2];
-
-                string api = string.Empty;
-                string mapname = string.Empty;
-                string apiType = string.Empty;
-                string contType = string.Empty;
-                string contBody = string.Empty;
-
-                string _apiname = fld.fieldSelAPIName;
-                if (_apiname != null && _apiname != string.Empty)
-                {
-                    try
-                    {
-                        string _apiData = GetFromAPIInfo(_apiname, fldname, tstStrObj.transId);
-                        JArray returnArray = new JArray();
-                        JObject resultRows = JObject.Parse(_apiData);
-                        if (_apiData != string.Empty)
-                        {
-                            JArray _apiEle = (JArray)resultRows["result"]["row"];
-                            foreach (JObject row in _apiEle)
-                            {
-                                JObject modifiedRow = new JObject();
-                                foreach (var property in row.Properties())
-                                {
-                                    if (property.Name.ToLower() == "execapiurl")
-                                        api = property.Value.ToString();
-                                    if (property.Name.ToLower() == "apiresponsetype")
-                                        apiType = property.Value.ToString();
-                                    if (property.Name.ToLower() == "apiresponseformat")
-                                        contType = property.Value.ToString();
-                                    if (property.Name.ToLower() == "execapirequeststring")
-                                        contBody = property.Value.ToString();
-                                }
-                            }
-                        }
-
-                        string apiParams = fld.fieldSelAPIParams;
-                        string[] strDetails = apiParams.Split('♠');
-                        mapname = strDetails[0];
-                    }
-                    catch (Exception ex) { }
-                }
-                else
-                {
-                    api = fld.fieldSelAPI;
-                    string apiParams = fld.fieldSelAPIParams;
-                    string[] strDetails = apiParams.Split('♠');
-                    mapname = strDetails[0];
-                    apiType = strDetails[1];
-                    contType = strDetails[2];
-                    contBody = strDetails[5];
-                }
-                if (api == string.Empty)
-                {
-                    return "";
-                }
-
-
-
+                string api = fld.fieldSelAPI;
+                string apiParams = fld.fieldSelAPIParams;
+                string[] strDetails = apiParams.Split('♠');
+                string apiType = strDetails[1];
+                string contType = strDetails[2];
                 if (apiType == "Axpert")
                 {
                     if (Session["ARM_Scripts_URL"] != null && Session["ARM_Scripts_URL"].ToString() != "")
@@ -6814,7 +6330,7 @@ namespace ASB
                 {
                     request.Method = "POST";
                     request.ContentType = "application/" + contType;
-                    DATA = contBody;// strDetails[5];
+                    DATA = strDetails[5];
                     DATA = ParseAxpertApiParams(DATA, "sqlparams", tstData.fieldValueXml, tstStrObj);
                     request.ContentLength = DATA.Length;
                     StreamWriter requestWriter = new StreamWriter(request.GetRequestStream(), System.Text.Encoding.ASCII);
@@ -6846,8 +6362,6 @@ namespace ASB
             {
                 logobj.CreateLog("Get Accept field value from API.-" + ex.Message, sessionid, "AcceptApi-" + fldname, "new");
             }
-            if (_tstKeyChanged != "")
-                result = _tstKeyChanged + "♠*♠" + result;
             return result;
         }
 
@@ -7548,22 +7062,15 @@ namespace ASB
 
 
         [WebMethod(EnableSession = true)]
-        public string CallExecuteScriptAPI(string apifrom, string tstDataId, string apiButtonName, string apiInfo, string resTstHtmlLS)
+        public string CallExecuteScriptAPI(string apifrom, string tstDataId, string apiButtonName, string apiInfo)
         {
             string result = string.Empty;
             if (HttpContext.Current.Session["project"] == null)
                 return utilObj.SESSTIMEOUT;
-            string _tstKeyChanged = "";
             try
             {
                 if (apifrom == "t")
                 {
-                    if (resTstHtmlLS != "")
-                    {
-                        utilObj.DeleteTstIvObject(tstDataId.Split('_')[0]);
-                        tstDataId = utilObj.GetReGenTstDataObj(tstDataId, resTstHtmlLS);
-                        _tstKeyChanged = tstDataId;
-                    }
                     TStructData tstData = (TStructData)Session[tstDataId];
                     if (tstData == null)
                         return Constants.DUPLICATESESS;
@@ -7609,8 +7116,6 @@ namespace ASB
             {
                 logobj.CreateLog("Call ExecuteScript APi.-" + ex.Message, sessionid, "ExecuteScriptAPi-" + apiButtonName, "new", "true");
             }
-            if (_tstKeyChanged != "")
-                result = _tstKeyChanged + "♠*♠" + result;
             return result;
         }
 
@@ -7763,7 +7268,7 @@ namespace ASB
         }
 
         [WebMethod(EnableSession = true)]
-        public string SaveTransactionRestAPI(string jsonData, string transId, string recordId, string changedDcs, string deledtedRows, string hfiles, string tstDataId, ArrayList deletedFldArrayValues, string resTstHtmlLS)
+        public string SaveTransactionRestAPI(string jsonData, string transId, string recordId, string changedDcs, string deledtedRows, string hfiles, string tstDataId, ArrayList deletedFldArrayValues)
         {
             string response = string.Empty;
             string DATA = string.Empty;
@@ -7779,13 +7284,7 @@ namespace ASB
                 changedDcs = changedDcs.Substring(0, changedDcs.Length - 1);
             }
 
-            string _tstKeyChanged = "";
-            if (resTstHtmlLS != "")
-            {
-                utilObj.DeleteTstIvObject(tstDataId.Split('_')[0]);
-                tstDataId = utilObj.GetReGenTstDataObj(tstDataId, resTstHtmlLS);
-                _tstKeyChanged = tstDataId;
-            }
+
             TStructData tstData = (TStructData)Session[tstDataId];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
@@ -7807,7 +7306,7 @@ namespace ASB
             string axapps = xmltojson(Session["axApps"].ToString());
             jsonData = jsonData.Remove(jsonData.Length - 2);
             string pwd = utilObj.MD5Hash(Session["pwd"].ToString());
-            DATA = "{\"_parameters\":[{\"savedata\":{\"cachedsave\":\"true\",\"axpapp\":\"" + HttpContext.Current.Session["project"].ToString() + "\",\"appsessionkey\":\"" + appsesskey + "\" " + ",\"transid\":\"" + transId + "\",\"s\":\"" + Session.SessionID + "\",\"username\":\"" + Session["username"].ToString() + "\",\"password\":\"" + pwd + "\",\"afiles\":\"" + hfiles + "\",\"changedrows\":{" + changedDcs + "},\"trace\":\"" + HttpContext.Current.Session["AxTrace"].ToString() + "\",\"recordid\":\"" + recordId + "\"," + deledtedRows + "";
+            DATA = "{\"_parameters\":[{\"savedata\":{\"cachedsave\":\"true\",\"axpapp\":\"" + HttpContext.Current.Session["project"].ToString() + "\",\"appsessionkey\":\"" + appsesskey + "\" " + ",\"transid\":\"" + transId + "\",\"s\":\"" + Session.SessionID + "\",\"username\":\"" + Session["username"].ToString() + "\",\"password\":\"" + pwd + "\",\"afiles\":\"" + hfiles + "\",\"changedrows\":{" + changedDcs + "},\"trace\":\"true\",\"recordid\":\"" + recordId + "\"," + deledtedRows + "";
             DATA += jsonData + "}],\"globalvars\":{" + globalvars + "},\"uservars\":{" + uservars + "},\"axapps\":{" + axapps + "}";
             DATA += "}}]}";
             //request.ContentLength = DATA.Length;
@@ -7839,147 +7338,16 @@ namespace ASB
                     }
                 }
                 catch (Exception ex) { }
-                if (_tstKeyChanged != "")
-                    response = _tstKeyChanged + "♠*♠" + response;
                 return response;
             }
             catch (Exception e)
             {
                 Console.Out.WriteLine("-----------------");
                 Console.Out.WriteLine(e.Message);
-                if (_tstKeyChanged != "")
-                    response = _tstKeyChanged + "♠*♠" + response;
                 return response;
             }
         }
 
-        [WebMethod(EnableSession = true)]
-        public string ExportARMPushToQueue(string iviewName, string iviewParams, string ivParamCaption, string isListView, string IVIRCaption, string dtFormat)
-        {
-            string response = string.Empty;
-            if (HttpContext.Current.Session["project"] == null || Session["nsessionid"] == null)
-                return utilObj.SESSTIMEOUT;
-            string DATA = string.Empty;
-            string URL = String.Empty;
-            string ArmScriptURL = String.Empty;
-            string axConfigFilePath = String.Empty;
-            if (HttpContext.Current.Session["ARM_URL"] != null && HttpContext.Current.Session["ARMPushToQueue_API"] != null)
-                URL = HttpContext.Current.Session["ARM_URL"].ToString() + HttpContext.Current.Session["ARMPushToQueue_API"].ToString();
-            if (HttpContext.Current.Session["ARM_Scripts_URL"] != null)
-                ArmScriptURL = HttpContext.Current.Session["ARM_Scripts_URL"].ToString();
-
-            if (URL == string.Empty || ArmScriptURL == string.Empty)
-                return "error:ARM Connection defined";
-
-            if (HttpContext.Current.Session["AxConfigFileUploadPath"] != null)
-            {
-                axConfigFilePath = HttpContext.Current.Session["AxConfigFileUploadPath"].ToString();
-                axConfigFilePath = axConfigFilePath.Replace(@"\", "\\\\");
-            }
-
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(URL);
-            request.Method = "POST";
-            request.ContentType = "application/json";
-            string iviewParamsJson = "{}";
-            if (iviewParams != "")
-            {
-                var pairs = iviewParams.Split(new[] { "~" }, StringSplitOptions.None);
-                pairs[0] = pairs[0].Trim('"');
-                pairs[pairs.Length - 1] = pairs[pairs.Length - 1].Trim('"');
-                var dictionary = new Dictionary<string, string>();
-                foreach (var pair in pairs)
-                {
-                    var keyValue = pair.Split('♠');
-                    if (keyValue.Length == 2)
-                    {
-                        string kyval = keyValue[1];
-                        kyval = kyval.Replace("&grave;", "~");
-                        dictionary[keyValue[0]] = kyval;
-                    }
-                }
-                iviewParamsJson = JsonConvert.SerializeObject(dictionary);
-            }
-
-            string iviewParamsJsonCap = "{}";
-            if (ivParamCaption != "")
-            {
-                var pairs = ivParamCaption.Split(new[] { "♥" }, StringSplitOptions.None);
-                pairs[0] = pairs[0].Trim('"');
-                pairs[pairs.Length - 1] = pairs[pairs.Length - 1].Trim('"');
-                var dictionary = new Dictionary<string, string>();
-                foreach (var pair in pairs)
-                {
-                    if (pair != "")
-                    {
-                        var keyValue = pair.Split(':');
-                        if (keyValue.Length == 2)
-                        {
-                            string kyval = keyValue[1];
-                            kyval = kyval.Replace("&grave;", "~");
-                            dictionary[keyValue[0]] = kyval;
-                        }
-                    }
-                }
-                iviewParamsJsonCap = JsonConvert.SerializeObject(dictionary);
-            }
-
-            string purpose = string.Empty;
-            if (isListView == "True")
-                purpose = "\"purpose\":\"list\",\"pageno\":\"0\",\"pagesize\":\"0\",";
-            else
-                purpose = "\"pageno\":\"0\",\"pagesize\":\"0\",";
-
-            DATA = "{\"getreport\":{\"trace\":\"" + HttpContext.Current.Session["AxTrace"].ToString() + "\"," + purpose + "\"metadata\":\"true\",\"fetchhidcol\":\"false\",\"_dateformat\":\"" + dtFormat + "\",\"ivcaption\":\"" + IVIRCaption + "\",\"sqlpagination\":\"false\",\"params\":" + iviewParamsJson + ",\"ivParamCaption\":" + iviewParamsJsonCap + ",\"project\":\"" + HttpContext.Current.Session["project"].ToString() + "\",\"name\":\"" + iviewName + "\",\"token\":\"d152232e23ff6523b8104196ff1b6015\",\"seed\":\"211269\",\"userauthkey\":\"" + Session["username"].ToString() + "\",\"arm_url\":\"" + HttpContext.Current.Session["ARM_URL"].ToString() + "\",\"ARMScriptURL\":\"" + ArmScriptURL + "\",\"axConfigFilePath\":\"" + axConfigFilePath + "\"}}";
-            var saveDetails = "{\"queuename\":\"ARMExportQueue\",\"queuedata\":" + JsonConvert.SerializeObject(DATA) + ",\"timespandelay\":\"0\"}";
-            request.ContentLength = saveDetails.Length;
-
-            StreamWriter requestWriter = new StreamWriter(request.GetRequestStream(), System.Text.Encoding.ASCII);
-            requestWriter.Write(saveDetails);
-            requestWriter.Close();
-
-            try
-            {
-                WebResponse webResponse = request.GetResponse();
-                Stream webStream = webResponse.GetResponseStream();
-                StreamReader responseReader = new StreamReader(webStream);
-                response = responseReader.ReadToEnd();
-                Console.Out.WriteLine(response);
-                responseReader.Close();
-                return response;
-            }
-            catch (Exception e)
-            {
-                Console.Out.WriteLine("-----------------");
-                Console.Out.WriteLine(e.Message);
-                return "error:" + e.Message;
-            }
-        }
-
-        [WebMethod(EnableSession = true)]
-        public string checkRedisKeyARMExport(string iviewName, string iviewParams)
-        {
-            string res = string.Empty;
-            if (HttpContext.Current.Session["project"] == null || Session["nsessionid"] == null)
-                return utilObj.SESSTIMEOUT;
-            string _RKey = string.Empty;
-            if (iviewParams != "")
-                _RKey = iviewName + "-ivarmexportexcel-" + HttpContext.Current.Session["username"].ToString() + "-" + iviewParams;
-            else
-                _RKey = iviewName + "-ivarmexportexcel-" + HttpContext.Current.Session["username"].ToString();
-
-            FDR fdrObj = (FDR)HttpContext.Current.Session["FDR"];
-            string armExportExcell = fdrObj.ReadStringKey(_RKey);
-            if (armExportExcell != string.Empty && armExportExcell == "requestinprocess")
-            {
-                //return "warning:Previous request still in process. Please wait till you get the notification.";
-                res = "keyexist";
-            }
-            else
-            {
-                res = "nokeyexist";
-            }
-            return res;
-        }
         protected void DeleteCachedSaveFiles(ArrayList deletedFldArrayValues, TStructData tstData)
         {
             try
@@ -8616,20 +7984,13 @@ namespace ASB
 
 
         [WebMethod(EnableSession = true)]
-        public string GetAutoIntelliFromAPI(string tstDataId, ArrayList ChangedFields, ArrayList ChangedFieldDbRowNo, ArrayList ChangedFieldValues, ArrayList DeletedDCRows, string fldname, string searchText, string sqlCols, string resTstHtmlLS)
+        public string GetAutoIntelliFromAPI(string tstDataId, ArrayList ChangedFields, ArrayList ChangedFieldDbRowNo, ArrayList ChangedFieldValues, ArrayList DeletedDCRows, string fldname, string searchText, string sqlCols)
         {
             string result = string.Empty;
             if (HttpContext.Current.Session["project"] == null)
                 return utilObj.SESSTIMEOUT;
-            string _tstKeyChanged = "";
             try
             {
-                if (resTstHtmlLS != "")
-                {
-                    utilObj.DeleteTstIvObject(tstDataId.Split('_')[0]);
-                    tstDataId = utilObj.GetReGenTstDataObj(tstDataId, resTstHtmlLS);
-                    _tstKeyChanged = tstDataId;
-                }
                 TStructData tstData = (TStructData)Session[tstDataId];
                 if (tstData == null)
                     return Constants.DUPLICATESESS;
@@ -8639,72 +8000,17 @@ namespace ASB
                 string _transId = tstData.transid;
                 tstData.GetFieldValueXml(ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, DeletedDCRows, "-1", "AutoComplete", "NG", tstData.tstStrObj.GetFieldDc(fldname).ToString());
 
-                //string api = fld.fieldSelAPI;
-                //string apiParams = fld.fieldSelAPIParams;
-                //string[] strDetails = apiParams.Split('♠');
-                //string apiType = strDetails[1];
-                //string contType = strDetails[2];
-
-                string api = string.Empty;
-                string mapname = string.Empty;
-                string apiType = string.Empty;
-                string contType = string.Empty;
-                string contBody = string.Empty;
-
-                string _apiname = fld.fieldSelAPIName;
-                if (_apiname != null && _apiname != string.Empty)
-                {
-                    try
-                    {
-                        string _apiData = GetFromAPIInfo(_apiname, fldname, tstStrObj.transId);
-                        JArray returnArray = new JArray();
-                        JObject resultRows = JObject.Parse(_apiData);
-                        if (_apiData != string.Empty)
-                        {
-                            JArray _apiEle = (JArray)resultRows["result"]["row"];
-                            foreach (JObject row in _apiEle)
-                            {
-                                JObject modifiedRow = new JObject();
-                                foreach (var property in row.Properties())
-                                {
-                                    if (property.Name.ToLower() == "execapiurl")
-                                        api = property.Value.ToString();
-                                    if (property.Name.ToLower() == "apiresponsetype")
-                                        apiType = property.Value.ToString();
-                                    if (property.Name.ToLower() == "apiresponseformat")
-                                        contType = property.Value.ToString();
-                                    if (property.Name.ToLower() == "execapirequeststring")
-                                        contBody = property.Value.ToString();
-                                }
-                            }
-                        }
-
-                        string apiParams = fld.fieldSelAPIParams;
-                        string[] strDetails = apiParams.Split('♠');
-                        mapname = strDetails[0];
-                    }
-                    catch (Exception ex) { }
-                }
-                else
-                {
-                    api = fld.fieldSelAPI;
-                    string apiParams = fld.fieldSelAPIParams;
-                    string[] strDetails = apiParams.Split('♠');
-                    mapname = strDetails[0];
-                    apiType = strDetails[1];
-                    contType = strDetails[2];
-                    contBody = strDetails[5];
-                }
-                if (api == string.Empty)
-                {
-                    return "";
-                }
+                string api = fld.fieldSelAPI;
+                string apiParams = fld.fieldSelAPIParams;
+                string[] strDetails = apiParams.Split('♠');
+                string apiType = strDetails[1];
+                string contType = strDetails[2];
 
                 string strParamVal = string.Empty;
                 if (apiType == "Axpert")
                 {
                     string DATA = string.Empty;
-                    DATA = contBody;// strDetails[5];
+                    DATA = strDetails[5];
                     string _RestDllPath = GetArmScriptURL();
                     if ((tstData.transid == "ad_fp" || tstData.transid == "a__fn" || tstData.transid == "ad_pn") && _RestDllPath != null)
                     {
@@ -8725,7 +8031,7 @@ namespace ASB
                         catch (Exception ex)
                         {
                             api = fld.fieldSelAPI;
-                            DATA = contBody;// strDetails[5];
+                            DATA = strDetails[5];
                         }
                     }
                     DATA = ParseAxpertApiParams(DATA, "sqlparams", tstData.fieldValueXml, tstStrObj, true);
@@ -8801,8 +8107,6 @@ namespace ASB
             {
                 logobj.CreateLog("Get auto intelligence field value from API.-" + ex.Message, sessionid, "GetAutoIntelliFromAPI-" + fldname, "new");
             }
-            if (_tstKeyChanged != "")
-                result = _tstKeyChanged + "♠*♠" + result;
             return result;
         }
 
@@ -8932,25 +8236,16 @@ namespace ASB
 
 
         [WebMethod(EnableSession = true)]
-        public string CreateFastReportPDFCustomWS(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string s, string key, string resTstHtmlLS)
+        public string CreateFastReportPDFCustomWS(ArrayList fldArray, ArrayList fldDbRowNo, ArrayList fldValueArray, ArrayList fldDeletedArray, string s, string key)
         {
             if (HttpContext.Current.Session["project"] == null)
                 return utilObj.SESSTIMEOUT;
-            string _tstKeyChanged = "";
-            if (resTstHtmlLS != "")
-            {
-                utilObj.DeleteTstIvObject(key.Split('_')[0]);
-                key = utilObj.GetReGenTstDataObj(key, resTstHtmlLS);
-                _tstKeyChanged = key;
-            }
             TStructData tstData = (TStructData)Session[key];
             tstData.GetFieldValueXml(fldArray, fldDbRowNo, fldValueArray, fldDeletedArray, "-1", "false", "ALL", "");
             s += "<varlist><row>" + tstData.fldValueXml + tstData.memVarsData + "</row></varlist>";
             s += HttpContext.Current.Session["axApps"].ToString() + HttpContext.Current.Application["axProps"].ToString() + HttpContext.Current.Session["axGlobalVars"].ToString() + HttpContext.Current.Session["axUserVars"].ToString() + "</root>";
             string result = string.Empty;
             result = tstData.CallCreateFastPDFWS(s);
-            if (_tstKeyChanged != "")
-                result = _tstKeyChanged + "♠*♠" + result;
             return result;
         }
 
@@ -9027,44 +8322,6 @@ namespace ASB
             return status;
         }
 
-        [WebMethod(EnableSession = true)]
-        public string LoadExportFileToScript(string filePath, string fileName)
-        {
-            string copied = string.Empty;
-            try
-            {
-                string PrefixFilename = string.Empty;
-                string sessionid = HttpContext.Current.Session["nsessionid"].ToString();
-                string scriptsPath = HttpContext.Current.Application["ScriptsPath"].ToString();
-                string scrPath = scriptsPath + "axpert\\" + sessionid + "\\Exports\\";
-
-                if (File.Exists(scrPath + fileName))
-                {
-                    File.Delete(scrPath + fileName);
-                }
-                CopyFiles(filePath, scrPath, fileName, fileName);
-                if (File.Exists(scrPath + fileName))
-                {
-                    int lastUnderscoreIndex = fileName.LastIndexOf('_');
-                    if (lastUnderscoreIndex != -1)
-                    {
-                        int lastPeriodIndex = fileName.LastIndexOf('.');
-                        string namePart = fileName.Substring(0, lastUnderscoreIndex);
-                        string extensionPart = fileName.Substring(lastPeriodIndex);
-                        string _reNameFile = namePart + extensionPart;
-                        File.Delete(scrPath + _reNameFile);
-                        File.Move(scrPath + fileName, scrPath + _reNameFile);
-                        copied = utilObj.ScriptsurlPath + "axpert/" + sessionid + "/Exports/" + _reNameFile;
-                    }
-                    else
-                        copied = utilObj.ScriptsurlPath + "axpert/" + sessionid + "/Exports/" + fileName;
-                }
-                else
-                    copied = utilObj.ScriptsurlPath + "axpert/" + sessionid + "/Exports/" + fileName;
-            }
-            catch (Exception) { }
-            return copied;
-        }
     }
 }
 

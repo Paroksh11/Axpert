@@ -43,10 +43,10 @@
     <%--<script src="../Js/adjustwindow.min.js?v=1" type="text/javascript"></script>
     <script src="../newPopups/axpertPopup.min.js?v=45"></script>--%>
     <script src="../Js/gen.min.js?v=14" type="text/javascript"></script>
-    <script src="../Js/helper.min.js?v=165" type="text/javascript"></script>
+    <script src="../Js/helper.min.js?v=159" type="text/javascript"></script>
    <%-- <script src="../Js/messagebox.min.js?v=1" type="text/javascript"></script>--%>
     <script src="../Js/cpwd.min.js?v=18" type="text/javascript"></script>
-    <script src="../Js/common.min.js?v=144" type="text/javascript"></script>
+    <script src="../Js/common.min.js?v=141" type="text/javascript"></script>
     <script type="text/javascript" src="../Js/lang/content-<%=langType%>.js?v=64"></script>
     <%--<link href="../Css/messagebox.min.css" rel="stylesheet" type="text/css" />--%>
 
@@ -168,7 +168,7 @@
                                     <asp:ScriptManager ID="ScriptManager1" runat="server">
                                         <Scripts>
                                             <asp:ScriptReference Path="../Js/gen.min.js?v=14" />
-                                            <asp:ScriptReference Path="../Js/tstruct.min.js?v=599" />
+                                            <asp:ScriptReference Path="../Js/tstruct.min.js?v=584" />
                                         </Scripts>
                                         <Services>
                                             <asp:ServiceReference Path="../WebService.asmx" />

@@ -573,7 +573,7 @@ function AxAsyncGetApiData(apiNames = "", apiType = "axpert", cacheInfo = [], su
  * @references
  *      Following files are required to be referred in custom html along with AxInterface.js:
             <script src="../../Js/Jquery-2.2.2.min.js" type="text/javascript"></script>
-            <script src="../../Js/common.min.js?v=144" type="text/javascript"></script>
+            <script src="../../Js/common.min.js?v=141" type="text/javascript"></script>
             <script src="../../Js/AxInterface.min.js?v=10" type="text/javascript"></script>
             <script src="../../ThirdParty/Highcharts/highcharts.js"></script>
             <script src="../../ThirdParty/Highcharts/highcharts-3d.js"></script>
@@ -738,7 +738,7 @@ function customizeData(plotName) {
  * @Files
  *  Following files are required to be referred in custom html along with AxInterface.js:
  *      <script src="../../Js/Jquery-2.2.2.min.js" type="text/javascript"></script>
- *      <script src="../../Js/common.min.js?v=144" type="text/javascript"></script>
+ *      <script src="../../Js/common.min.js?v=141" type="text/javascript"></script>
  * 
  */
 function AxLoadUrl(url) {
@@ -763,7 +763,7 @@ function AxLoadUrl(url) {
  *  Following files are required to be referred in custom html along with AxInterface.js:
  *      <script src="../../ThirdParty/lodash.min.js" type="text/javascript"></script>
  *      <script src="../../ThirdParty/deepdash.min.js" type="text/javascript"></script>
- *      <script src="../../Js/common.min.js?v=144" type="text/javascript"></script>
+ *      <script src="../../Js/common.min.js?v=141" type="text/javascript"></script>
  * 
  */
  function AxGetMenus(pages) {

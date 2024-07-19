@@ -535,28 +535,6 @@
                                                             </div>
                                                             <div class="clearfix"></div>
                                                         </div>
-                                                        <div class="configRightFormFields row g-3 align-items-center">
-                                                            <div class="col-md-4 col-sm-12">
-                                                                <asp:Label ID="Label6" class="form-label fw-boldest text-dark fs-6 mb-0" runat="server">File Server Map Username</asp:Label>
-                                                            </div>
-
-                                                            <div class="col-md-8 col-sm-12">
-                                                                <asp:HiddenField ID="HiddenField1" runat="server" Value="" />
-                                                                <asp:TextBox ID="txtfileMapUsername" runat="server" autocomplete="off" class="m-wrap placeholder-no-fix form-control"></asp:TextBox>
-                                                            </div>
-                                                            <div class="clearfix"></div>
-                                                        </div>
-                                                        <div class="configRightFormFields row g-3 align-items-center">
-                                                            <div class="col-md-4 col-sm-12">
-                                                                <asp:Label ID="Label7" class="form-label fw-boldest text-dark fs-6 mb-0" runat="server">File Server Map Password</asp:Label>
-                                                            </div>
-
-                                                            <div class="col-md-8 col-sm-12">
-                                                                <asp:HiddenField ID="HiddenField2" runat="server" Value="" />
-                                                                <asp:TextBox ID="tstfileMapPwd" runat="server" autocomplete="off" class="m-wrap placeholder-no-fix form-control"></asp:TextBox>
-                                                            </div>
-                                                            <div class="clearfix"></div>
-                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -897,8 +875,8 @@
     <script src="../ThirdParty/jquery-confirm-master/jquery-confirm.min.js?v=2" type="text/javascript"></script>
     <script src="../Js/alerts.min.js?v=32" type="text/javascript"></script>
     <script src="../Js/xmlToJson.min.js?v=2"></script>
-    <script src="../Js/config.min.js?v=13" type="text/javascript"></script>
+    <script src="../Js/config.min.js?v=12" type="text/javascript"></script>
     <script src="../Js/lang/content-<%=langType%>.js?v=64" type="text/javascript"></script>
-    <script src="../Js/common.min.js?v=144" type="text/javascript"></script>
+    <script src="../Js/common.min.js?v=141" type="text/javascript"></script>
 </body>
 </html>
