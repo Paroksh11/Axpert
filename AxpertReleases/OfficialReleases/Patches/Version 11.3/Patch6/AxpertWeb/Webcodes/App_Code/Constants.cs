@@ -123,6 +123,7 @@ public class Constants
 
     public const string CACMENU = "CACMENU";
     public const string REDISTSTRUCT = "Tstruct";
+    public const string REDISTSTFLDFROMAPI = "TstFldFromApi";
     public const string REDISTSTRUCTMOB = "TstructMob";
     public const string REDISTSTRUCTTABLE = "TstDcTable";
     public const string REDISTSTRUCTDOFORM = "TstructDoForm";
@@ -134,6 +135,7 @@ public class Constants
     public const string REDISTSTRUCTDTLS = "TstructDtls";
     public const string REDISTSTRUCTDTLSMOB = "TstructDtlsMob";
     public const string REDISTSTRUCTDESIGNDTLS = "TstDsgnDtls";
+    public const string REDISTSTCUSTOMJSCSS = "TstCustomJsCss";
     public const string DEPFLDARRAY = "depFldArray";
     public const string FIELDNAME = "fieldName";
     public const string FIELDINDEX = "fieldIndex";
@@ -253,6 +255,7 @@ public class Constants
     public const string CONFIGAPP_JSON_KEY = "ConfigAppJSON";
     public const string AXAPPS_XML_KEY = "AxAppsXML";
     public const string AXARM_CONN_KEY = "AxARMJSON";
+    public const string AXFileServer_CONN_KEY = "AxFileServerJSON";
 
     //Axpert Web Logs
     public const string SQL_GET_AXPWEBLOGS = "SELECT USERNAME, LOGTIME, SESSIONID, IPADDRESS, LOGDETAILS FROM AXPWEBLOGS WHERE TYPE = '$Type$'";
@@ -311,4 +314,7 @@ public class Constants
     public const string REDISPWDOTPAUTHLANG = "pwdotpauthlang";
     public const string AxAPIField_SqlData = "select sqlparams from Axdirectsql where sqlname=$sqlName$;";
     public const string REDISFREEZEGRDCOLS = "FreezeGridCols";
+    public const string REDISTSTHTMLLS = "tstHtmlLs";
+    public const string REDISTSTHTMLLSGLOBALVARS = "tstHtmlLsGlbVars";
+    public const string REDISTSTRUCTDOPTIME = "TstflDopTime";
 }

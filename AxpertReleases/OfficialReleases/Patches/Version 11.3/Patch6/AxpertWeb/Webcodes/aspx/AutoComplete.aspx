@@ -27,12 +27,12 @@
     <script src="../UI/axpertUI/datatables.bundle.js"></script>
     <script src="../Js/noConflict.min.js"></script>
 
-    <script type="text/javascript" src="../Js/tstruct.min.js?v=589"></script>
-    <script type="text/javascript" src="../Js/helper.min.js?v=161"></script>
-    <script type="text/javascript" src="../Js/jsclient.min.js?v=104"></script>
+    <script type="text/javascript" src="../Js/tstruct.min.js?v=604"></script>
+    <script type="text/javascript" src="../Js/helper.min.js?v=165"></script>
+    <script type="text/javascript" src="../Js/jsclient.min.js?v=110"></script>
 
     <script src="../Js/advSearch.min.js?v=26" type="text/javascript"></script>
-    <script src="../Js/common.min.js?v=143" type="text/javascript"></script>
+    <script src="../Js/common.min.js?v=144" type="text/javascript"></script>
     <script type="text/javascript">
         var _isMulSel = '<%=_isMulSel%>';
         var IsFormDirty = false;

@@ -60,7 +60,7 @@
     <script src="../Js/gen.min.js?v=14" type="text/javascript"></script>
     <script src="../Js/actb.min.js?v=1" type="text/javascript"></script>
     <script src="../Js/dimmingdiv.min.js?v=2" type="text/javascript"></script>
-    <script src="../Js/umgmt.min.js?v=27" type="text/javascript"></script>
+    <script src="../Js/umgmt.min.js?v=28" type="text/javascript"></script>
     <script src="../Js/calendar.min.js?v=1" type="text/javascript"></script>
     <script src="../Js/md5.min.js" type="text/javascript"></script>
     <script src="../Js/jquery.msgBox.min.js?v=2" type="text/javascript"></script>
@@ -84,7 +84,7 @@
     <form id="form1" runat="server" dir="<%=direction%>">
         <asp:ScriptManager ID="ScriptManager1" runat="server">
             <Scripts>
-                <asp:ScriptReference Path="~/Js/umgmt.min.js?v=27" />
+                <asp:ScriptReference Path="~/Js/umgmt.min.js?v=28" />
             </Scripts>
             <Services>
                 <asp:ServiceReference Path="../WebService.asmx" />
@@ -414,7 +414,7 @@
         <%=acScript%>
         <script src="../Js/user.min.js?v=18" type="text/javascript"></script>
 
-        <script src="../Js/common.min.js?v=141" type="text/javascript"></script>
+        <script src="../Js/common.min.js?v=144" type="text/javascript"></script>
     </form>
 </body>
 </html>

@@ -27,7 +27,7 @@
         <%:Scripts.Render("~/UI/axpertUI/bundleJs") %>
     </asp:PlaceHolder>
     <script src="../Js/noConflict.min.js?v=1" type="text/javascript"></script>
-    <script src="../Js/common.min.js?v=141"></script>
+    <script src="../Js/common.min.js?v=144"></script>
     <script type="text/javascript" src="../Js/lang/content-<%=langType%>.js?v=64"></script>
     <script type="text/javascript" src="../Js/alerts.min.js?v=32"></script>
     <script>

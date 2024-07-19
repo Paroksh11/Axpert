@@ -33,6 +33,7 @@ var axMemVarList = new Array();
 var axMemVarValue = new Array();
 var funclist = new Array();
 var forceBreak = false;
+var isexpApplyComma = false;
 funclist.push("abs", "addtodate", "addtomonth", "amtword");
 funclist.push("checkemail", "chkuniqchar", "cmonthyear", "convertmd5", "ctod", "curramtword");
 funclist.push("date", "datediff", "dayofdate", "dayselapsed", "daysinmonth", "decode", "dtoc");
@@ -160,7 +161,7 @@ function CallFunction(functionname, params) {
     else if (functionname == "formataccamount")
         result = 'n' + FormatAccAmount(params[0], params[1], params[2], params[3], params[4]);
     else if (functionname == "formatamount")
-        result = 'n' + FormatAmount(params[0], params[1], params[2], params[3], params[4]);
+        result = 'n' + FormatAmount(params[0], params[1], params[2], params[3], params[4], params[5]);
     else if (functionname == "triminbetwnspaces")
         result = 's' + TrimInbetwnSpaces(params[0]);
     else if (functionname == "date")
@@ -2757,7 +2758,7 @@ function FormatAccAmount(amount, declen, MillionRep, Malie, Rep) {
     return Result;
 }
 
-function FormatAmount(amount, declen, MillionRep, NRep, PRep) {
+function FormatAmount(amount, declen, ApplyComma, MillionRep, NRep, PRep) {
 
     var amt = 0;
     if (amount < 0)
@@ -2780,11 +2781,18 @@ function FormatAmount(amount, declen, MillionRep, NRep, PRep) {
     if (s.indexOf('.') < 0) { s += '.00'; }
     if (s.indexOf('.') == (s.length - 2)) { s += '0'; }
     s = minus + s;
-    if (MillionRep == "true")
+    if (MillionRep == "true" || MillionRep == "T") {
         Result = CommaFormatted(s);
+        if (ApplyComma != "" && ApplyComma.toLowerCase() == "t")
+            isexpApplyComma = true;
+    }
     else {
-        // Result = addCommas(s);
-        Result = s;
+        if (ApplyComma != "" && ApplyComma.toLowerCase() == "t") {
+            isexpApplyComma = true;
+            Result = CommaFormatted(s);
+        }
+        else
+            Result = s;
     }
 
     if ((NRep == "br") || (PRep == "br")) {

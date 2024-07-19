@@ -402,7 +402,7 @@ namespace ASB
         {
             if (HttpContext.Current.Session["project"] == null)
                 return utilObj.SESSTIMEOUT;
-            if (source != "tsect" && source != "tNF_AG" && source != "tmntss" && source != "tad_fg" && source != "tad_s" && source != "tad_sc" && source != "taxcad" && source != "tad_sp" && source == "tad_ic")
+            if (source != "tsect" && source != "tNF_AG" && source != "tmntss" && source != "tad_fg" && source != "tad_s" && source != "tad_sc" && source != "taxcad" && source != "tad_sp" && source != "tad_ic")
             {
                 if (Util.Util.CheckCrossScriptingInString(String.Join(",", fldValueArray.ToArray())))
                 {

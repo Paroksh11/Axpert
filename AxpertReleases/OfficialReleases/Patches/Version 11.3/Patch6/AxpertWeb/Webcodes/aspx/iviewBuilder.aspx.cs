@@ -181,7 +181,7 @@ public partial class aspx_iviewBuilder : System.Web.UI.Page
                 ScriptManager.RegisterStartupScript(this, this.GetType(), "ivirHeaderData", "var ivirHeaderData = " + jsonForGrid + ";var getAjaxIviewData=" + getAjaxIviewData.ToString().ToLower() + ";var isListView=" + (objIview.purposeString == "" ? "false" : "true") + ";var showParam=" + objIview.iviewParams.showParam.ToString().ToLower() + ";var iviewWrap = " + util.IviewWrap.ToString().ToLower() + ";var isIviewPopup = " + IsIviewPop.ToString().ToLower() + ";var toolbarJSON=JSON.stringify(" + toolbarJSON.ToString().Replace("\r\n", "") + ");var requestJSON = " + objIview.requestJSON.ToString().ToLower() + ";var redisLoadType = '" + redisLoadType.ToString() + "';var redisLoadKey = '" + redisLoadKey.ToString() + "';var breadCrumbStr = '" + objIview.Menubreadcrumb.ToString() + "';var structureJSON = " + structureJSON.ToString().Replace("\r\n", "") + ";", true);
             }
         }
-        catch(Exception ex) { }
+        catch (Exception ex) { }
     }
 
     private string CallStructure(string iName)
@@ -216,7 +216,9 @@ public partial class aspx_iviewBuilder : System.Web.UI.Page
         if (ires != string.Empty)
         {
             ires = ires.Split('♠')[1];
-            string[] splitRes = ires.Split(new[] { "#$#" }, StringSplitOptions.None);
+            if (ires.StartsWith("<"))
+                ires = util.ReplaceFirstOccurrence(ires, "#$#", "#$♥#");
+            string[] splitRes = ires.Split(new[] { "#$♥#" }, StringSplitOptions.None);
             if (splitRes.Length > 0)
             {
                 objIview.iviewParams.ParamXML = ires = splitRes[0];
@@ -714,9 +716,9 @@ public partial class aspx_iviewBuilder : System.Web.UI.Page
         try
         {
 
-            if(type == "i")
+            if (type == "i")
             {
-                if(ivTstName == string.Empty)
+                if (ivTstName == string.Empty)
                 {
                     //sql = "select a.name as value,a.caption from iviews a";
                     sql = "select a.name as value,a.caption from iviews a inner join (select c.iname from iviewparams c group by c.iname) as b on a.name=b.iname group by a.name,a.caption order by a.caption";
@@ -726,9 +728,9 @@ public partial class aspx_iviewBuilder : System.Web.UI.Page
                     sql = "select a.pname as value,a.pcaption as caption from iviewparams a where iname='" + ivTstName + "' order by a.pcaption";
                 }
             }
-            else if(type == "t")
+            else if (type == "t")
             {
-                if(ivTstName == string.Empty)
+                if (ivTstName == string.Empty)
                 {
                     //sql = "select a.name as value,a.caption from tstructs a";
                     sql = "select a.name as value,a.caption from tstructs a inner join (select c.tstruct from axpflds c group by c.tstruct) as b on a.name=b.tstruct group by a.name,a.caption order by a.caption";

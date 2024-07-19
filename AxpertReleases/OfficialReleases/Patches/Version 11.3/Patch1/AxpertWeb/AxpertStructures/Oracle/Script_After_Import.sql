@@ -87,6 +87,7 @@ order by 4,1)a
 >>
 
 
+
 <<
 alter table axusergroups add selfregistration varchar2(10);
 >>
@@ -150,7 +151,6 @@ CREATE TABLE AXPROCESSDEF
 <<
 CREATE UNIQUE INDEX AGLAXPROCESSDEFID ON AXPROCESSDEF (AXPROCESSDEFID) ;
 >>
-
 
 
 <<

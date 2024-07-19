@@ -733,7 +733,18 @@ function goToDesignMode() {
     }
 
     callParentNew("tstructCustomHTML=", tstCustHTML);
-    window.location.href = "tstruct.aspx" + window.location.search.replace(/&theMode=design/g, "") + "&theMode=design";
+    try {
+        let appSUrl = top.window.location.href.toLowerCase().substring("0", top.window.location.href.indexOf("/aspx/"));
+        let _thisKey = callParentNew("getKeysWithPrefix(tstHtml♠" + transid + "-" + appSUrl + "♥)", "function");
+        if (_thisKey.length > 0) {
+            for (const val of _thisKey) {
+                localStorage.removeItem(val);
+            }
+        }
+    } catch (ex) { }
+    let _ThisSrc = "tstruct.aspx" + window.location.search.replace(/&theMode=design/g, "");
+    _ThisSrc = GetUriFormCurrentUri(_ThisSrc, transid);
+    window.location.href = _ThisSrc + "&theMode=design";
 }
 
 function DesignFormDcLayouts() {
@@ -1241,7 +1252,10 @@ function goToRenderMode() {
     if (isFormChange) {
         confirmOnAction();
     } else {
-        window.location.href = "tstruct.aspx" + window.location.search.replace(/&theMode=design/g, "");
+        //window.location.href = "tstruct.aspx" + window.location.search.replace(/&theMode=design/g, "");
+        //callParentNew("lastLoadtstId=", _thisRui);
+        let _thisRui = 'tstruct.aspx?transid=' + transid + '&openerIV=ttotl&isIV=false';
+        callParentNew(`LoadIframe(${_thisRui})`, "function");
     }
 
 }
@@ -2258,6 +2272,7 @@ function OnTstructLoad() {
             if ($("#axp_recid1000F1").length > 0 && $("#axp_recid1000F1").val() != "0") {
                 recordid = $("#axp_recid1000F1").val();
                 $j("#recordid000F0").val($("#axp_recid1000F1").val());
+                document.title = "Load Tstruct";                
             }
         }
     } catch (ex) { }
@@ -2288,15 +2303,13 @@ function OnTstructLoad() {
         DoFormControlOnload();
     }
     if (appstatus != "Approved" && appstatus != "Rejected" && (!AxExecFormControl) && theMode != "design" && isOverridFomrControl) {
-        if(FormControlSameFormLoad==false){
-            var rid = $j("#recordid000F0").val();
-            if (rid != "0")
-                DoScriptFormControl("", "On Data Load");
-            else
-                DoScriptFormControl("", "On Form Load");
-        }else
-            FormControlSameFormLoad=false;
+        var rid = $j("#recordid000F0").val();
+        if (rid != "0")
+            DoScriptFormControl("", "On Data Load");
+        else
+            DoScriptFormControl("", "On Form Load");
     }
+    FormControlSameFormLoad = false;
     AssignGridScript();
     //SetMRForFromList(AxFromLstFlds);
 
@@ -2374,6 +2387,7 @@ function OnTstructLoad() {
     if (isTstPop == "True") {
         TstructTabEventsInPopUP("");
     }
+    SetPositionfldDisplayTot();
     AxWaitCursor(false);
 
     if (isTstPop.toUpperCase() == "TRUE") {
@@ -2717,8 +2731,8 @@ function MainFocus(fldObj) {
         }
 
         AxDoBlur = true;
-        if (!fldObj.hasClass("form-select"))
-            ShowTooltip(fName, fldObj);
+        //if (!fldObj.hasClass("form-select"))
+        ShowTooltip(fName, fldObj);
         FldOldValue = fldValue;
 
         try {
@@ -2735,13 +2749,18 @@ function MainFocus(fldObj) {
             if (typeof acceptapi != "undefined" && acceptapi != "" && acceptapiValue == "" && (_autoIntelli == "" || _autoIntelli=="F")) {
                 try {
                     ShowDimmer(true);
-                    ASB.WebService.GetAcceptDataFromAPI(tstDataId, fName, acceptapi, SuccessCallbackAcceptApi, OnExceptionAcceptApi);
+                    ASB.WebService.GetAcceptDataFromAPI(tstDataId, fName, acceptapi, resTstHtmlLS, SuccessCallbackAcceptApi, OnExceptionAcceptApi);
                 } catch (ex) {
                     ShowDimmer(false);
                 }
 
                 function SuccessCallbackAcceptApi(result, eventArgs) {
+                    if (result.split("♠*♠").length > 1) {
+                        tstDataId = result.split("♠*♠")[0];
+                        result = result.split("♠*♠")[1];
+                    }
                     ShowDimmer(false);
+                    resTstHtmlLS = "";
                     var fieldRowNo = GetFieldsRowNo(fldId);
                     var fldDcNo = GetFieldsDcNo(fldId);
                     var fldDbRowNo = GetDbRowNo(fieldRowNo, fldDcNo);
@@ -2878,11 +2897,11 @@ function MainBlur(fldObj) {
                 }
             } catch (ex) { }
             newFldValue = NumericFldOnBlur(newFldValue, fldIndex);
-            SetFieldValue(fldId, newFldValue);
             var oldValue = removeCommas(AxOldValue);
             var newValue = removeCommas(newFldValue);
             if (oldValue == newValue)
                 return;
+            SetFieldValue(fldId, newFldValue);
         } 
 
         if (AxOldValue != "" && newFldValue != "") { //do nothing
@@ -3670,11 +3689,13 @@ function NumericFldOnBlur(newcurrFldValue, fldIndex) {
     else
         numWithDecimals = fixit(newcurrFldValue, FDecimal[fldIndex]);
     var applyComma = GetFieldProp(fldIndex, "applyComma");
-    if (applyComma == "T") {
+    if (applyComma == "T" || (typeof isexpApplyComma != "undefined" && isexpApplyComma == true)) {
         if (Math.abs(numWithDecimals) > 999) {
             numWithDecimals = CommaFormatted(numWithDecimals).toString();
         }
     }
+    if (typeof isexpApplyComma != "undefined")
+        isexpApplyComma = false;
 
     return numWithDecimals;
 }
@@ -4546,7 +4567,7 @@ function GetRapidDependents(fieldID, fastDataFlds) {
             console.log("This is fast data field and dependency's are there in fast data" + fieldID);
 
         } else {
-            ASB.WebService.GetRapidDepFlds(ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, DeletedDCRows, ArrActionLog, visDcname, inputXml, transid, tstDataId, fldDcNo, GetRowNoHelper(activeRow), fldName, subStr, parStr, SuccChoicesgetDep, OnException);
+            ASB.WebService.GetRapidDepFlds(ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, DeletedDCRows, ArrActionLog, visDcname, inputXml, transid, tstDataId, fldDcNo, GetRowNoHelper(activeRow), fldName, subStr, parStr, resTstHtmlLS, SuccChoicesgetDep, OnException);
         }
     } catch (exp) {
         isDepForceCallOnExp = "false";
@@ -4613,7 +4634,7 @@ function GetDependents(fieldID, fastDataFlds) {
 
         } else {
             callBackFunDtls = "GetDependents♠" + fieldID + "♠" + fastDataFlds;
-            ASB.WebService.GetDepFlds(ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, DeletedDCRows, ArrActionLog, visDcname, inputXml, transid, tstDataId, fldDcNo, GetRowNoHelper(activeRow), fldName, subStr, parStr, SuccChoicesgetDep, OnException);
+            ASB.WebService.GetDepFlds(ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, DeletedDCRows, ArrActionLog, visDcname, inputXml, transid, tstDataId, fldDcNo, GetRowNoHelper(activeRow), fldName, subStr, parStr, resTstHtmlLS, SuccChoicesgetDep, OnException);
         }
     } catch (exp) {
         isDepForceCallOnExp = "false";
@@ -4682,7 +4703,7 @@ function GetDependentsPerf(fieldID, fastDataFlds = "", dfldName = "") {
     try {
         callBackFunDtls = "GetDependents♠" + fieldID;
         GetProcessTime();
-        ASB.WebService.GetDepFldsPerf(ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, DeletedDCRows, RegVarFldList, ArrActionLog, visDcname, inputXml, transid, tstDataId, fldDcNo, GetRowNoHelper(activeRow), dfldName, fldName, subStr, parStr,AcceptExpressionFlds, SuccChoicesgetDep, OnException);
+        ASB.WebService.GetDepFldsPerf(ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, DeletedDCRows, RegVarFldList, ArrActionLog, visDcname, inputXml, transid, tstDataId, fldDcNo, GetRowNoHelper(activeRow), dfldName, fldName, subStr, parStr, AcceptExpressionFlds, resTstHtmlLS, SuccChoicesgetDep, OnException);
 
     } catch (exp) {
         isDepForceCallOnExp = "false";
@@ -4761,6 +4782,10 @@ function SuccChoicesFastDatatDep(result, eventArgs) {
 //Callback function from the GetDependents webservice.
 function SuccChoicesgetDep(result, eventArgs) {
     if (result != "") {
+        if (result.split("♠*♠").length > 1) {
+            tstDataId = result.split("♠*♠")[0];
+            result = result.split("♠*♠")[1];
+        }
         if (result.split("*♠*").length > 1) {
             var serverprocesstime = result.split("*♠*")[0];
             var requestProcess_logtime = result.split("*♠*")[1];
@@ -4779,6 +4804,7 @@ function SuccChoicesgetDep(result, eventArgs) {
         ArrActionLog = "";
         if (CheckSessionTimeout(result))
             return;
+        resTstHtmlLS = "";
         if ((IsFunction != "addrow") && (IsFunction != "delrow")) {
             ChangedFields = new Array();
             ChangedFieldDbRowNo = new Array();
@@ -5230,7 +5256,7 @@ function RefreshDc(dcNo, parentDcs) {
     var recId = $j("#recordid000F0").val();
     try {
         callBackFunDtls = "RefreshDc♠" + dcNo + "♠" + parentDcs;
-        ASB.WebService.RefreshDc(ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, DeletedDCRows, dcNo, tstDataId, recId, parentDcs, SuccessRefreshDc, OnException);
+        ASB.WebService.RefreshDc(ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, DeletedDCRows, dcNo, tstDataId, recId, parentDcs, resTstHtmlLS, SuccessRefreshDc, OnException);
     } catch (exp) {
         AxWaitCursor(false);
         ShowDimmer(false);
@@ -5239,9 +5265,14 @@ function RefreshDc(dcNo, parentDcs) {
 }
 
 function SuccessRefreshDc(result, eventArgs) {
+    if (result != "" && result.split("♠*♠").length > 1) {
+        tstDataId = result.split("♠*♠")[0];
+        result = result.split("♠*♠")[1];
+    }
     if (result.toLowerCase().indexOf("access violation") === -1) {
         if (CheckSessionTimeout(result))
             return;
+        resTstHtmlLS = "";
         ParseServiceResult(result, "RefreshDc");
         AxWaitCursor(false);
         ShowDimmer(false);
@@ -5355,7 +5386,7 @@ function GetTabData(tabNo) {
 
         try {
             callBackFunDtls = "GetTabData♠" + tabNo;
-            ASB.WebService.CallLoadDcData(ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, DeletedDCRows, ArrActionLog, updtxt, tabNo, IsFillGrid, IsTabDisabled, tstDataId, SuccessGetTabData, OnException);
+            ASB.WebService.CallLoadDcData(ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, DeletedDCRows, ArrActionLog, updtxt, tabNo, IsFillGrid, IsTabDisabled, tstDataId, resTstHtmlLS, SuccessGetTabData, OnException);
         } catch (exp) {
             AxWaitCursor(false);
             ShowDimmer(false);
@@ -5434,16 +5465,22 @@ function focusOnFirstInputOnTabClick(tabNo, reffreshEditor) {
             gridRowEditOnLoad = true;
             $("#gridHd" + tabNo + " tr#sp" + tabNo + "R001F" + tabNo + " td:eq(2)").click();
         }
+        SetPositionfldDisplayTot();
     }, 200)
 }
 
 //Callback function from the CallLoadDcData service.
 function SuccessGetTabData(result, eventArgs) {
+    if (result != "" && result.split("♠*♠").length > 1) {
+        tstDataId = result.split("♠*♠")[0];
+        result = result.split("♠*♠")[1];
+    }
     if (result.toLowerCase().indexOf("access violation") === -1) {
         var stTime = new Date();
         ArrActionLog = "";
         if (CheckSessionTimeout(result))
             return;
+        resTstHtmlLS = "";
         //the result format -> AxMasterRowFlds*♠*jsonsResult*♠*dcno♣rowCnt*?*dchtml
         //First split the json and html, call assignloadvalues for json 
         //second parse the html
@@ -5552,6 +5589,14 @@ function SuccessGetTabData(result, eventArgs) {
                 $(".gridFocusable").removeClass("gridFocusable").off("keydown.tabRot");
             }
         });
+
+        if (appstatus != "Approved" && appstatus != "Rejected" && (!AxExecFormControl) && theMode != "design") {
+            var rid = $j("#recordid000F0").val();
+            if (rid != "0")
+                DoScriptFormControl("", "On Data Load");
+            else
+                DoScriptFormControl("", "On Form Load");
+        }
 
         CheckShowHideFldsGrid(CurrTabNo.toString());
         focusOnFirstInputOnTabClick(CurrTabNo)
@@ -5785,8 +5830,11 @@ function SetFocusFormControl() {
                     var fieldId = strFld[1] + "000F" + dcNo;
                     if (isMobile && $("#" + fieldId).hasClass("fldFromSelect"))
                         continue;
-                    else
-                        $j("#" + fieldId).focus();
+                    else {
+                        if (callParentNew("originaltrIds").length > 0 && callParentNew("originaltrIds").filter(x => x == transid).length > 0) {
+                        } else
+                            $j("#" + fieldId).focus();
+                    }
                 }
                 return;
             }
@@ -5879,68 +5927,75 @@ function AssignJQueryEvents(dcArray) {
             $j(dvId).find("input:not([class=AxAddRows],[class=AxSearchField],.gridRowChk,.gridHdrChk,.flatpickr-input),select:not(#selectbox),textarea:not(#txtCommentWF):not(.labelInp)").focus(function () {
                 MainFocus($j(this));
             });
-            $j(dvId + " .date").removeClass('hasDatepicker');
-            $j(dvId + " .tstOnlyTime").removeClass('hasDatepicker');
-            $j(dvId + " .tstOnlyTime24hours").removeClass('hasDatepicker');            
-            var glType = eval(callParent('gllangType'));
-            var dtpkrRTL = false;
-            if (glType == "ar")
-                dtpkrRTL = true;
-            else
-                dtpkrRTL = false;
-            var glCulture = eval(callParent('glCulture'));
-            var dtFormat = "d/m/Y";
-            if (glCulture == "en-us")
-                dtFormat = "m/d/Y";
+            let _tbDcNo = "";
+            if (typeof dvId != "undefined" && dvId != "")
+                _tbDcNo = dvId.replace('#tab-', '');
+            if (IsTabDc(_tbDcNo) && !IsDcGrid(_tbDcNo)) {
+                //Tabbed non grid dc not required register event 
+            } else {
+                $j(dvId + " .date").removeClass('hasDatepicker');
+                $j(dvId + " .tstOnlyTime").removeClass('hasDatepicker');
+                $j(dvId + " .tstOnlyTime24hours").removeClass('hasDatepicker');
+                var glType = eval(callParent('gllangType'));
+                var dtpkrRTL = false;
+                if (glType == "ar")
+                    dtpkrRTL = true;
+                else
+                    dtpkrRTL = false;
+                var glCulture = eval(callParent('glCulture'));
+                var dtFormat = "d/m/Y";
+                if (glCulture == "en-us")
+                    dtFormat = "m/d/Y";
 
-            $j(dvId + " .flatpickr-input:not(.tstOnlyTime,.tstOnlyTime24hours)").flatpickr({
-                dateFormat: dtFormat,
-                allowInput: true,
-                onOpen: function (selectedDates, dateStr, instance) {
-                    MainFocus($(instance.element));
-                },
-                onChange: function (selectedDates, dateStr, instance) {
-                    //if ($(".flatpickr-calendar:visible").length == 0 && $(instance.element).val() != AxOldValue) {
-                    //    MainBlur($(instance.element));
-                    //}
-                },
-                onClose: function (selectedDates, dateStr, instance) {
-                    MainBlur($(instance.element));
-                }
-            });
-            $j(dvId + " .tstOnlyTime").flatpickr({
-                enableTime: true,
-                noCalendar: true,
-                dateFormat: "h:i K",
-                onOpen: function (selectedDates, dateStr, instance) {
-                    MainFocus($(instance.element));
-                },
-                onChange: function (selectedDates, dateStr, instance) {
-                    //if ($(instance.element).val() != AxOldValue) {
-                    //    MainBlur($(instance.element));
-                    //}
-                },
-                onClose: function (selectedDates, dateStr, instance) {
-                    MainBlur($(instance.element));
-                }
-            });
-            $j(dvId + " .tstOnlyTime24hours").flatpickr({
-                enableTime: true,
-                noCalendar: true,
-                dateFormat: "H:i",
-                time_24hr: true,
-                onOpen: function (selectedDates, dateStr, instance) {
-                    MainFocus($(instance.element));
-                },
-                onChange: function (selectedDates, dateStr, instance) {
-                    //if ($(instance.element).val() != AxOldValue) {
-                    //    MainBlur($(instance.element));
-                    //}
-                },
-                onClose: function (selectedDates, dateStr, instance) {
-                    MainBlur($(instance.element));
-                }
-            });            
+                $j(dvId + " .flatpickr-input:not(.tstOnlyTime,.tstOnlyTime24hours)").flatpickr({
+                    dateFormat: dtFormat,
+                    allowInput: true,
+                    onOpen: function (selectedDates, dateStr, instance) {
+                        MainFocus($(instance.element));
+                    },
+                    onChange: function (selectedDates, dateStr, instance) {
+                        //if ($(".flatpickr-calendar:visible").length == 0 && $(instance.element).val() != AxOldValue) {
+                        //    MainBlur($(instance.element));
+                        //}
+                    },
+                    onClose: function (selectedDates, dateStr, instance) {
+                        MainBlur($(instance.element));
+                    }
+                });
+                $j(dvId + " .tstOnlyTime").flatpickr({
+                    enableTime: true,
+                    noCalendar: true,
+                    dateFormat: "h:i K",
+                    onOpen: function (selectedDates, dateStr, instance) {
+                        MainFocus($(instance.element));
+                    },
+                    onChange: function (selectedDates, dateStr, instance) {
+                        //if ($(instance.element).val() != AxOldValue) {
+                        //    MainBlur($(instance.element));
+                        //}
+                    },
+                    onClose: function (selectedDates, dateStr, instance) {
+                        MainBlur($(instance.element));
+                    }
+                });
+                $j(dvId + " .tstOnlyTime24hours").flatpickr({
+                    enableTime: true,
+                    noCalendar: true,
+                    dateFormat: "H:i",
+                    time_24hr: true,
+                    onOpen: function (selectedDates, dateStr, instance) {
+                        MainFocus($(instance.element));
+                    },
+                    onChange: function (selectedDates, dateStr, instance) {
+                        //if ($(instance.element).val() != AxOldValue) {
+                        //    MainBlur($(instance.element));
+                        //}
+                    },
+                    onClose: function (selectedDates, dateStr, instance) {
+                        MainBlur($(instance.element));
+                    }
+                });
+            }
 
             // TimePickerEvent(dvId, dtpkrRTL);
 
@@ -6644,7 +6699,7 @@ function AddRow(dcNo, calledFrom, keyColValue) {
 function UpdateRowInDataObj() {
     IsUpdateRowcalled = true;
     try {
-        ASB.WebService.AppendRowToDataObj(ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, DeletedDCRows, ArrActionLog, tstDataId, SuccessUpdateRow);
+        ASB.WebService.AppendRowToDataObj(ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, DeletedDCRows, ArrActionLog, tstDataId, resTstHtmlLS, SuccessUpdateRow);
     } catch (exp) {
         AxWaitCursor(false);
         showAlertDialog("error", ServerErrMsg);
@@ -6656,8 +6711,13 @@ function UpdateRowInDataObj() {
 }
 
 function SuccessUpdateRow(result) {
+    if (result != "" && result.split("♠*♠").length > 1) {
+        tstDataId = result.split("♠*♠")[0];
+        result = result.split("♠*♠")[1];
+    }
     if (CheckSessionTimeout(result))
         return;
+    resTstHtmlLS = "";
     ArrActionLog = "";
     ChangedFields = new Array();
     ChangedFieldDbRowNo = new Array();
@@ -6677,7 +6737,7 @@ function CallAddRowWS(dcStr, rowNo) {
     IsAddRowCalled = true;
     var ixml = '<sqlresultset axpapp="' + proj + '" transid="' + transid + '" recordid="' + rid + '" dcname="' + dcStr + '" rowno="' + dbRowNo + '" dcnames="' + visDcname + '" sessionid="' + sid + '" trace="' + filename + '" >';
     try {
-        ASB.WebService.AddRowWS(ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, DeletedDCRows, ixml, dcStr, tstDataId, SuccessCalAddData, ErrorAddRowWS);
+        ASB.WebService.AddRowWS(ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, DeletedDCRows, ixml, dcStr, tstDataId, resTstHtmlLS, SuccessCalAddData, ErrorAddRowWS);
     } catch (exp) {
         AxWaitCursor(false);
         ShowDimmer(false);
@@ -6707,7 +6767,7 @@ function CallAddRowPerfWS(dcStr, rowNo) {
     try {
         isAddRowWsCalled = "true";
         GetProcessTime();
-        ASB.WebService.AddRowPerfWS(ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, DeletedDCRows, ixml, dcStr, tstDataId, false, SuccessCalAddData, ErrorAddRowWS);
+        ASB.WebService.AddRowPerfWS(ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, DeletedDCRows, ixml, dcStr, tstDataId, false, resTstHtmlLS, SuccessCalAddData, ErrorAddRowWS);
     } catch (exp) {
         isAddRowWsCalled = "false";
         AxWaitCursor(false);
@@ -6724,6 +6784,10 @@ function CallAddRowPerfWS(dcStr, rowNo) {
 
 function SuccessCalAddData(result, eventArgs) {
     if (result != "") {
+        if (result.split("♠*♠").length > 1) {
+            tstDataId = result.split("♠*♠")[0];
+            result = result.split("♠*♠")[1];
+        }
         if (result.split("*♠*").length > 1) {
             var serverprocesstime = result.split("*♠*")[0];
             var requestProcess_logtime = result.split("*♠*")[1];
@@ -6736,6 +6800,7 @@ function SuccessCalAddData(result, eventArgs) {
 
     if (CheckSessionTimeout(result))
         return;
+    resTstHtmlLS = "";
     ArrActionLog = "";
     ChangedFields = new Array();
     ChangedFieldDbRowNo = new Array();
@@ -6746,12 +6811,12 @@ function SuccessCalAddData(result, eventArgs) {
     if (resAddrow != "")
         resAddrow = resAddrow.replace(/\\/g, ";bkslh"); //Replace(@"\", "\\"); 
     var parsedAddData = JSON.parse(resAddrow).data;
-    if (parsedAddData[0].n == "DC" + AxActiveDc && parsedAddData[0].t == "dc") {
-        // Refer Bug: AXP-C-0000151, AXP-C-0000171, HEA000003, AXP-C-0000235 & AGI004107
+    if ((parsedAddData[0].n == "DC" + AxActiveDc && parsedAddData[0].t == "dc") || parsedAddData.filter(x => x.n == "DC" + AxActiveDc && x.t == "dc").length > 0) {
+        let _reVals = parsedAddData.filter(x => x.n == "DC" + AxActiveDc && x.t == "dc");
         if (axInlineGridEdit || (isMobile && (isMobile && !axInlineGridEdit)))
-            UpdateFieldArray(ConstructFieldName(axpIsRowValid + AxActiveDc, AxActiveDc, parsedAddData[0].v), parsedAddData[0].v, "", "parent", "AddRow");
+            UpdateFieldArray(ConstructFieldName(axpIsRowValid + AxActiveDc, AxActiveDc, _reVals[0].v), _reVals[0].v, "", "parent", "AddRow");
         else
-            UpdateFieldArray(ConstructFieldName(axpIsRowValid + AxActiveDc, AxActiveDc, parsedAddData[0].v), parsedAddData[0].v, "false", "parent", "AddRow");
+            UpdateFieldArray(ConstructFieldName(axpIsRowValid + AxActiveDc, AxActiveDc, _reVals[0].v), _reVals[0].v, "false", "parent", "AddRow");
     }
     ShowDimmer(false);
     if (axpScanBarFldFocus != "") {
@@ -7313,7 +7378,7 @@ function CallDeleteWS(dcStr) {
 
     var ixml = '<sqlresultset axpapp="' + proj + '" transid="' + transid + '" recordid="' + rid + '" dcname="' + dcStr + '"  dcnames="' + visDcname + '" sessionid="' + sid + '" trace="' + filename + '" prow="' + pRow + '" pdc="' + pDc + '">';
     try {
-        ASB.WebService.DeleteRowWS(ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, tmpDelArr, ArrActionLog, ixml, tstDataId, dcNo, SuccessDelData, OnException);
+        ASB.WebService.DeleteRowWS(ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, tmpDelArr, ArrActionLog, ixml, tstDataId, dcNo, resTstHtmlLS, SuccessDelData, OnException);
     } catch (exp) {
         AxWaitCursor(false);
         ShowDimmer(false);
@@ -7342,7 +7407,7 @@ function CallDeletePerfWS(dcStr) {
     isExcelImpDelWS ="true";
     var ixml = '<sqlresultset axpapp="' + proj + '" transid="' + transid + '" recordid="' + rid + '" dcname="' + dcStr + '"  dcnames="' + visDcname + '" sessionid="' + sid + '" trace="' + filename + '" prow="' + pRow + '" pdc="' + pDc + '">';
     try {
-        ASB.WebService.DeleteRowPerfWS(ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, tmpDelArr, ArrActionLog, ixml, tstDataId, dcNo, DeletedRowNos, SuccessDelData, OnException);
+        ASB.WebService.DeleteRowPerfWS(ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, tmpDelArr, ArrActionLog, ixml, tstDataId, dcNo, DeletedRowNos, resTstHtmlLS, SuccessDelData, OnException);
     } catch (exp) {
         AxWaitCursor(false);
         ShowDimmer(false);
@@ -7353,8 +7418,13 @@ function CallDeletePerfWS(dcStr) {
 }
 
 function SuccessDelData(result, eventArgs) {
+    if (result != "" && result.split("♠*♠").length > 1) {
+        tstDataId = result.split("♠*♠")[0];
+        result = result.split("♠*♠")[1];
+    }
     if (CheckSessionTimeout(result))
         return;
+    resTstHtmlLS = "";
     ArrActionLog = "";
     ChangedFields = new Array();
     ChangedFieldDbRowNo = new Array();
@@ -7662,7 +7732,7 @@ function FormSubmit() {
     if (doSave == undefined)
         doSave = true;
 
-    if (typeof tstructCachedsave != 'undefined' && tstructCachedsave == "T") {
+    if (typeof tstructCachedsave != 'undefined' && tstructCachedsave == "T" && (recordid == "" || recordid == "0")) {
         if (typeof callParentNew('signalRNotifications') != 'undefined' && callParentNew('signalRNotifications') == 'true') {
             SaveTransactionJSON();
             return;
@@ -7773,7 +7843,7 @@ function FormSubmit() {
                     AxDoPegApprovalSave = "";
                 }
                 if (!sumDisplay)
-                    ASB.WebService.SaveDataXML(ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, DeletedDCRows, DeletedFieldValue, files, rid, delRows, chngRows, tstDataId, axrulesFlds, AxPegApprovalSave, SucceededCallback, OnException);
+                    ASB.WebService.SaveDataXML(ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, DeletedDCRows, DeletedFieldValue, files, rid, delRows, chngRows, tstDataId, axrulesFlds, AxPegApprovalSave, resTstHtmlLS, SucceededCallback, OnException);
             } else {
                 actionCallbackFlag = actionCallFlag;
                 $("#icons,#btnSaveTst,.BottomToolbarBar a,.wizardNextPrevWrapper").css({
@@ -8195,6 +8265,10 @@ var recordidax = '';
 //Callback function which returns either successfull or error message on save.
 function SucceededCallback(resultJson, eventArgs) {
     if (resultJson != "") {
+        if (resultJson.split("♠*♠").length > 1) {
+            tstDataId = resultJson.split("♠*♠")[0];
+            resultJson = resultJson.split("♠*♠")[1];
+        }
         if (resultJson.split("*♠*").length > 1) {
             var serverprocesstime = resultJson.split("*♠*")[0];
             var requestProcess_logtime = resultJson.split("*♠*")[1];
@@ -8210,6 +8284,7 @@ function SucceededCallback(resultJson, eventArgs) {
     AxActiveAction = "Save";
     if (CheckSessionTimeout(resultJson))
         return;
+    resTstHtmlLS = "";
     GetFldSetCarryValue();
     resultJson = resultJson.replace(new RegExp("\\n", "g"), "");
     var clrCacheKeys = resultJson.split("*#*")[1];
@@ -8636,7 +8711,7 @@ function NewTstruct() {
 }
 
 //TO Get DoFormLoad data from client side with the result & tstruct HTML.
-function GetFormLoadData(tstQureystr, isDraft, forceRefresh = "false") {
+function GetFormLoadData(tstQureystr, isDraft, forceRefresh = "false",isdirectCall="false") {
     if (typeof isDraft == "undefined")
         isDraft = "false";
     checkIsdraft = isDraft;
@@ -8646,7 +8721,55 @@ function GetFormLoadData(tstQureystr, isDraft, forceRefresh = "false") {
         let _isDupTab = callParentNew('isDuplicateTab');
         if ((window.location.href).indexOf("AxSplit") != -1) {
             tstQureystr += tstQureystr.indexOf("AxSplit") == -1 ? `${tstQureystr.endsWith("♠") ? "": "♠"}AxSplit=true` : "";
-        }        
+        }
+        if (isdirectCall == "false" && forceRefresh == "false") {
+            if (typeof wsPerfFormLoadCall != "undefined" && wsPerfFormLoadCall) {
+                var _finalJson = [];
+                try {
+                    tstConfigurations.config.forEach(function (val) {
+                        var ret = {};
+                        $.map(val, function (value, key) {
+                            ret[key.toLowerCase()] = value;
+                        });
+                        _finalJson.push(ret);
+                    });
+                } catch (ex) { }
+                let _formLoadFlag = _finalJson.filter(item => item.props.toLowerCase() === "formload" && item.stype.toLowerCase() == 'tstruct' && item.structname == transid);
+                if (_formLoadFlag.length > 0)
+                    isdirectCall = "true";
+                else if (callParentNew('axTraceFlag') == true) {
+                    isdirectCall = "true";
+                }
+            } else if (callParentNew('axTraceFlag') == true) {
+                isdirectCall = "true";
+            }
+        }
+        if (isdirectCall == "false" && forceRefresh == "false") {
+            if ($("#hdnisHtmlLsLoad").val() == "*loaddata*") {
+                window.location.href = "tstruct.aspx?transid=" + transid + "&dummyload=false♠forcecall";
+                return;
+            }
+            var _TstlocalStorage = "";
+            try {
+                if (typeof (Storage) !== "undefined") {
+                    let appSUrl = top.window.location.href.toLowerCase().substring("0", top.window.location.href.indexOf("/aspx/"));
+                    //_TstlocalStorage = localStorage["tstHtml♠" + transid + "-" + appSUrl];
+                    let _thisKey = callParentNew("getKeysWithPrefix(tstHtml♠" + transid + "-" + appSUrl + "♥)", "function");
+                    _TstlocalStorage = localStorage[_thisKey[0]];
+                    if (typeof _TstlocalStorage == "undefined") {
+                        _TstlocalStorage = "";
+                    }
+                }
+            } catch (e) {
+            }
+
+            if (_TstlocalStorage != "") {
+                let _thisHtmlls = _TstlocalStorage.split('♠♠♠')[1];
+                GetTstHtmlLS(_thisHtmlls);
+                return;
+            }
+        }
+       let isFromDummytrue = isLocalStorageHtml();
         GetProcessTime();
         $.ajax({
             url: 'tstruct.aspx/GetFormLoadValues',
@@ -8658,13 +8781,16 @@ function GetFormLoadData(tstQureystr, isDraft, forceRefresh = "false") {
                 tstQureystr: tstQureystr,
                 isDraft: isDraft,
                 forceRefresh: forceRefresh,
-                isDupTab: _isDupTab
+                isDupTab: _isDupTab,
+                isTstHtmlLs: resTstHtmlLS,
+                isFromDummytrue: isFromDummytrue
             }),
             dataType: 'json',
             contentType: "application/json",
             success: function (data) {
                 AxWaitCursor(true);
                 ShowDimmer(true);
+                resTstHtmlLS = '';
                 var result = data.d;
                 if (result != "") {
                     if (result.split("*♠♦*").length > 1) {
@@ -8740,8 +8866,13 @@ function GetFormLoadData(tstQureystr, isDraft, forceRefresh = "false") {
                     if (result != "") {
                         var resval = result.split("*$*");
                         if (resval[0] == "") {
-                            window.location.reload();
-                            return;
+                            resval = GetTstHtmlNodeLs(resval);
+                            if (resval[0] == "") {
+                                showAlertDialog("error", "Clear In-Memory and retry again.");
+                                return;
+                            }
+                            //window.location.reload();
+                            //return;
                         }
                         $("#tblWrk").html("");
                         $("#collapseOneTable").html("");
@@ -8768,6 +8899,15 @@ function GetFormLoadData(tstQureystr, isDraft, forceRefresh = "false") {
                             wsPerfFormLoadCall = tstPerfVars.split(";")[0] == "true" ? true : false;
                             wsPerfEvalExpClient = tstPerfVars.split(";")[1].split(",");
                             headerAttachDir = tstPerfVars.split(";")[2];
+                            try {
+                                if (tstPerfVars.split(";").length > 3) {
+                                    formParamFlds = tstPerfVars.split(";")[3].split(",");
+                                    formParamVals = tstPerfVars.split(";")[4].split(",");
+                                } else {
+                                    formParamFlds = new Array();
+                                    formParamVals = new Array();
+                                }
+                            } catch (ex) { }
                         }
                         var ImgVals = resval[5];
                         if (ImgVals != "") {
@@ -8789,21 +8929,21 @@ function GetFormLoadData(tstQureystr, isDraft, forceRefresh = "false") {
                         displayAutoGenVal = resval[7];
                         $j("#hdnShowAutoGenFldValue").val(displayAutoGenVal);
                         tstructCancelled = resval[8];
-                        tstDataId = resval[9];
+                        tstDataId = resval[11];
 
                         try {
                             FFieldHidden = new Array();
                             FFieldReadOnly = new Array();
 
-                            if (resval[11] != "") {
-                                var _thisFFH = resval[11].split(',');
+                            if (resval[9] != "") {
+                                var _thisFFH = resval[9].split(',');
                                 _thisFFH.forEach(function (_val) {
                                     if (_val != "")
                                         FFieldHidden.push(_val);
                                 })
                             }
-                            if (resval[12] != "") {
-                                var _thisFFH = resval[12].split(',');
+                            if (resval[10] != "") {
+                                var _thisFFH = resval[10].split(',');
                                 _thisFFH.forEach(function (_val) {
                                     if (_val != "")
                                         FFieldReadOnly.push(_val);
@@ -8873,6 +9013,480 @@ function GetFormLoadData(tstQureystr, isDraft, forceRefresh = "false") {
     }
 }
 
+function LoadTstHtmlLS(_thisTransid, _src) {
+    var _TstlocalStorage = "";
+    try {
+        /*window.frameElement.contentWindow.jQuery('#form1').attr('action', './tstruct.aspx?' + window.location.href.split('?')[1]);*/
+        window.frameElement.contentWindow.jQuery('#form1').attr('action', _src);
+        if (typeof (Storage) !== "undefined") {
+            let appSUrl = top.window.location.href.toLowerCase().substring("0", top.window.location.href.indexOf("/aspx/"));
+            let _thisKey = callParentNew("getKeysWithPrefix(tstHtml♠" + _thisTransid + "-" + appSUrl + "♥)", "function");
+            //_TstlocalStorage = localStorage["tstHtml♠" + _thisTransid + "-" + appSUrl];
+            _TstlocalStorage = localStorage[_thisKey[0]];
+            if (typeof _TstlocalStorage == "undefined") {
+                _TstlocalStorage = "";
+            }
+        }
+    } catch (e) { }
+    if (_TstlocalStorage != "") {
+        /*$('.menu.menu-sub.menu-sub-dropdown').removeClass('initialized');*/
+        $('#dvlayout .menu.menu-sub.menu-sub-dropdown').removeClass('initialized');
+        KTMenu?.init();
+        let _thisHtmlls = _TstlocalStorage.split('♠♠♠')[1];
+        var resval = _thisHtmlls.split("♦♠♣♥");
+        if (typeof resval[1] != "undefined" && resval[1] != "") {
+            $('.subres').html('');
+            $('.subres').html(resval[1]);
+        }
+        if (typeof resTstLoadDummy != "undefined" && resTstLoadDummy != "")
+            GetTstHtmlLS(resval[0]);
+        else {
+            var _finalJson = [];
+            try {
+                tstConfigurations.config.forEach(function (val) {
+                    var ret = {};
+                    $.map(val, function (value, key) {
+                        ret[key.toLowerCase()] = value;
+                    });
+                    _finalJson.push(ret);
+                });
+            } catch (ex) { }
+            let _formLoadFlag = _finalJson.filter(item => item.props.toLowerCase() === "formload" && item.stype.toLowerCase() == 'tstruct' && item.structname == transid);
+            if (_formLoadFlag.length > 0) {
+                resTstHtmlLS = transid;
+                GetFormLoadData("");
+            }
+            else
+                GetTstHtmlLS(resval[0]);
+        }
+    }
+    //ShowDimmer(false);
+}
+
+function GetTstHtmlLS(_TstlocalStorage) {
+    //Closediv();
+    pageLogTime = '';
+    formLogTime = '';
+    resTstHtmlLS = "";
+    if (typeof resTstLoadDummy != "undefined" && resTstLoadDummy != "") {
+        var resResult = resTstLoadDummy;
+        resTstLoadDummy = '';
+        if (resResult != "") {
+            if (resResult.split("*♠♦*").length > 1) {
+                serverprocesstime = resResult.split("*♠♦*")[1];
+                requestProcess_logtime = resResult.split("*♠♦*")[2];
+                resResult = resResult.split("*♠♦*")[0];
+                WireElapsTime(serverprocesstime, requestProcess_logtime, true);
+            } else {
+                UpdateExceptionMessageInET("Error : " + resResult);
+            }
+        }
+        Closediv();
+        actionCallbackFlag = actionCallFlag;
+        $("#icons,#btnSaveTst,.BottomToolbarBar a,.wizardNextPrevWrapper,.toolbarRightMenu a,.toolbarRightMenu button").css({
+            "pointer-events": "auto"
+        });
+        if (FromSave) {
+            FromSave = false;
+        }
+        EnableSaveBtn(true);
+        isReadyCK = false
+        DCFrameNo.forEach(function (dcID) {
+            ClearFieldsInDC(dcID);
+        });
+        ExprPosArray.forEach(function (vals, ind) {
+            if (vals != "")
+                ExprPosArray[ind] = "";
+        });
+        tstReadOnlyPeg = false;
+        navValidator = true;
+        SetFormDirty(false);
+        blurNextPreventId = "";
+        AxFormControlList = new Array();
+        RegVarFldList = new Array();
+        ChangedFields = new Array();
+        ChangedFieldDbRowNo = new Array();
+        ChangedFieldValues = new Array();
+        ChangedDcRows = new Array();
+        ChangedDcs = new Array();
+        DeletedDCRows = new Array();
+        AllFieldNames = new Array();
+        AllFieldValues = new Array();
+        ScriptMaskFields = new Array();
+        AxExecFormControl = false;
+        DisabledDcs = new Array();
+        AxFormContHiddenFlds = new Array();
+        AxFormContSetCapFlds = new Array();
+        AxFormContSetCapFldsGrid = new Array();
+        AxFormContSetFldActGrid = new Array();
+        AxFormContSetGridCell = new Array();
+        AxFormContFldSetFocus = new Array();
+        multiSelectflds = new Array();
+        multiSelFldParents = new Array();
+        multiSelFldResult = new Array();
+        multiSelectLoadVals = new Array();
+        AxRulesFlds = new Array();
+        FldListParents = new Array();
+        FldListData = new Array();
+        changeFillGridDc = 0;
+        imgNames = new Array();
+        imgSrc = new Array();
+
+        if (isMobile)
+            OnMobileNewTst();
+
+        document.title = "Tstruct";
+        var resval = resResult.split("*$*");
+        if (resval[0] == "") {
+            resval = GetTstHtmlNodeLs(resval);
+            if (resval[0] == "") {
+                showAlertDialog("error", "Clear In-Memory and retry again.");
+                return;
+            }
+
+            //if (_TstlocalStorage != "" && _TstlocalStorage.toLowerCase().indexOf("access violation") === -1)
+            //    resval = _TstlocalStorage.split("*$*");
+            //else
+            //    return;
+        }
+        $j(".workflow").remove();
+        $(".wfselectbox").html("<div class=\"menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-bold w-200px py-3\" data-kt-menu=\"true\" data-popper-placement=\"bottom-end\" id=\"selectbox\"></div>");
+        $j(".wrkflwinline").remove();
+        $j(".workflowMsg").remove();
+        $j(".downArr").remove();
+        $j(".Selectboxlist").remove();
+        $j("#workflowoverlay").addClass("d-none");
+        $j("#dvMessage").html("");
+        $j("#dvMessage").removeClass("AXinfo").addClass("success d-none");
+        $j("#file").addClass("d-none");
+        $j("#attachment-overlay").html("");
+        $j("#attachfname").val("");
+        $j("#PEGDiv").addClass("d-none");
+        $j("#AxAmendDiv").addClass("d-none");
+        attachments = "";
+        filenamearray = new Array();
+        fileonloadarray = new Array();
+        $("#hdnTabHtml").val(resval[3]);
+        var tstPerfVars = resval[4];
+        if (tstPerfVars != "") {
+            wsPerfFormLoadCall = tstPerfVars.split(";")[0] == "true" ? true : false;
+            wsPerfEvalExpClient = tstPerfVars.split(";")[1].split(",");
+            headerAttachDir = tstPerfVars.split(";")[2];
+            try {
+                if (tstPerfVars.split(";").length > 3) {
+                    formParamFlds = tstPerfVars.split(";")[3].split(",");
+                    formParamVals = tstPerfVars.split(";")[4].split(",");
+                } else {
+                    formParamFlds = new Array();
+                    formParamVals = new Array();
+                }
+            } catch (ex) { }
+        }
+        var ImgVals = resval[5];
+        if (ImgVals != "") {
+            ImgVals = ImgVals.split("♠");
+            for (i = 0; i < ImgVals.length; i++) {
+                imgNames[i] = ImgVals[i].split("♦")[0];
+                imgSrc[i] = ImgVals[i].split("♦")[1];
+                if (imgSrc[i] != "")
+                    imgSrc[i] = imgSrc[i].replace("%20", " ");
+            }
+        }
+        if (resval[6] != "") {
+            var dcStatus = resval[6].split(',');
+            dcStatus.forEach(function (dcStat, indx) {
+                TabDCStatus[indx] = dcStat;
+            })
+        }
+        tstructCancelled = resval[7];
+        if (typeof AxGridAttNotExistList != "undefined" && resval[8] != "") {
+            var agattnotfiles = resval[8].split(',');
+            AxGridAttNotExistList = agattnotfiles;
+        } else if (resval[8] != "") {
+            var agattnotfiles = resval[8].split(',');
+            AxGridAttNotExistList = agattnotfiles;
+        } else
+            AxGridAttNotExistList = "";
+        tstDataId = resval[11];
+        displayAutoGenVal = "true";
+        $j("#hdnShowAutoGenFldValue").val(displayAutoGenVal);
+        try {
+            FFieldHidden = new Array();
+            FFieldReadOnly = new Array();
+
+            if (resval[9] != "") {
+                var _thisFFH = resval[9].split(',');
+                _thisFFH.forEach(function (_val) {
+                    if (_val != "")
+                        FFieldHidden.push(_val);
+                })
+            }
+            if (resval[10] != "") {
+                var _thisFFH = resval[10].split(',');
+                _thisFFH.forEach(function (_val) {
+                    if (_val != "")
+                        FFieldReadOnly.push(_val);
+                })
+            }
+        } catch (ex) { }
+
+        $j("#hdnDataObjId").val(tstDataId);
+        LoadResult = resResult;
+        Closediv();
+        isLoadDataCall = true;
+        ReloadJqueryReference();
+        isTstPostBackVal = resval[0] + "*$*" + resval[1] + "*$*" + resval[2];
+
+        for (var ind = 0; ind < resval.length; ind++) {
+            //TODO:We need to Review the below line.
+            var strSingleLineText = resval[ind].toString().replace(new RegExp("\\n", "g"), "");
+            strSingleLineText = strSingleLineText.replace(new RegExp("\\t", "g"), "&#9;");
+            strSingleLineText = strSingleLineText.replace(/\\/g, ";bkslh");
+            strSingleLineText = strSingleLineText.replace(new RegExp("&lt", "g"), "<");
+            strSingleLineText = strSingleLineText.replace(new RegExp("&gt", "g"), ">");
+            if (strSingleLineText == "")
+                continue;
+            try {
+                var _myJSONObject = $j.parseJSON(strSingleLineText);
+            }
+            catch (ex) {
+                continue;
+            }
+            if (typeof _myJSONObject.data != "undefined") {
+                resTstHtmlLS = resval[ind] + '♠*$' + transid;
+            }
+        }
+        if (resTstHtmlLS == "")
+            resTstHtmlLS = transid;
+    }
+    else if (_TstlocalStorage.toLowerCase().indexOf("access violation") === -1) {
+        isServerSide = 'false';
+        ArrActionLog = "";
+        actionCallbackFlag = actionCallFlag;
+        $("#icons,#btnSaveTst,.BottomToolbarBar a,.wizardNextPrevWrapper,.toolbarRightMenu a,.toolbarRightMenu button").css({
+            "pointer-events": "auto"
+        });
+        if (FromSave) {
+            FromSave = false;
+        }
+        EnableSaveBtn(true);
+        isReadyCK = false;
+        DCFrameNo.forEach(function (dcID) {
+            ClearFieldsInDC(dcID);
+            //SetRows(dcID, "", "d*","LoadData");//GIS000209
+        });
+        ExprPosArray.forEach(function (vals, ind) {
+            if (vals != "")
+                ExprPosArray[ind] = "";
+        });
+        tstReadOnlyPeg = false;
+        navValidator = true;
+        SetFormDirty(false);
+        blurNextPreventId = "";
+        document.title = "Tstruct";
+        recordid = "0";
+        $j("#recordid000F0").val("0");
+        AxFormControlList = new Array();
+        RegVarFldList = new Array();
+        ChangedFields = new Array();
+        ChangedFieldDbRowNo = new Array();
+        ChangedFieldValues = new Array();
+        DeletedDCRows = new Array();
+        ChangedDcRows = new Array();
+        ChangedDcs = new Array();
+        AllFieldNames = new Array();
+        AllFieldValues = new Array();
+        ScriptMaskFields = new Array();
+        AxExecFormControl = false;
+        DisabledDcs = new Array();
+        AxFormContHiddenFlds = new Array();
+        AxFormContSetCapFlds = new Array();
+        AxFormContSetCapFldsGrid = new Array();
+        AxFormContSetFldActGrid = new Array();
+        AxFormContSetGridCell = new Array();
+        AxFormContFldSetFocus = new Array();
+        multiSelectflds = new Array();
+        multiSelFldParents = new Array();
+        multiSelFldResult = new Array();
+        multiSelectLoadVals = new Array();
+        FldListParents = new Array();
+        FldListData = new Array();
+        AxRulesFlds = new Array();
+        imgNames = new Array();
+        imgSrc = new Array();
+        changeFillGridDc = 0;
+        if (isMobile)
+            OnMobileNewTst();
+
+        if (_TstlocalStorage != "") {
+            var resval = _TstlocalStorage.split("*$*");
+            if (resval[0] == "") {
+                showAlertDialog("error", "Clear In-Memory and retry again.");
+                return;
+            }
+            $("#tblWrk").html("");
+            $("#collapseOneTable").html("");
+            $j(".workflow").remove();
+            $j(".wrkflwinline").remove();
+            $j(".workflowMsg").remove();
+            $j(".downArr").remove();
+            $j(".Selectboxlist").remove();
+            $j("#workflowoverlay").addClass("d-none");
+            $j("#dvMessage").html("");
+            $j("#dvMessage").removeClass("AXinfo").addClass("success d-none");
+            $j("#file").addClass("d-none");
+            $j("#attachment-overlay").html("");
+            $j("#attachfname").val("");
+            $j("#PEGDiv").addClass("d-none");
+            $j("#AxAmendDiv").addClass("d-none");
+            attachments = "";
+            filenamearray = new Array();
+            fileonloadarray = new Array();
+            $("#hdnTabHtml").val(resval[3]);
+            var tstPerfVars = resval[4];
+            if (tstPerfVars != "") {
+                wsPerfFormLoadCall = tstPerfVars.split(";")[0] == "true" ? true : false;
+                wsPerfEvalExpClient = tstPerfVars.split(";")[1].split(",");
+                headerAttachDir = tstPerfVars.split(";")[2];
+                try {
+                    if (tstPerfVars.split(";").length > 3) {
+                        formParamFlds = tstPerfVars.split(";")[3].split(",");
+                        formParamVals = tstPerfVars.split(";")[4].split(",");
+                    } else {
+                        formParamFlds = new Array();
+                        formParamVals = new Array();
+                    }
+                } catch (ex) { }
+            }
+            var ImgVals = resval[5];
+            if (ImgVals != "") {
+                ImgVals = ImgVals.split("♠");
+                for (i = 0; i < ImgVals.length; i++) {
+                    imgNames[i] = ImgVals[i].split("♦")[0];
+                    imgSrc[i] = ImgVals[i].split("♦")[1];
+                    if (imgSrc[i] != "")
+                        imgSrc[i] = imgSrc[i].replace("%20", " ");
+                }
+            }
+
+            if (resval[6] != "") {
+                var dcStatus = resval[6].split(',');
+                dcStatus.forEach(function (dcStat, indx) {
+                    TabDCStatus[indx] = dcStat;
+                })
+            }
+            displayAutoGenVal = resval[7];
+            $j("#hdnShowAutoGenFldValue").val(displayAutoGenVal);
+            tstructCancelled = resval[8];
+            tstDataId = resval[11];
+
+            try {
+                FFieldHidden = new Array();
+                FFieldReadOnly = new Array();
+
+                if (resval[9] != "") {
+                    var _thisFFH = resval[9].split(',');
+                    _thisFFH.forEach(function (_val) {
+                        if (_val != "")
+                            FFieldHidden.push(_val);
+                    })
+                }
+                if (resval[10] != "") {
+                    var _thisFFH = resval[10].split(',');
+                    _thisFFH.forEach(function (_val) {
+                        if (_val != "")
+                            FFieldReadOnly.push(_val);
+                    })
+                }
+            } catch (ex) { }
+
+            $j("#hdnDataObjId").val(tstDataId);
+            LoadResult = _TstlocalStorage;
+            isLoadDataCall = false;
+            ReloadJqueryReference();
+            isTstPostBackVal = resval[0] + "*$*" + resval[1] + "*$*" + resval[2];
+            //resTstHtmlLS = resval[13];
+            for (var ind = 0; ind < resval.length; ind++) {
+                //TODO:We need to Review the below line.
+                var strSingleLineText = resval[ind].toString().replace(new RegExp("\\n", "g"), "");
+                strSingleLineText = strSingleLineText.replace(new RegExp("\\t", "g"), "&#9;");
+                strSingleLineText = strSingleLineText.replace(/\\/g, ";bkslh");
+                strSingleLineText = strSingleLineText.replace(new RegExp("&lt", "g"), "<");
+                strSingleLineText = strSingleLineText.replace(new RegExp("&gt", "g"), ">");
+                if (strSingleLineText == "")
+                    continue;
+                try {
+                    var _myJSONObject = $j.parseJSON(strSingleLineText);
+                }
+                catch (ex) {
+                    continue;
+                }
+                if (typeof _myJSONObject.data != "undefined") {
+                    resTstHtmlLS = resval[ind] + '♠*$' + transid;
+                }
+            }
+            if (resTstHtmlLS == "")
+                resTstHtmlLS = transid;
+        }
+    }
+}
+
+function isLocalStorageHtml() {
+    var _TstlocalStorage = "";
+    try {
+        if (typeof (Storage) !== "undefined") {
+            let appSUrl = top.window.location.href.toLowerCase().substring("0", top.window.location.href.indexOf("/aspx/"));
+            let _thisKey = callParentNew("getKeysWithPrefix(tstHtml♠" + transid + "-" + appSUrl + "♥)", "function");
+            _TstlocalStorage = localStorage[_thisKey[0]];
+            if (typeof _TstlocalStorage == "undefined") {
+                _TstlocalStorage = "";
+            }
+        }
+    } catch (e) { }
+    if (_TstlocalStorage != "")
+        return "true";
+    else
+        return "false";
+}
+
+function GetTstHtmlNodeLs(resVal) {
+    var _thisArra = resVal;
+    try {
+        let _fndIndx = resVal.findIndex(element => element.startsWith(transid + "_"));
+        if (_fndIndx == 11)
+            return _thisArra
+        else {
+            var _TstlocalStorage = "";
+            try {
+                if (typeof (Storage) !== "undefined") {
+                    let appSUrl = top.window.location.href.toLowerCase().substring("0", top.window.location.href.indexOf("/aspx/"));
+                    let _thisKey = callParentNew("getKeysWithPrefix(tstHtml♠" + transid + "-" + appSUrl + "♥)", "function");
+                    _TstlocalStorage = localStorage[_thisKey[0]];
+                    if (typeof _TstlocalStorage == "undefined") {
+                        _TstlocalStorage = "";
+                    }
+                }
+            } catch (e) { }
+            if (_TstlocalStorage != "") {
+                let _thisHtmlls = _TstlocalStorage.split('♠♠♠')[1];
+                let _resval = _thisHtmlls.split("♦♠♣♥");
+                _resval = _resval[0].split("*$*");
+                _thisArra = new Array();
+                _thisArra.push(_resval[0]);
+                _thisArra.push(_resval[1]);
+                _thisArra.push(_resval[2]);
+                resVal.forEach(function (val, ind) {
+                    if (ind != 0)
+                        _thisArra.push(val);
+                });
+            } else {
+                return _thisArra
+            }
+        }
+
+    } catch (ex) { }
+    return _thisArra
+}
 //TO Get LoadData from client side with the result & tstruct HTML.
 function GetLoadData(recid, tstQureystr) {
     try {
@@ -8883,6 +9497,7 @@ function GetLoadData(recid, tstQureystr) {
         if ((window.location.href).indexOf("AxSplit") != -1) {            
             tstQureystr += tstQureystr.indexOf("AxSplit") == -1 ? `${tstQureystr.endsWith("♠") ? "": "♠"}AxSplit=true` : "";
         }
+        let isFromDummytrue = isLocalStorageHtml();
         $.ajax({
             url: 'tstruct.aspx/GetLoadDataValues',
             type: 'POST',
@@ -8892,13 +9507,16 @@ function GetLoadData(recid, tstQureystr) {
                 key: tstDataId,
                 recordid: recid,
                 tstQureystr: tstQureystr,
-                isDupTab: _isDupTab
+                isDupTab: _isDupTab,
+                isTstHtmlLs: resTstHtmlLS,
+                isFromDummytrue: isFromDummytrue
             }),
             dataType: 'json',
             contentType: "application/json",
             success: function (data) {
                 AxWaitCursor(true);
                 ShowDimmer(true);
+                resTstHtmlLS = '';
                 var result = data.d;
                 if (result != "") {
                     if (result.split("*♠♦*").length > 1) {
@@ -8973,9 +9591,14 @@ function GetLoadData(recid, tstQureystr) {
                         recordid = recid;
                         $j("#recordid000F0").val(recid);
                         var resval = result.split("*$*");
+                        //let _loadFromls = false;
                         if (resval[0] == "") {
-                            window.location.reload();
-                            return;
+                            resval = GetTstHtmlNodeLs(resval);
+                            if (resval[0] == "") {
+                                //window.location.reload();
+                                showAlertDialog("error", "Clear In-Memory and retry again.");
+                                return;
+                            }
                         }
                         //$("#tblWrk").html("");
                         //$("#collapseOneTable").html("");
@@ -9001,6 +9624,15 @@ function GetLoadData(recid, tstQureystr) {
                             wsPerfFormLoadCall = tstPerfVars.split(";")[0] == "true" ? true : false;
                             wsPerfEvalExpClient = tstPerfVars.split(";")[1].split(",");
                             headerAttachDir = tstPerfVars.split(";")[2];
+                            try {
+                                if (tstPerfVars.split(";").length > 3) {
+                                    formParamFlds = tstPerfVars.split(";")[3].split(",");
+                                    formParamVals = tstPerfVars.split(";")[4].split(",");
+                                } else {
+                                    formParamFlds = new Array();
+                                    formParamVals = new Array();
+                                }
+                            } catch (ex) { }
                         }
                         var ImgVals = resval[5];
                         if (ImgVals != "") {
@@ -9027,21 +9659,21 @@ function GetLoadData(recid, tstQureystr) {
                             AxGridAttNotExistList = agattnotfiles;
                         } else
                             AxGridAttNotExistList = "";
-                        tstDataId = resval[9];
+                            tstDataId = resval[11];
 
                         try {
                             FFieldHidden = new Array();
                             FFieldReadOnly = new Array();
 
-                            if (resval[12] != "") {
-                                var _thisFFH = resval[12].split(',');
+                            if (resval[9] != "") {
+                                var _thisFFH = resval[9].split(',');
                                 _thisFFH.forEach(function (_val) {
                                     if (_val != "")
                                         FFieldHidden.push(_val);
                                 })
                             }
-                            if (resval[13] != "") {
-                                var _thisFFH = resval[13].split(',');
+                            if (resval[10] != "") {
+                                var _thisFFH = resval[10].split(',');
                                 _thisFFH.forEach(function (_val) {
                                     if (_val != "")
                                         FFieldReadOnly.push(_val);
@@ -9190,7 +9822,7 @@ function DeleteTstruct() {
                             txt = txt + '<Transaction axpapp="' + proj + '" transid="' + tst + '" recordid="' + rid + '" action="delete" trace="' + trace + '" sessionid="' + sid + '" allowCancel="' + AxAllowCancel + '"> ';
                             //txt = txt + '</Transaction>';
                             try {
-                                ASB.WebService.DeleteDataXML(rid, txt, tstDataId, AxAllowCancel, SucceededCallbackDelTst);
+                                ASB.WebService.DeleteDataXML(rid, txt, tstDataId, AxAllowCancel, resTstHtmlLS, SucceededCallbackDelTst);
                             } catch (exp) {
                                 AxWaitCursor(false);
                                 var execMess = exp.name + "^♠^" + exp.message;
@@ -9219,6 +9851,10 @@ function DeleteTstruct() {
 function SucceededCallbackDelTst(result, eventArgs) {
     var stTime = new Date();
     var isLogCalled = false;
+    if (result != "" && result.split("♠*♠").length > 1) {
+        tstDataId = result.split("♠*♠")[0];
+        result = result.split("♠*♠")[1];
+    }
     if (CheckSessionTimeout(result))
         return;
 
@@ -9236,6 +9872,7 @@ function SucceededCallbackDelTst(result, eventArgs) {
         if (strSingleLineText == "")
             return;
 
+        resTstHtmlLS = "";
         var myJSONObject = $j.parseJSON(strSingleLineText);
         if (myJSONObject.error) {
             ExecErrorMsg(myJSONObject.error, "Delete");
@@ -9327,9 +9964,9 @@ function AddPrintDoc() {
 
     try {
         if (docType == "doc")
-            ASB.WebService.AddPrintDoc(tst, selectedDoc, rid, tstDataId, docType, SuccessAddPrintDoc);
+            ASB.WebService.AddPrintDoc(tst, selectedDoc, rid, tstDataId, docType, resTstHtmlLS, SuccessAddPrintDoc);
         else
-            ASB.WebService.CreateFastReportDoc(ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, DeletedDCRows, tst, selectedDoc, rid, tstDataId, SuccessFastReportDoc);
+            ASB.WebService.CreateFastReportDoc(ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, DeletedDCRows, tst, selectedDoc, rid, tstDataId, resTstHtmlLS, SuccessFastReportDoc);
     } catch (ex) {
         var execMess = ex.name + "^♠^" + ex.message;
         showAlertDialog("error", 2030, "client", execMess);
@@ -9337,14 +9974,24 @@ function AddPrintDoc() {
 }
 
 function SuccessFastReportDoc(result, eventArgs) {
+    if (result != "" && result.split("♠*♠").length > 1) {
+        tstDataId = result.split("♠*♠")[0];
+        result = result.split("♠*♠")[1];
+    }
     if (CheckSessionTimeout(result))
         return;
+    resTstHtmlLS = "";
     AssignLoadValues(result, "");
 }
 
 function SuccessAddPrintDoc(result, eventArgs) {
+    if (result != "" && result.split("♠*♠").length > 1) {
+        tstDataId = result.split("♠*♠")[0];
+        result = result.split("♠*♠")[1];
+    }
     if (CheckSessionTimeout(result))
         return;
+    resTstHtmlLS = "";
     try {
         $j("#dvPrintDoc").dialog("close");;
     } catch (err) {
@@ -9438,7 +10085,7 @@ function CancelData() {
         //txt = txt + '</Transaction>';
         var key = window.opener.tstDataId;
         try {
-            ASB.WebService.DeleteDataXML(recordid, txt, key, AxAllowCancel, SucceededCallbackOnCancel);
+            ASB.WebService.DeleteDataXML(recordid, txt, key, AxAllowCancel, resTstHtmlLS, SucceededCallbackOnCancel);
         } catch (exp) {
             AxWaitCursor(false);
             var execMess = exp.name + "^♠^" + exp.message;
@@ -9451,6 +10098,7 @@ function CancelData() {
 function SucceededCallbackOnCancel(result, eventArgs) {
     if (CheckSessionTimeout(result))
         return;
+    resTstHtmlLS = "";
     if (result.substring(0, 7) == ErrStr) {
         var nres = result.substring(7, result.length - 8);
         showAlertDialog("error", nres);
@@ -9772,15 +10420,16 @@ function OpenHistory(tid) {
     //});
     ShowDimmer(true);
     let _src = "./ViewHistory.aspx?tid=" + tid + "&rid=" + rid;
-    let myModal = new BSModal("modalIdViewHistory", "View History", "<iframe class='w-100 h-100' src='" + _src + "'></iframe>", () => {
+    let myModal = new BSModal("modalIdViewHistory", "View History", "<iframe class='w-100 h-400px' src='" + _src + "'></iframe>", () => {
         // CallbackFunctionBootstrap();
     }, () => {
         //hide callback
     });
     myModal.scrollableDialog();
     myModal.modalBody.classList.add('overflow-hidden');
-    myModal.changeSize("xs");
-    myModal.modalFooter.classList.add('d-none');
+    myModal.modalHeader.classList.add('py-4');
+    myModal.changeSize("xl");
+    myModal.hideFooter();
 }
 
 //Function to display no task defined if there is no action defined for a task button.
@@ -10291,7 +10940,7 @@ function CheckFields(btnobj) {
     try {
         AxBeforeWFAction();
     } catch (ex) {}
-
+    ShowDimmer(true);
     var inxml = "";
     var tid = transid;
     var txt = '';
@@ -10302,7 +10951,10 @@ function CheckFields(btnobj) {
     var remarks = $j("#comment").val();
     var trace = traceSplitStr + "Workflow-" + tid + traceSplitChar;
     actname = btnobj.value;
-    var returnres = ValidateComments(remarks, actname);
+    let _mwfComments = "true";
+    if (typeof AxMandatoryWfComments != "undefined" && AxMandatoryWfComments != "")
+        _mwfComments = AxMandatoryWfComments;
+    var returnres = _mwfComments == "true" ? ValidateComments(remarks, actname) : true;
     wfButStatus = GetWFButStatus();
     DisableWFButtons();
 
@@ -10334,12 +10986,13 @@ function CheckFields(btnobj) {
 
         try {
             if (AxGlobalChange) {
-                ASB.WebService.ProcessWFActionChanges(ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, DeletedDCRows, files, rid, inxml, tstDataId, SuccessWFCAction);
+                ASB.WebService.ProcessWFActionChanges(ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, DeletedDCRows, files, rid, inxml, tstDataId, resTstHtmlLS, SuccessWFCAction);
             } else {
                 ASB.WebService.ProcessWFAction(inxml, SuccessWFAction);
             }
             AxGlobalChange = false;
         } catch (exp) {
+            ShowDimmer(false);
             AxWaitCursor(false);
             var execMess = exp.name + "^♠^" + exp.message;
             showAlertDialog("error", 2030, "client", execMess);
@@ -10347,17 +11000,25 @@ function CheckFields(btnobj) {
         }
     } else {
         EnableWFBut();
+        ShowDimmer(false);
     }
 }
 
 function SuccessWFAction(result, eventArgs) {
     SucceededCallbackAction(result);
+    ShowDimmer(false);
 }
 
 function SuccessWFCAction(result, eventArgs) {
+    if (result != "" && result.split("♠*♠").length > 1) {
+        tstDataId = result.split("♠*♠")[0];
+        result = result.split("♠*♠")[1];
+    }
     if (CheckSessionTimeout(result))
         return;
+    resTstHtmlLS = "";
     SucceededCallbackAction(result, "WithChanges");
+    ShowDimmer(false);
 }
 
 //Callback function for workflow action.
@@ -10827,10 +11488,10 @@ function SaveInCache(rid, calledfrom) {
     var jsArrayStr = "<script type='text/javascript'>" + GetJsArrays() + "</script>";
     try {
         if (calledfrom == "SaveAction")
-            ASB.WebService.AddToDataCache(tstHtml, tstDataId, jsArrayStr, rid, SuccessSaveActionCache);
+            ASB.WebService.AddToDataCache(tstHtml, tstDataId, jsArrayStr, rid, resTstHtmlLS, SuccessSaveActionCache);
         else
             //ASB.WebService.AddToDataCache(tstHtml, tstDataId, jsArrayStr, rid, SuccessSaveCache);//if required save we can add later
-            ASB.WebService.AddToDataCache(tstHtml, tstDataId, jsArrayStr, rid);
+            ASB.WebService.AddToDataCache(tstHtml, tstDataId, jsArrayStr, rid, resTstHtmlLS);
     } catch (exp) {
         AxWaitCursor(false);
         showAlertDialog("error", ServerErrMsg);
@@ -10838,8 +11499,13 @@ function SaveInCache(rid, calledfrom) {
 }
 
 function SuccessSaveActionCache(result, eventArgs) {
+    if (result != "" && result.split("♠*♠").length > 1) {
+        tstDataId = result.split("♠*♠")[0];
+        result = result.split("♠*♠")[1];
+    }
     if (CheckSessionTimeout(result))
         return;
+    resTstHtmlLS = "";
     ShowDimmer(true);
     AxWaitCursor(true);
     if (result.indexOf("error:") == -1)
@@ -11408,8 +12074,13 @@ function ShowAxpFileuploadLink(fldName, pathSrc, src) {
         src = unescape(src); //to show decode special characters
         var idx = src.lastIndexOf("/");
         if (idx > -1) src = src.substring(0, idx + 1) + encodeURIComponent(src.substring(idx + 1, src.length));
-        window.open(src, "GridUploadFile", "width=500,height=350,scrollbars=no,resizable=yes");
-    }
+        if (isMobile) {           
+            let _fileName = src.match(/\/([^\/?#]+)$/)[1];
+            OpenPdfFile(_fileName, "", "", "", false);
+        } else {
+            window.open(src, "GridUploadFile", "width=500,height=350,scrollbars=no,resizable=yes");
+        }
+    }    
 }
 
 var fileLinks = "";
@@ -13384,15 +14055,23 @@ function SlectBoxWrf(wftype) {
         proceed = true;
     }
     if (typeof proceed == "undefined" || proceed) {
+        let _mwfComments = "true";
+        if (typeof AxMandatoryWfComments != "undefined" && AxMandatoryWfComments != "")
+            _mwfComments = AxMandatoryWfComments;
         $("#selectbox div.selected").removeClass("selected");
         $("#" + wftype).addClass("selected");
         if (typeof tstWFpdcomments != "undefined" && tstWFpdcomments == "true" && typeof tstWorkFlowId != "undefined" && tstWorkFlowId != "") {
             GetWFPdComments(wftype, tstWorkFlowId);
         } else {
-            $("#comment").val(wftype);
-            $("#consumergoods2").removeClass("d-none");
-            let myModal = new BSModal("modalIdWfComments", "Comments", $("#consumergoods2").html(), () => {
+            let _wfpopComments = 'Comments';
+            if (_mwfComments == "true") {
                 $("#comment").val(wftype);
+                _wfpopComments = 'Comments *';
+            }
+            $("#consumergoods2").removeClass("d-none");
+            let myModal = new BSModal("modalIdWfComments", _wfpopComments, $("#consumergoods2").html(), () => {
+                if (_mwfComments == "true")
+                    $("#comment").val(wftype);
                 $("#consumergoods2").addClass("d-none");
             }, () => {
                 // resetActions();
@@ -13556,7 +14235,7 @@ function lnkNextClick() {
     lvNavDetails = "";
     if (navValidator) {
         eval(callParent("loadFrame()", "function"));
-        ASB.WebService.GetListViewNext(findGetParameter("openerIV"), tstDataId, SuccGetLVDetails, OnExceptionGetLVDetails);
+        ASB.WebService.GetListViewNext(findGetParameter("openerIV"), tstDataId, resTstHtmlLS, SuccGetLVDetails, OnExceptionGetLVDetails);
     } else {
         var cutMsg = eval(callParent('lcm[284]'));
         var lvConfirm = $.confirm({
@@ -13583,7 +14262,7 @@ function lnkNextClick() {
                     action: function () {
                         eval(callParent("loadFrame()", "function"));
                         disableBackDrop('destroy');
-                        ASB.WebService.GetListViewNext(findGetParameter("openerIV"), tstDataId, SuccGetLVDetails, OnExceptionGetLVDetails);
+                        ASB.WebService.GetListViewNext(findGetParameter("openerIV"), tstDataId, resTstHtmlLS, SuccGetLVDetails, OnExceptionGetLVDetails);
                     }
                 }
             }
@@ -13600,7 +14279,7 @@ function lnkPrevClick() {
     lvNavDetails = "";
     if (navValidator) {
         eval(callParent("loadFrame()", "function"));
-        ASB.WebService.GetListViewPrev(findGetParameter("openerIV"), tstDataId, SuccGetLVDetails, OnExceptionGetLVDetails);
+        ASB.WebService.GetListViewPrev(findGetParameter("openerIV"), tstDataId, resTstHtmlLS, SuccGetLVDetails, OnExceptionGetLVDetails);
     } else {
         var cutMsg = eval(callParent('lcm[284]'));
         var lvConfirm = $.confirm({
@@ -13627,7 +14306,7 @@ function lnkPrevClick() {
                     action: function () {
                         eval(callParent("loadFrame()", "function"));
                         disableBackDrop('destroy');
-                        ASB.WebService.GetListViewPrev(findGetParameter("openerIV"), tstDataId, SuccGetLVDetails, OnExceptionGetLVDetails);
+                        ASB.WebService.GetListViewPrev(findGetParameter("openerIV"), tstDataId, resTstHtmlLS, SuccGetLVDetails, OnExceptionGetLVDetails);
                     }
                 }
             }
@@ -13662,8 +14341,13 @@ function lnkPrevClick() {
 
 function SuccGetLVDetails(result, eventArgs) {
     if (result != "") {
+        if (result.split("♠*♠").length > 1) {
+            tstDataId = result.split("♠*♠")[0];
+            result = result.split("♠*♠")[1];
+        }
         if (CheckSessionTimeout(result))
             return;
+        resTstHtmlLS = "";
         if (result.indexOf("sess.aspx") == 0 || result.indexOf("err.aspx") == 0) {
             top.location.href = result;
         } else {
@@ -13676,16 +14360,41 @@ function SuccGetLVDetails(result, eventArgs) {
             let dynNavTst = findGetParameter("dynNavTst", redirLocation)
 
             if (redirLocation.toLowerCase().indexOf("tstruct.aspx?") > -1 && (!dynNavTst || dynNavTst == transid)) {
-                AvoidPostBackAfterSave(redirLocation);
+                var _TstlocalStorage = "";
+                try {
+                    if (typeof (Storage) !== "undefined") {
+                        let appSUrl = top.window.location.href.toLowerCase().substring("0", top.window.location.href.indexOf("/aspx/"));
+                        let _thisKey = callParentNew("getKeysWithPrefix(tstHtml♠" + transid + "-" + appSUrl + "♥)", "function");
+                        _TstlocalStorage = localStorage[_thisKey[0]];
+                        if (typeof _TstlocalStorage == "undefined") {
+                            _TstlocalStorage = "";
+                        }
+                    }
+                } catch (e) {
+                }
+                if (_TstlocalStorage != "") {
+                    redirLocation += "&dummyload=true♠" + tstDataId;
+                } else {
+                    redirLocation += "&dummyload=false♠";
+                }
+                callParentNew("lastLoadtstId=", redirLocation);
+                resTstHtmlLS = transid;
+                AvoidPostBackAfterSave(redirLocation, 'true');
             }
             else {
                 if (redirLocation.toLowerCase().indexOf("tstruct.aspx?") > -1 && findGetParameter("hltype", redirLocation) == "load") {
                     redirLocation = redirLocation.replace("tstruct.aspx?", "ivtstload.aspx?");
                 }
-                window.location.href = redirLocation;
+                if (redirLocation != '')
+                    window.location.href = redirLocation;
+                else {
+                    eval(callParent("closeFrame()", "function"));
+                }
             }
-            $("#lnkNext").removeClass("disabled").prop("disabled", false);
-            $("#lnkPrev").removeClass("disabled").prop("disabled", false);
+            if (redirLocation != '') {
+                $("#lnkNext").removeClass("disabled").prop("disabled", false);
+                $("#lnkPrev").removeClass("disabled").prop("disabled", false);
+            }
         }
     } else {
         eval(callParent("closeFrame()", "function"));
@@ -13874,7 +14583,20 @@ function GridFreezeColumn(dcNo) {
             dataType: 'json',
             contentType: "application/json",
             success: function (data) {
-                window.location.href = window.location.href;
+                //window.location.href = window.location.href;
+                try {
+                    let appSUrl = top.window.location.href.toLowerCase().substring("0", top.window.location.href.indexOf("/aspx/"));
+                    let _thisKey = callParentNew("getKeysWithPrefix(tstHtml♠" + transid + "-" + appSUrl + "♥)", "function");
+                    if (_thisKey.length > 0) {
+                        for (const val of _thisKey) {
+                            localStorage.removeItem(val);
+                        }
+                    }
+                } catch (ex) { }
+                let _ThisSrc = window.location.href;
+                _ThisSrc = _ThisSrc.replace('&dummyload=true', '&dummyload=false');
+                _ThisSrc = GetUriFormCurrentUri(_ThisSrc, transid);
+                window.location.href = _ThisSrc
             },
             error: function (error) {
             }
@@ -14224,7 +14946,7 @@ function loadSavedDraft(CreatedOn) {
                     CallListViewCB.close();
                     ShowDimmer(true);
                     evalExpOnSaveDraftLoad = true;
-                    GetFormLoadData("", "true");
+                    GetFormLoadData("", "true", "false", "true");
                     //loadSavedDraftExt(draftName);
                     window.parent.isSessionCleared = true;
                     if (AutosaveDraft == "true" & AutosaveDraftTime != "") {
@@ -14343,8 +15065,12 @@ function confirmOnAction(fromPropsheet) {
                 btnClass: 'btn btn-primary',
                 action: function () {
                     ConfirmLeave.close();
-                    if (!fromPropsheet)
-                        window.location.href = "tstruct.aspx" + window.location.search.replace(/&theMode=design/g, "");
+                    if (!fromPropsheet) {
+                        //window.location.href = "tstruct.aspx" + window.location.search.replace(/&theMode=design/g, "");
+                        //callParentNew("lastLoadtstId=", _thisRui);
+                        let _thisRui = 'tstruct.aspx?transid=' + transid + '&openerIV=ttotl&isIV=false';
+                        callParentNew(`LoadIframe(${_thisRui})`, "function");
+                    }
                     else
                         openProprtySht('addFieldPS');
                 }
@@ -14919,7 +15645,10 @@ function exportGridToExcel(exportDcNo) {
 
             $("#gridToExport thead th").each((ind, elm) => {
                 if ($(elm).attr("id") && $(elm).attr("id").indexOf("th-") == 0) {
-                    $(elm).text($(elm).attr("id").substr(3));
+                    let _fldName = $(elm).attr("id").substr(3);
+                    let _fieldIndex = FNames.indexOf(_fldName);
+                    let _fldCap = FCaption[_fieldIndex];
+                    $(elm).text(_fldCap + '(' + _fldName + ')');
                 }
             });
 
@@ -16092,11 +16821,13 @@ function GetCloneFormLoadData(tstQureystr) {
             async: true,
             data: JSON.stringify({
                 key: tstDataId,
-                tstQureystr: tstQureystr
+                tstQureystr: tstQureystr,
+                isTstHtmlLs: resTstHtmlLS
             }),
             dataType: 'json',
             contentType: "application/json",
             success: function (data) {
+                resTstHtmlLS = "";
                 var result = data.d;
                 if (result != "") {
                     if (result.split("*♠♦*").length > 1) {
@@ -16196,6 +16927,15 @@ function GetCloneFormLoadData(tstQureystr) {
                             wsPerfFormLoadCall = tstPerfVars.split(";")[0] == "true" ? true : false;
                             wsPerfEvalExpClient = tstPerfVars.split(";")[1].split(",");
                             headerAttachDir = tstPerfVars.split(";")[2];
+                            try {
+                                if (tstPerfVars.split(";").length > 3) {
+                                    formParamFlds = tstPerfVars.split(";")[3].split(",");
+                                    formParamVals = tstPerfVars.split(";")[4].split(",");
+                                } else {
+                                    formParamFlds = new Array();
+                                    formParamVals = new Array();
+                                }
+                            } catch (ex) { }
                         }
                         var ImgVals = resval[5];
                         if (ImgVals != "") {
@@ -16222,7 +16962,7 @@ function GetCloneFormLoadData(tstQureystr) {
                             AxGridAttNotExistList = agattnotfiles;
                         } else
                             AxGridAttNotExistList = "";
-                        tstDataId = resval[9];
+                        tstDataId = resval[11];
 
                         try {
                             DCHasDataRows.forEach(function (_val, _ind) {
@@ -16233,15 +16973,15 @@ function GetCloneFormLoadData(tstQureystr) {
                             FFieldHidden = new Array();
                             FFieldReadOnly = new Array();
 
-                            if (resval[11] != "") {
-                                var _thisFFH = resval[11].split(',');
+                            if (resval[9] != "") {
+                                var _thisFFH = resval[9].split(',');
                                 _thisFFH.forEach(function (_val) {
                                     if (_val != "")
                                         FFieldHidden.push(_val);
                                 })
                             }
-                            if (resval[12] != "") {
-                                var _thisFFH = resval[12].split(',');
+                            if (resval[10] != "") {
+                                var _thisFFH = resval[10].split(',');
                                 _thisFFH.forEach(function (_val) {
                                     if (_val != "")
                                         FFieldReadOnly.push(_val);
@@ -16391,7 +17131,7 @@ function SaveTransactionJSON() {
     try {
         let _hfiles = UploadFiles();
         let _delRows = GetDeletedRows();
-        ASB.WebService.SaveTransactionRestAPI(fldJSON, transid, recordid, changedDcs, _delRows, _hfiles, tstDataId, DeletedFieldValue, SuccessCallbackRestSave, OnExceptionRestSave);
+        ASB.WebService.SaveTransactionRestAPI(fldJSON, transid, recordid, changedDcs, _delRows, _hfiles, tstDataId, DeletedFieldValue, resTstHtmlLS, SuccessCallbackRestSave, OnExceptionRestSave);
     }
     catch (exp) {
         ShowDimmer(false);
@@ -16400,6 +17140,11 @@ function SaveTransactionJSON() {
 
     function SuccessCallbackRestSave(result, eventArgs) {
         try {
+            if (result != "" && result.split("♠*♠").length > 1) {
+                tstDataId = result.split("♠*♠")[0];
+                result = result.split("♠*♠")[1];
+            }
+            resTstHtmlLS = "";
             try {
                 var resJson = $j.parseJSON(result);
             } catch (ex) {
@@ -17373,11 +18118,13 @@ function GetLoadDataForDiscard(recid, tstQureystr) {
                 key: tstDataId,
                 recordid: recid,
                 tstQureystr: tstQureystr,
-                isDupTab: _isDupTab
+                isDupTab: _isDupTab,
+                isTstHtmlLs: resTstHtmlLS
             }),
             dataType: 'json',
             contentType: "application/json",
             success: function (data) {
+                resTstHtmlLS = "";
                 var result = data.d;
                 if (result != "") {
                     if (result.split("*♠♦*").length > 1) {
@@ -17480,6 +18227,15 @@ function GetLoadDataForDiscard(recid, tstQureystr) {
                             wsPerfFormLoadCall = tstPerfVars.split(";")[0] == "true" ? true : false;
                             wsPerfEvalExpClient = tstPerfVars.split(";")[1].split(",");
                             headerAttachDir = tstPerfVars.split(";")[2];
+                            try {
+                                if (tstPerfVars.split(";").length > 3) {
+                                    formParamFlds = tstPerfVars.split(";")[3].split(",");
+                                    formParamVals = tstPerfVars.split(";")[4].split(",");
+                                } else {
+                                    formParamFlds = new Array();
+                                    formParamVals = new Array();
+                                }
+                            } catch (ex) { }
                         }
                         var ImgVals = resval[5];
                         if (ImgVals != "") {
@@ -17506,21 +18262,21 @@ function GetLoadDataForDiscard(recid, tstQureystr) {
                             AxGridAttNotExistList = agattnotfiles;
                         } else
                             AxGridAttNotExistList = "";
-                        tstDataId = resval[9];
+                        tstDataId = resval[11];
 
                         try {
                             FFieldHidden = new Array();
                             FFieldReadOnly = new Array();
 
-                            if (resval[12] != "") {
-                                var _thisFFH = resval[12].split(',');
+                            if (resval[9] != "") {
+                                var _thisFFH = resval[9].split(',');
                                 _thisFFH.forEach(function (_val) {
                                     if (_val != "")
                                         FFieldHidden.push(_val);
                                 })
                             }
-                            if (resval[13] != "") {
-                                var _thisFFH = resval[13].split(',');
+                            if (resval[10] != "") {
+                                var _thisFFH = resval[10].split(',');
                                 _thisFFH.forEach(function (_val) {
                                     if (_val != "")
                                         FFieldReadOnly.push(_val);
@@ -17845,5 +18601,41 @@ function saveFillgridColResize(_thisDcno, _thisFillgridName) {
     }
     function OnExceptionFGResize(result) {
         ShowDimmer(false);
+    }
+}
+function clearCacheReloadForm(_thisTrId) {
+    let appSUrl = top.window.location.href.toLowerCase().substring("0", top.window.location.href.indexOf("/aspx/"));
+    try {
+        ShowDimmer(true);
+        let _thisKey = callParentNew("getKeysWithPrefix(tstHtml♠" + _thisTrId + "-" + appSUrl + "♥)", "function");
+        if (_thisKey.length > 0) {
+            for (const val of _thisKey) {
+                localStorage.removeItem(val);
+            }
+        }
+        if (callParentNew("originaltrIds").filter(x => x == _thisTrId).length == 0) {
+            let _thisInd = callParentNew("originaltrIds").indexOf(_thisTrId);
+            callParentNew("originaltrIds").splice(_thisInd, 1);
+        }
+        
+        $.ajax({
+            url: 'tstruct.aspx/ClearCacheTstKeys',
+            type: 'POST',
+            cache: false,
+            async: false,
+            data: JSON.stringify({
+                Transid: _thisTrId
+            }),
+            dataType: 'json',
+            contentType: "application/json",
+            success: function (data) {
+                callParentNew('globalChange=', false);
+                let _thisUri = 'tstruct.aspx?transid=' + _thisTrId + '&openerIV=tldt&isIV=false';
+                callParentNew("LoadIframe(" + _thisUri + ")", "function");
+            }, error: function (error) {
+                ShowDimmer(false);
+            }
+        });
+    } catch (ex) {
     }
 }

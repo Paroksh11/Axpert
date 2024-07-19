@@ -35,9 +35,9 @@
     <%--custom alerts end--%>
     <script src="../Js/gen.min.js?v=14" type="text/javascript"></script>
 
-    <script src="../Js/common.min.js?v=141" type="text/javascript"></script>
+    <script src="../Js/common.min.js?v=144" type="text/javascript"></script>
     <link href="../Css/fileupload.min.css?v=3" rel="stylesheet" />
-    <script src="../Js/excelimport.min.js?v=10" type="text/javascript"></script>
+    <script src="../Js/excelimport.min.js?v=11" type="text/javascript"></script>
     <script src="../Js/thirdparty/excelImport/xlsx.full.min.js" type="text/javascript"></script>
     <script>
         if (typeof localStorage != "undefined") {

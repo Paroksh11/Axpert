@@ -70,7 +70,7 @@
         var workflowId = '<%=workflowId%>';
     </script>
     <script src="../Js/WorkFlow.min.js?v=5" type="text/javascript"></script>
-    <script src="../Js/common.min.js?v=141" type="text/javascript"></script>
+    <script src="../Js/common.min.js?v=144" type="text/javascript"></script>
 
     <style type="text/css">
         .style3 {

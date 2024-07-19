@@ -70,22 +70,41 @@ var aXEmptyOption = "-- Select --";
 
 //Function to set the global variables.
 function SetTstProps(project, userName, transId, sessionId, roleName, traceVal) {
+    var tstPropInfo = new Array;
+    if (typeof tstSessInfo != "undefined" && tstSessInfo != "") {
+        tstPropInfo = tstSessInfo.split('~');
+    }
+    if (tstPropInfo.length > 0 && tstPropInfo[3] != sessionId) {
+        proj = tstPropInfo[0];
+        proj = CheckSpecialCharsInStr(proj);
 
-    proj = project;
-    proj = CheckSpecialCharsInStr(proj);
+        user = tstPropInfo[1];
+        user = CheckSpecialCharsInStr(user);
 
-    user = userName;
-    user = CheckSpecialCharsInStr(user);
+        tst = tstPropInfo[2];
+        tst = CheckSpecialCharsInStr(tst);
 
-    tst = transId;
-    tst = CheckSpecialCharsInStr(tst);
+        sid = tstPropInfo[3];
+        sid = CheckSpecialCharsInStr(sid);
 
-    sid = sessionId;
-    sid = CheckSpecialCharsInStr(sid);
+        trace = tstPropInfo[5];
+        trace = CheckSpecialCharsInStr(trace);
+    } else {
+        proj = project;
+        proj = CheckSpecialCharsInStr(proj);
 
-    trace = traceVal;
-    trace = CheckSpecialCharsInStr(trace);
+        user = userName;
+        user = CheckSpecialCharsInStr(user);
 
+        tst = transId;
+        tst = CheckSpecialCharsInStr(tst);
+
+        sid = sessionId;
+        sid = CheckSpecialCharsInStr(sid);
+
+        trace = traceVal;
+        trace = CheckSpecialCharsInStr(trace);
+    }
     window.status = "";
 }
 
@@ -871,6 +890,8 @@ function SetFieldValue(componentName, value, fromNumFocus, calledFrom) {
                     fld.val(value);
                     fld.attr("value", value);
                     ApplyFldMask(fld.attr("id"), value);
+                    if (IsDcGrid(dcNo))
+                        GridNurfldDisplayTot(dcNo, fieldName, fldIndex);
                 } else if (fld.hasClass("fldmultiSelect")) { // Set value to Multi select field.
                     if (value != "") {
                         if (fld[0].type == "textarea") {
@@ -2325,13 +2346,14 @@ function HideDialog() {
             eval(callParent('isSuccessAlertInPopUp') + "= true");
             if (transid == "axcal") {
                 callParentNew("closeModalDialog()", "function");
-            } else {
+                eval(callParent("closeFrame()", "function"));
+            } else if (typeof TstPopupCloseOnSubmit != "undefined" && TstPopupCloseOnSubmit == "true") {
                 $j("#axpertPopupWrapper .remodal-close", window.parent.document).click();
                 try {
                     callParentNew("loadPopUpPage", "id").dispatchEvent(new CustomEvent("close"));
-                } catch (ex) {}
+                } catch (ex) { }
+                eval(callParent("closeFrame()", "function"));
             }
-            eval(callParent("closeFrame()", "function"));
         }
 
         if (document.title == "Tstruct") {
@@ -2621,7 +2643,7 @@ function ApplySaveDirective(axCustomTstAction) {
 }
 
 //To avoid tstruct page load after save the transaction
-function AvoidPostBackAfterSave(page) {
+function AvoidPostBackAfterSave(page, isfromNxtPrev = 'false') {
     AxWaitCursor(true);
     ShowDimmer(true);
     var tstRecId = "",
@@ -2634,11 +2656,16 @@ function AvoidPostBackAfterSave(page) {
                 tstQureystr += paramType + "♠";
         });
     }
-    if (tstRecId != "" && tstRecId != "0") {
-        GetLoadData(tstRecId, tstQureystr)
-    } else {
-        GetFormLoadData(tstQureystr);
-    }
+    setTimeout(function () {
+        if (tstRecId != "" && tstRecId != "0") {
+            GetLoadData(tstRecId, tstQureystr)
+        } else {
+            if (isfromNxtPrev == 'true')
+                GetFormLoadData(tstQureystr, 'false', 'false', 'true');
+            else
+                GetFormLoadData(tstQureystr);
+        }
+    }, 0);
 }
 
 //Function for getting the field values from the axp_savedirective field 
@@ -3797,7 +3824,9 @@ function SetBackForwardButtonProp(enableForwardButton, enableBackButton) {
 
 function CreateTimeLog(startTime, client1, client2, asbTot, asbDb, serviceName) {
     try {
-        ASB.WebService.CreateTimeLog(startTime, client1, client2, asbTot, asbDb, serviceName, tstDataId);
+        let _resTstHtmlLS = resTstHtmlLS;
+        resTstHtmlLS = "";
+        ASB.WebService.CreateTimeLog(startTime, client1, client2, asbTot, asbDb, serviceName, tstDataId, _resTstHtmlLS);
     } catch (exp) {
         AxWaitCursor(false);
         showAlertDialog("error", ServerErrMsg);
@@ -4337,4 +4366,88 @@ function UpdateAllFieldValues(fieldName, fieldValue) {
         AllFieldNames.push(fieldName);
         AllFieldValues.push(fieldValue);
     }
+}
+
+function CreateGridFooter(_dcNo) {
+    let _tfootertd = "";
+    $("#gridHd" + _dcNo + " thead tr th").each(function (ind) {
+        if (ind == 0 || ind == 1)
+            _tfootertd = `<td class="text-center" colspan="2"><span>Total: </span></td>`;
+        else {
+            let _tfId = $(this).attr("id");
+            _tfId = _tfId.replace("th-", "tf-");
+            /*if ($(this).visible() == false || $(this).hasClass('none') || $(this).hasClass('d-none'))*/
+            if ($(this).css('display') == 'none' || $(this).hasClass('none') || $(this).hasClass('d-none'))
+                _tfootertd += `<td id=${_tfId} class="d-none text-break text-end"><span></span></td>`;
+            else
+                _tfootertd += `<td id=${_tfId} class="text-break text-end"><span style="padding:0.56rem 1rem;"></span></td>`;
+        }
+    });
+    $("#gridHd" + _dcNo).append(`<tfoot><tr class="fw-boldest">${_tfootertd}</tr></tfoot>`);
+}
+function GridNurfldDisplayTot(_dcNo, _fieldName, _fldIndex = 0) {
+    try {
+        if (_fldIndex == 0)
+            _fldIndex = $j.inArray(_fieldName, FNames);
+        if (_fldIndex > 0 && IsGridField(_fieldName) && FNumDisplayTot[_fldIndex] == "True") {
+            let _totVal = 0;
+            $(`#gridHd${_dcNo} tbody tr`).find(`td textarea[id^="${_fieldName}"][id$="F${_dcNo}"],td input[id^="${_fieldName}"][id$="F${_dcNo}"]`).filter(function () {
+                var id = $(this).attr('id');
+                var substring = id.substring(_fieldName.length, id.length - 2); 
+                return /^\d{3}$/.test(substring); 
+            }).each(function () {
+                let _thisVal = $(this).val();
+                var val = 0;
+                if (_thisVal != "" && _thisVal != "***") {
+                    if ((_thisVal.length > 3) && (_thisVal.indexOf(',') != -1))
+                        val = removeCommas(_thisVal);
+                    else
+                        val = _thisVal;
+                    if (val != "")
+                        _totVal += parseFloat(val);
+                }
+            });
+            _totVal = NumericFldOnBlur(_totVal, _fldIndex);
+            if ($("#gridHd" + _dcNo + " tfoot tr").length == 0) {
+                CreateGridFooter(_dcNo);
+            } 
+
+            $("#gridHd" + _dcNo + " tfoot tr td#tf-" + _fieldName).find("span").text(_totVal);
+        }
+    } catch (ex) { }
+}
+
+function SetPositionfldDisplayTot() {
+    try {
+        let _dTotIndex = FNumDisplayTot.reduce((r, d, i) => d === 'True' ? (r.push(i), r) : r, []);
+        _dTotIndex.forEach(function (val) {
+            let _fieldName = FNames[val];
+            if (IsGridField(_fieldName)) {
+                let _totVal = 0;
+                let _dcNo = GetDcNo(_fieldName);
+                $(`#gridHd${_dcNo} tbody tr`).find(`td textarea[id^="${_fieldName}"][id$="F${_dcNo}"],td input[id^="${_fieldName}"][id$="F${_dcNo}"]`).filter(function () {
+                    var id = $(this).attr('id');
+                    var substring = id.substring(_fieldName.length, id.length - 2);
+                    return /^\d{3}$/.test(substring);
+                }).each(function () {
+                    let _thisVal = $(this).val();
+                    var val = 0;
+                    if (_thisVal != "" && _thisVal != "***") {
+                        if ((_thisVal.length > 3) && (_thisVal.indexOf(',') != -1))
+                            val = removeCommas(_thisVal);
+                        else
+                            val = _thisVal;
+                        if (val != "")
+                            _totVal += parseFloat(val);
+                    }
+                });
+                let _fldIndex = $j.inArray(_fieldName, FNames);
+                _totVal = NumericFldOnBlur(_totVal, _fldIndex);
+                if ($("#gridHd" + _dcNo + " tfoot tr").length == 0) {
+                    CreateGridFooter(_dcNo);
+                }
+                $("#gridHd" + _dcNo + " tfoot tr td#tf-" + _fieldName).find("span").text(_totVal);
+            }
+        });
+    } catch (ex) { }
 }

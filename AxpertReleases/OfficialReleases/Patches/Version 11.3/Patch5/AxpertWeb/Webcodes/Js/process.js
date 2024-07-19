@@ -71,7 +71,8 @@ function EvaluateAxFunction(depFldname, changedFldName, currentRowNo) {
     //For evaluate GetCostRate expression
     if (CheckExpFunctions(expression.toLowerCase())) {
         isDepForceCallOnExp = "true";
-        GetDependents(changedFldName, "");
+        //GetDependents(changedFldName, "");
+        GetDependentsPerf(changedFldName, "");
         return;
     }
 
@@ -314,7 +315,8 @@ function EvaluateAxFunctionPerf(depFldname, changedFldName, currentRowNo) {
     //For evaluate GetCostRate expression
     if (CheckExpFunctions(expression.toLowerCase())) {
         isDepForceCallOnExp = "true";
-        GetDependents(changedFldName, "");
+        //GetDependents(changedFldName, "");
+        GetDependentsPerf(changedFldName, "");
         return;
     }
 
@@ -920,6 +922,17 @@ function CallAction(actionName, fileup, confirmmsg, remarks, manRemarks, dsignac
         try {
             let actInd=$j.inArray(actionName, tstActionName);
             if (typeof actSaveTask != "undefined" && actSaveTask[actInd] == "save") {
+
+                if (typeof tstructCachedsave != 'undefined' && tstructCachedsave == "T" && (recordid == "" || recordid == "0")) {
+                    if (typeof callParentNew('signalRNotifications') != 'undefined' && callParentNew('signalRNotifications') == 'true') {
+                        SaveTransactionJSON();
+                        return;
+                    } else {
+                        showAlertDialog("error", 'ARM is not setup for cached save.');
+                        return;
+                    }
+                }
+
                 if (AxRulesDefComputescript == "true")
                     AxRulesDefParser("compute script onsave", "", "computescript");
                 if (AxRulesDefValidation == "true") {
@@ -1176,7 +1189,7 @@ function CallActionExt(actionName, fileup, remarks, dsignaction, isScript,ruleSc
             axrulesFlds = "";
         callBackFunDtls = "CallActionExt♠" + actionName + "♠" + fileup + "♠" + remarks + "♠" + dsignaction;
         GetProcessTime();
-        ASB.WebService.CallActionWS(ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, DeletedDCRows, DeletedFieldValue, ArrActionLog, visDcname, txt, fup, "t", delRows, chngRows, tstDataId, files, isScript, axrulesFlds, ruleScriptCall, SuccessCallbackAction, OnException);
+        ASB.WebService.CallActionWS(ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, DeletedDCRows, DeletedFieldValue, ArrActionLog, visDcname, txt, fup, "t", delRows, chngRows, tstDataId, files, isScript, axrulesFlds, ruleScriptCall, resTstHtmlLS, SuccessCallbackAction, OnException);
     }
     catch (exp) {
         actionCallbackFlag = actionCallFlag;
@@ -1194,6 +1207,10 @@ function CallActionExt(actionName, fileup, remarks, dsignaction, isScript,ruleSc
 //callback function from the callaction webservice.
 function SuccessCallbackAction(result, eventArgs) {
     if (result != "") {
+        if (result.split("♠*♠").length > 1) {
+            tstDataId = result.split("♠*♠")[0];
+            result = result.split("♠*♠")[1];
+        }
         if (result.split("*♠*").length > 1) {
             var serverprocesstime = result.split("*♠*")[0];
             var requestProcess_logtime = result.split("*♠*")[1];
@@ -1216,6 +1233,7 @@ function SuccessCallbackAction(result, eventArgs) {
         if (CheckSessionTimeout(result)) {
             return;
         }
+        resTstHtmlLS = "";
         var clrCacheKeys = result.split("*#*")[1];
         if (typeof clrCacheKeys != "undefined" && clrCacheKeys != "") {
             console.log("Clearing cache in action");
@@ -1374,6 +1392,9 @@ function AssignLoadValues(resultJson, calledFrom, actnName, navigationURL) {
         //TODO:We need to Review the below line.
         var strSingleLineText = resval[ind].toString().replace(new RegExp("\\n", "g"), "");
         strSingleLineText = strSingleLineText.replace(new RegExp("\\t", "g"), "&#9;");
+
+        strSingleLineText = strSingleLineText.replace(/\\"/g, "'");
+        
         strSingleLineText = strSingleLineText.replace(/\\/g, ";bkslh");
 
         //Adding this line of code for <script></script>
@@ -1661,7 +1682,7 @@ function ExecRefreshIviewRows(rowData) {
                         var selectedRow = parseInt(rowno || "1");
                         ivDatas[selectedRow - 1] = _this.rowData[ind];
                         ivDatas[selectedRow - 1][getPropertyAccess("rowno")] = selectedRow.toString();
-                        refreshRow(ivirDataTableApi.row(selectedRow - 1), ivDatas[selectedRow - 1]);
+                        refreshRow(ivirDataTableApi.row(selectedRow - 1), ivDatas[selectedRow - 1],false);
                     });
                 }
             }
@@ -2416,8 +2437,12 @@ function ExecData(dataJsonObj, calledFrom, isExcelImp = false) {
                                 }
                                 else {
                                     $j("div[id*='" + fName + "']").find("input[data-dummyradio=true]").remove();
-                                    if (comboField.attr("type") == "radio")
+                                    if (comboField.attr("type") == "radio") {
+                                        if ($j("#dv" + fName).find(".input-group").find("#" + fldName).length > 0 && $j("#dv" + fName).find(".input-group").find("#" + fldName).val() == fldclValue) {
+                                            $j("#dv" + fName).find(".input-group").find("#" + fldName).parent('div').remove();
+                                        }
                                         $j("#dv" + fName).find(".input-group").append(chkHtml);
+                                    }
                                     else
                                         $j("#dv" + fName).append(chkHtml);
                                 }
@@ -3431,6 +3456,7 @@ function ExecFormControl(formControlJsonObj, calledFrom) {
                 if (fldVal == "hide") {
                     if (isGridFld) {
                         $j("#th-" + fName).hide();
+                        $j("tfoot #tf-" + fName).addClass('d-none');
                         fld.hide();
                         fld.parent().hide();
                     }
@@ -3444,6 +3470,7 @@ function ExecFormControl(formControlJsonObj, calledFrom) {
                 else {
                     if (isGridFld) {
                         $j("#th-" + fName).show();
+                        $j("tfoot #tf-" + fName).removeClass('d-none');
                         fld.show();
                         fld.parent().show();
                     }
@@ -3673,9 +3700,9 @@ function ExecCommand(cmdJsonObj, actnName, axpConfigNavType, calledFrom = "") {
                             na = tempUrl;
                         }
                     } catch (ex) { }
-                        var windobj = window.open(na, "_blank");
-                        windobj.focus();
-                        windobj.close();
+                    var windobj = window.open(na, "_blank");
+                    windobj.focus();
+                    windobj.close();
                 } catch (ex) {
                     UpdateExceptionMessageInET("openfile exception : " + ex.message);
                     showAlertDialog("warning", eval(callParent('lcm[356]')));
@@ -4080,7 +4107,11 @@ function ExecCommand(cmdJsonObj, actnName, axpConfigNavType, calledFrom = "") {
                 popupFullPage("tstruct.aspx?act=open&transid=" + tstid + tparams + designParam + `&openerIV=${typeof isListView != "undefined" ? iName : tstid}&isIV=${typeof isListView != "undefined" ? !isListView : "false"}&isDupTab=${callParentNew('isDuplicateTab')}`);
             }
             else if (popup != "split") {
-                var redirectionLink = "tstruct.aspx?act=open&transid=" + tstid + tparams + designParam + `&openerIV=${typeof isListView != "undefined" ? iName : tstid}&isIV=${typeof isListView != "undefined" ? !isListView : "false"}&isDupTab=${callParentNew('isDuplicateTab')}`;
+                let _thisDummyLoad = GetTstHtmlLsKey(tstid);
+                let _tstURI = "tstruct.aspx?act=open&transid=" + tstid + tparams + designParam + `&openerIV=${typeof isListView != "undefined" ? iName : tstid}&isIV=${typeof isListView != "undefined" ? !isListView : "false"}&isDupTab=${callParentNew('isDuplicateTab')}${_thisDummyLoad}`;
+                _tstURI = _tstURI.replace(/♠/g, '%e2%99%a0');
+                callParentNew("lastLoadtstId=", _tstURI);
+                var redirectionLink = "tstruct.aspx?act=open&transid=" + tstid + tparams + designParam + `&openerIV=${typeof isListView != "undefined" ? iName : tstid}&isIV=${typeof isListView != "undefined" ? !isListView : "false"}&isDupTab=${callParentNew('isDuplicateTab')}${_thisDummyLoad}`;
                 var customCalled = false;
                 try {
                     customCalled = loadInMiddle1(redirectionLink);
@@ -4136,8 +4167,11 @@ function ExecCommand(cmdJsonObj, actnName, axpConfigNavType, calledFrom = "") {
                 popupFullPage("tstruct.aspx?act=load&transid=" + tstid + tparams + `&openerIV=${typeof isListView != "undefined" ? iName : tstid}&isIV=${typeof isListView != "undefined" ? !isListView : "false"}&isDupTab=${callParentNew('isDuplicateTab')}`);
             }
             else if (popup != "split") {
-
-                window.document.location.href = "tstruct.aspx?act=load&transid=" + tstid + tparams + `&openerIV=${typeof isListView != "undefined" ? iName : tstid}&isIV=${typeof isListView != "undefined" ? !isListView : "false"}&isDupTab=${callParentNew('isDuplicateTab')}`;
+                let _thisDummyLoad = GetTstHtmlLsKey(tstid);
+                let _tstURI = "tstruct.aspx?act=load&transid=" + tstid + tparams + `&openerIV=${typeof isListView != "undefined" ? iName : tstid}&isIV=${typeof isListView != "undefined" ? !isListView : "false"}&isDupTab=${callParentNew('isDuplicateTab')}${_thisDummyLoad}`;
+                _tstURI = _tstURI.replace(/♠/g, '%e2%99%a0');
+                callParentNew("lastLoadtstId=", _tstURI);
+                window.document.location.href = "tstruct.aspx?act=load&transid=" + tstid + tparams + `&openerIV=${typeof isListView != "undefined" ? iName : tstid}&isIV=${typeof isListView != "undefined" ? !isListView : "false"}&isDupTab=${callParentNew('isDuplicateTab')}${_thisDummyLoad}`;
             }
             else if (popup == "split") {
                 callParentNew(`OpenOnPropertyBase(${"tstruct.aspx?act=load&transid=" + tstid + tparams + `&openerIV=${typeof isListView != "undefined" ? iName : tstid}&isIV=${typeof isListView != "undefined" ? !isListView : "false"}&isDupTab=${callParentNew('isDuplicateTab')}`})`, 'function');
@@ -4190,13 +4224,16 @@ function ExecCommand(cmdJsonObj, actnName, axpConfigNavType, calledFrom = "") {
             if (popup == "pop") {
                 var pop = "true";
                 tparams = tparams + "&AxIsPop=true";
+                if ((typeof cmdJsonObj[i].parentrefresh) != "undefined" && cmdJsonObj[i].parentrefresh == "true") {
+                    eval(callParent('isRefreshParentOnClose') + "= true");
+                }
                 if ((ivn == null || ivn == "") && _parentIview!="") {
                     ivn = callParentNew('iName');
                     var loadpopup = 'iview.aspx?ivname=' + ivn + "&" + tparams + `&isDupTab=${callParentNew('isDuplicateTab')}`, popname;
                     createPopup(loadpopup, true);
                 } else if (_parentIview != "" && ivn != "" && ivn == _parentIview) {
                     ivn = callParentNew('iName');
-                    var loadpopup = 'iview.aspx?ivname=' + ivn + "&" + tparams + `&isDupTab=${callParentNew('isDuplicateTab')}`, popname;
+                    var loadpopup = 'ivtoivload.aspx?ivname=' + ivn + "&" + tparams + `&isDupTab=${callParentNew('isDuplicateTab')}`, popname;
                     createPopup(loadpopup, true);
                 } else {
                     var loadpopup = 'ivtoivload.aspx?ivname=' + ivn + "&" + tparams + `&isDupTab=${callParentNew('isDuplicateTab')}`, popname;
@@ -4258,7 +4295,11 @@ function ExecCommand(cmdJsonObj, actnName, axpConfigNavType, calledFrom = "") {
             //window.document.location.href = "Actionpage.aspx?hltype=open&name=" + pgname + tparams;
             if (pgname != "" && pgname.toLowerCase().startsWith("pagets")) {
                 pgname = pgname.substring(6);
-                window.document.location.href = "tstruct.aspx?act=open&transid=" + pgname + tparams + `&openerIV=${typeof isListView != "undefined" ? iName : pgname}&isIV=${typeof isListView != "undefined" ? !isListView : "false"}&isDupTab=${callParentNew('isDuplicateTab')}`;
+                let _thisDummyLoad = GetTstHtmlLsKey(pgname);
+                let _tstURI = "tstruct.aspx?act=open&transid=" + pgname + tparams + `&openerIV=${typeof isListView != "undefined" ? iName : pgname}&isIV=${typeof isListView != "undefined" ? !isListView : "false"}&isDupTab=${callParentNew('isDuplicateTab')}${_thisDummyLoad}`;
+                _tstURI = _tstURI.replace(/♠/g, '%e2%99%a0');
+                callParentNew("lastLoadtstId=", _tstURI);
+                window.document.location.href = "tstruct.aspx?act=open&transid=" + pgname + tparams + `&openerIV=${typeof isListView != "undefined" ? iName : pgname}&isIV=${typeof isListView != "undefined" ? !isListView : "false"}&isDupTab=${callParentNew('isDuplicateTab')}${_thisDummyLoad}`;
             }
             else if (pgname != "" && pgname.toLowerCase().startsWith("pageiv")) {
                 pgname = pgname.substring(6);
@@ -4284,7 +4325,11 @@ function ExecCommand(cmdJsonObj, actnName, axpConfigNavType, calledFrom = "") {
             //window.document.location.href = "Actionpage.aspx?hltype=load&name=" + pgname + tparams;
             if (pgname != "" && pgname.toLowerCase().startsWith("pagets")) {
                 pgname = pgname.substring(6);
-                window.document.location.href = "tstruct.aspx?act=load&transid=" + pgname + tparams + `&openerIV=${typeof isListView != "undefined" ? iName : pgname}&isIV=${typeof isListView != "undefined" ? !isListView : "false"}&isDupTab=${callParentNew('isDuplicateTab')}`;
+                let _thisDummyLoad = GetTstHtmlLsKey(pgname);
+                let _tstURI = "tstruct.aspx?act=load&transid=" + pgname + tparams + `&openerIV=${typeof isListView != "undefined" ? iName : pgname}&isIV=${typeof isListView != "undefined" ? !isListView : "false"}&isDupTab=${callParentNew('isDuplicateTab')}${_thisDummyLoad}`;
+                _tstURI = _tstURI.replace(/♠/g, '%e2%99%a0');
+                callParentNew("lastLoadtstId=", _tstURI);
+                window.document.location.href = "tstruct.aspx?act=load&transid=" + pgname + tparams + `&openerIV=${typeof isListView != "undefined" ? iName : pgname}&isIV=${typeof isListView != "undefined" ? !isListView : "false"}&isDupTab=${callParentNew('isDuplicateTab')}${_thisDummyLoad}`;
             }
             else if (pgname != "" && pgname.toLowerCase().startsWith("pageiv")) {
                 pgname = pgname.substring(6);
@@ -4380,7 +4425,11 @@ function redirectOnSaveAction() {
     }
     if (recIdVal == "" || recIdVal == "0") {
         GetProcessTime();
-        window.location.href = "tstruct.aspx?act=load&transid=" + tst + axSplit + "&hdnbElapsTime=" + callParentNew("browserElapsTime") + `&openerIV=${typeof isListView != "undefined" ? iName : tst}&isIV=${typeof isListView != "undefined" ? !isListView : "false"}&isDupTab=${callParentNew('isDuplicateTab')}`;
+        let _thisDummyLoad = GetTstHtmlLsKey(tst);
+        let _tstURI = "tstruct.aspx?act=load&transid=" + tst + axSplit + "&hdnbElapsTime=" + callParentNew("browserElapsTime") + `&openerIV=${typeof isListView != "undefined" ? iName : tst}&isIV=${typeof isListView != "undefined" ? !isListView : "false"}&isDupTab=${callParentNew('isDuplicateTab')}${_thisDummyLoad}`;
+        _tstURI = _tstURI.replace(/♠/g, '%e2%99%a0');
+        callParentNew("lastLoadtstId=", _tstURI);
+        window.location.href = "tstruct.aspx?act=load&transid=" + tst + axSplit + "&hdnbElapsTime=" + callParentNew("browserElapsTime") + `&openerIV=${typeof isListView != "undefined" ? iName : tst}&isIV=${typeof isListView != "undefined" ? !isListView : "false"}&isDupTab=${callParentNew('isDuplicateTab')}${_thisDummyLoad}`;
     }
     else if (transid == "axcal") {
         callParentNew('isSuccessAlertInPopUp=', true);
@@ -4393,7 +4442,11 @@ function redirectOnSaveAction() {
         }
         else {
             GetProcessTime();
-            window.location.href = "tstruct.aspx?act=load&transid=" + tst + "&recordid=" + recIdVal + axSplit + "&hdnbElapsTime=" + callParentNew("browserElapsTime") + `&openerIV=${typeof isListView != "undefined" ? iName : tst}&isIV=${typeof isListView != "undefined" ? !isListView : "false"}&isDupTab=${callParentNew('isDuplicateTab')}`;
+            let _thisDummyLoad = GetTstHtmlLsKey(tst);
+            let _tstURI = "tstruct.aspx?act=load&transid=" + tst + "&recordid=" + recIdVal + axSplit + "&hdnbElapsTime=" + callParentNew("browserElapsTime") + `&openerIV=${typeof isListView != "undefined" ? iName : tst}&isIV=${typeof isListView != "undefined" ? !isListView : "false"}&isDupTab=${callParentNew('isDuplicateTab')}${_thisDummyLoad}`;
+            _tstURI = _tstURI.replace(/♠/g, '%e2%99%a0');
+            callParentNew("lastLoadtstId=", _tstURI);
+            window.location.href = "tstruct.aspx?act=load&transid=" + tst + "&recordid=" + recIdVal + axSplit + "&hdnbElapsTime=" + callParentNew("browserElapsTime") + `&openerIV=${typeof isListView != "undefined" ? iName : tst}&isIV=${typeof isListView != "undefined" ? !isListView : "false"}&isDupTab=${callParentNew('isDuplicateTab')}${_thisDummyLoad}`;
         }
     }
 }
@@ -4438,7 +4491,7 @@ function SetRows(dcNo, rowCount, delRows, calledFrom, oldHasData, dcHasRows) {
                     if (dcHasRows != "no") {
                         SetRowsInDc(dcNo, currentRowCnt, calledFrom);
                         if ((!axInlineGridEdit && AxpGridForm == "form") || (isMobile && mobileCardLayout != "none"))
-                            DeleteFromGridRow(dcNo, rowNo, this);
+                            DeleteFromGridRow(dcNo, rowNo, this, calledFrom);
                         if (delRows == "d*,") {
                             if (gridDummyRowVal.length > 0) {
                                 gridDummyRowVal.map(function (v) {
@@ -5096,7 +5149,7 @@ function RemoveFile(fname, rid,delFileObj) {
         var sxml = '<root axpapp="' + proj + '"  sessionid="' + sid + '"  filename="' + fname + '" transid="' + tst + '"  recordid="' + rid + '"   trace="' + trace + '">';
 
         try {
-            ASB.WebService.RemoveAttachment(sxml, tstDataId, SuccessRemAttFile);
+            ASB.WebService.RemoveAttachment(sxml, tstDataId, resTstHtmlLS, SuccessRemAttFile);
         }
         catch (exp) {
             AxWaitCursor(false);
@@ -5107,8 +5160,13 @@ function RemoveFile(fname, rid,delFileObj) {
 
 //Callback function for RemoveAttachedFiles.
 function SuccessRemAttFile(result, eventArgs) {
+    if (result.split("♠*♠").length > 1) {
+        tstDataId = result.split("♠*♠")[0];
+        result = result.split("♠*♠")[1];
+    }
     if (CheckSessionTimeout(result))
         return;
+    resTstHtmlLS = "";
     var myJSONObject = $j.parseJSON(result);
     if (myJSONObject.message) {
         var msg = myJSONObject.message[0].msg;
@@ -5151,7 +5209,7 @@ function OpenAttachment(a, b, isNew) {
             SuccChoicesOpenAtt(str, null);
         }
         else
-            ASB.WebService.ViewAttachment(ofXml, tstDataId, SuccChoicesOpenAtt);
+            ASB.WebService.ViewAttachment(ofXml, tstDataId, resTstHtmlLS, SuccChoicesOpenAtt);
 
     }
     catch (exp) {
@@ -5162,8 +5220,13 @@ function OpenAttachment(a, b, isNew) {
 
 //Callback function for ViewAttachment service call.
 function SuccChoicesOpenAtt(result, eventArgs) {
+    if (result.split("♠*♠").length > 1) {
+        tstDataId = result.split("♠*♠")[0];
+        result = result.split("♠*♠")[1];
+    }
     if (CheckSessionTimeout(result))
         return;
+    resTstHtmlLS = "";
     AssignLoadValues(result, "");
 }
 
@@ -5636,7 +5699,7 @@ function SaveAsDraft() {
     try {
         if (AxGlobalChange == true) {
             var strTabDCStatus = getTabDCStatus();
-            ASB.WebService.SaveAsDraft(ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, DeletedDCRows, tst, tstDataId, strTabDCStatus, SuccessCallbackDrafts, OnSaveDraftException);
+            ASB.WebService.SaveAsDraft(ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, DeletedDCRows, tst, tstDataId, strTabDCStatus, resTstHtmlLS, SuccessCallbackDrafts, OnSaveDraftException);
         }
     }
     catch (exp) {
@@ -5655,8 +5718,13 @@ function getTabDCStatus() {
 }
 
 function SuccessCallbackDrafts(result, eventArgs) {
+    if (result != "" && result.split("♠*♠").length > 1) {
+        tstDataId = result.split("♠*♠")[0];
+        result = result.split("♠*♠")[1];
+    }
     if (CheckSessionTimeout(result))
         return;
+    resTstHtmlLS = "";
     ShowDimmer(false);
 }
 
@@ -6516,7 +6584,7 @@ function constructWrkHtml(maxLevels, usernames, statusWrk, elno, levelJson) {
             var lblst = wfContent.split('.');// $j("#lblStatus").text().split('.');
             let wfUser = user.replace(/[.]/ig, '♣');
             lblst.forEach(function (val) {
-                if ((val.startsWith("Pending ") || val.startsWith(" Pending ")) && (val.indexOf("'" + wfUser + "'") > 0 || val.indexOf(" " + wfUser + "") > 0 || val.indexOf("," + wfUser) > 0 || val.indexOf(" " + wfUser + ",") > 0 || val.indexOf(wfUser + ",") > 0))
+                if ((val.startsWith("Pending ") || val.startsWith(" Pending ")) && ((val.indexOf("'" + wfUser + "'") > 0 || val.indexOf(" " + wfUser + "") > 0 || val.indexOf("," + wfUser) > 0 || val.indexOf(" " + wfUser + ",") > 0 || val.indexOf(wfUser + ",") > 0) || usernames[l].split(',').indexOf(user) > -1))
                     htmlwfNew = "Approval pending with you. ";
                 else if (val.startsWith("Returned ") && (val.indexOf("'" + wfUser + "'") > 0 || val.indexOf(" " + wfUser + "") > 0 || val.indexOf("," + wfUser) > 0 || val.indexOf(" " + wfUser + ",") > 0 || val.indexOf(wfUser + ",") > 0))
                     htmlwfNew = val.replace(/'/g, "").replace(/♣/g, ".");
@@ -6571,7 +6639,7 @@ function constructWrkHtml(maxLevels, usernames, statusWrk, elno, levelJson) {
                 var lblst = wfContent.split('.');
                 let wfUser = user.replace(/[.]/ig, '♣');
                 lblst.forEach(function (val) {
-                    if (val != "" && (val.indexOf("'" + wfUser + "'") > 0 || val.indexOf(" " + wfUser + " ")))
+                    if (val != "" && ((val.indexOf("'" + wfUser + "'") > 0 || val.indexOf(" " + wfUser + " ")) || usernames[l].split(',').indexOf(user) > -1))
                         htmlwfNew = val.replace(/'/g, "").replace(/♣/g, ".");;
                 });
             }
@@ -6648,7 +6716,11 @@ function popupFullPage(NavigationURL) {
 function setIviewNavigationData(paramsString, iviewName) {
     if (iviewName != "") {
         try {
-            ASB.WebService.SetIviewNavigationData(paramsString, iviewName, function () { });
+            if (typeof $("#hdnisIviewParamCache") != "undefined" && $("#hdnisIviewParamCache").val() == "False") {
+                //donothing
+            } else {
+                ASB.WebService.SetIviewNavigationData(paramsString, iviewName, function () { });
+            }
         } catch (ex) {
         }
     }
@@ -6667,7 +6739,7 @@ function setIviewNavigationData(paramsString, iviewName) {
         ShowDimmer(true);
         try {
 
-            ASB.WebService.CallExecuteScriptAPI(type, tstDataId,btnName,apiInfo, SuccessCallbackExecuteScriptApi, OnException);
+            ASB.WebService.CallExecuteScriptAPI(type, tstDataId, btnName, apiInfo, resTstHtmlLS, SuccessCallbackExecuteScriptApi, OnException);
         }
         catch (exp) {
             actionCallbackFlag = actionCallFlag;
@@ -6679,12 +6751,17 @@ function setIviewNavigationData(paramsString, iviewName) {
         }
     }
 
-    function SuccessCallbackExecuteScriptApi(result, eventArgs) {
+function SuccessCallbackExecuteScriptApi(result, eventArgs) {
+    if (result != "" && result.split("♠*♠").length > 1) {
+        tstDataId = result.split("♠*♠")[0];
+        result = result.split("♠*♠")[1];
+    }
         actionCallbackFlag = actionCallFlag;
         $("#icons,#btnSaveTst,.BottomToolbarBar a,.wizardNextPrevWrapper").css({ "pointer-events": "auto" });
         if (CheckSessionTimeout(result)) {
             return;
         }
+        resTstHtmlLS = "";
         let resJson=JSON.parse(result);
         if(typeof resJson.result[0].error!="undefined")
         {
@@ -6717,11 +6794,14 @@ function ReadonlyformPeg() {
     $(".toolbarRightMenu").find('a').attr('disabled', true);
     $(".toolbarRightMenu").find('button').attr('disabled', true);
     $(".toolbarRightMenu").find('button').addClass('disabled');
+    $(".toolbarRightMenu").find('button').css({ "pointer-events": "none" });
     $(".toolbarRightMenu").find('a').attr('tabindex', -1);
     $(".toolbarRightMenu").find('button').attr('tabindex', -1);
+    $(".toolbarRightMenu").find('a').css({ "pointer-events": "none" });
     $(".tstructBottomLeftButton").find('.lnkPrev,.lnkNext,a').addClass('disabled');
     $(".tstructBottomLeftButton").find('.lnkPrev,.lnkNext,a').attr('disabled', true);  
     $(".tstructBottomLeftButton").find('.lnkPrev,.lnkNext,a').attr('tabindex', -1);
+    $(".tstructBottomLeftButton").find('.lnkPrev,.lnkNext,a').css({ "pointer-events": "none" });
     $(".dz-hidden-input").prop("disabled", true);
     $(".fldImageCamera").addClass('disabled');
     $(".fileuploadmore").prop("disabled", true);
@@ -6932,4 +7012,28 @@ function AxProcessObjCallAction(strResult) {
     } catch (ex) {
         return false;
     }
+}
+
+function GetTstHtmlLsKey(_tId) {
+    var _TstlocalStorage = "";
+    try {
+        if (typeof (Storage) !== "undefined") {
+            let appSUrl = top.window.location.href.toLowerCase().substring("0", top.window.location.href.indexOf("/aspx/"));
+            let _thisKey = callParentNew("getKeysWithPrefix(tstHtml♠" + _tId + "-" + appSUrl + "♥)", "function");
+            _TstlocalStorage = localStorage[_thisKey[0]];
+            if (typeof _TstlocalStorage == "undefined") {
+                _TstlocalStorage = "";
+            }
+        }
+    } catch (e) {
+    }
+    let _isDummyLoad = "";
+    if (_TstlocalStorage != "") {
+        let _thisTst = _TstlocalStorage.split('♠♠♠')[1];
+        let _thisTstId = _thisTst.split('*$*')[11];
+        _isDummyLoad = "&dummyload=true♠" + _thisTstId;
+    } else {
+        _isDummyLoad = "&dummyload=false♠";
+    }
+    return _isDummyLoad;
 }

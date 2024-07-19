@@ -58,7 +58,7 @@
     <%--custom alerts end--%>
     <script src="../Js/AxManager.min.js?v=2" type="text/javascript"></script>
     <script src="../Js/gen.min.js?v=14" type="text/javascript"></script>
-    <script src="../Js/common.min.js?v=141" type="text/javascript"></script>
+    <script src="../Js/common.min.js?v=144" type="text/javascript"></script>
 
 </head>
 <body dir='<%=direction%>'>

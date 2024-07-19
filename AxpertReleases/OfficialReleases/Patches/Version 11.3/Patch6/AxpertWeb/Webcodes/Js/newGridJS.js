@@ -303,7 +303,7 @@ function createInpLabel(id, text, valueOfField, typeOfField, isFieldVisible, hid
         labelHtml += '<a href="javascript:void(0)" style="cursor :pointer" class="Grdlnk axpBtn rejectEdit" id="' + id + '" name="' + id + '">' + valueOfField + '</a>';
         labelHtml += "<textarea tabindex='-1' style='display:none;' class='form-control w-100 border bg-transparent overflow-hidden resize-none  labelInp " + disableClass + "' maxlength='" + maxlength + "'  data-style='" + inlineStyle + "' data-type='" + typeOfField + "' data-hidden='" + hiddenData + "' id='txt_axpBtn_" + id + "'  readonly>" + valueOfField + "</textarea>";
     } else if (typeOfField == 'axpBtnCustom') {
-        labelHtml += '<a href="javascript:void(0)" style="cursor :pointer" class="Grdlnk axpBtnCustom rejectEdit" id="' + id + '" name="' + id + '" ' + $("#" + id).attr("onclick") + '>' + valueOfField + '</a>';
+        labelHtml += '<a href="javascript:void(0)" style="cursor :pointer" class="Grdlnk axpBtnCustom rejectEdit" id="' + id + '" name="' + id + '" onclick="' + $("#" + id).attr("onclick") + '">' + valueOfField + '</a>';
         labelHtml += "<textarea tabindex='-1' style='display:none;' class='form-control w-100 border bg-transparent overflow-hidden resize-none  labelInp " + disableClass + "' maxlength='" + maxlength + "'  data-style='" + inlineStyle + "' data-type='" + typeOfField + "' data-hidden='" + hiddenData + "' id='txt_axpBtnCustom_" + id + "'  readonly>" + valueOfField + "</textarea>";
     } else if (typeOfField == 'select') {
         var valOfTextField = "";
@@ -2400,7 +2400,10 @@ function checkTableBodyWidths(dcNo) {
                 width = "40px";
             else {
                 /*width = $("#gridHd" + dcNo + " thead th:not([id*=uniqueEditDeleteAct],[id*=uniqueThHead]):visible").eq(index).css("width");*/
-                width = $("#gridHd" + dcNo + " thead th").eq(index).css("width");
+                if ($("#gridHd" + dcNo + " thead").length == 1)
+                    width = $("#gridHd" + dcNo + " thead th").eq(index).css("width");
+                else
+                    width = $("#gridHd" + dcNo + " thead:eq(1) th").eq(index).css("width");
                 if (typeof width != "undefined")
                     width = width + "px";
             }
@@ -3257,7 +3260,11 @@ function inlineGridEdit(dcNo, td, col, row, ent) {
                     var isFieldDisable = presentLabel.hasClass('flddis') == false ? (presentLabel.attr("disabled") == "disabled" ? true : false) : presentLabel.hasClass('flddis');
                     var fieldClasses = presentLabel.attr('class');
 
-                    var _thWidth = typeof $("#gridHd" + dcNo + " thead th:eq(" + index + ")").css("width") != "undefined" ? "width:" + $("#gridHd" + dcNo + " thead th:eq(" + index + ")").css("width") + "" : "";
+                    var _thWidth = "";
+                    if ($("#gridHd" + dcNo + " thead").length == 1)
+                        _thWidth = typeof $("#gridHd" + dcNo + " thead th:eq(" + index + ")").css("width") != "undefined" ? "width:" + $("#gridHd" + dcNo + " thead th:eq(" + index + ")").css("width") + "" : "";
+                    else
+                        _thWidth = typeof $("#gridHd" + dcNo + " thead:eq(1) th:eq(" + index + ")").css("width") != "undefined" ? "width:" + $("#gridHd" + dcNo + " thead:eq(1) th:eq(" + index + ")").css("width") + "" : "";
 
                     //for taking grid field caption using field id
                     var fName = GetFieldsName(idOFtheField);
@@ -3567,9 +3574,9 @@ function inlineGridEdit(dcNo, td, col, row, ent) {
             }
 
             hideacoptions();
-            try {
-                readOnlyFldddDivGrid(dcNo, GetClientRowNo(row + 1, dcNo))
-            } catch (ex) { }
+            //try {
+            //    readOnlyFldddDivGrid(dcNo, GetClientRowNo(row + 1, dcNo))
+            //} catch (ex) { }
             try {
                 AxAfterInlineEditRow(dcNo, GetClientRowNo(row + 1, dcNo));
             } catch (e) {

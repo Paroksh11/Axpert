@@ -75,6 +75,7 @@ public partial class Tstruct : System.Web.UI.Page
     public Custom customObj = null;
     string actstr = string.Empty;
     string actstrType = "open";
+    string formFoadData = "";
     string loadResult = string.Empty;
     string strGlobalVar = string.Empty;
     string fileName = string.Empty;
@@ -187,7 +188,12 @@ public partial class Tstruct : System.Web.UI.Page
     public string AxtstAttachFSDB = "false";
     public string AxHideSelectAll = "false";
     public string FreezeGridCols = string.Empty;
+    public string AxMandatoryWfComments = "true";
+    public string TstPopupCloseOnSubmit = "true";
     JObject StructConfigs = new JObject();
+    public string isServerSide = "true";
+    public string isServerDummyPost = "false";
+    public string isServerDummyRec = "";
     protected override void InitializeCulture()
     {
         if (Session["language"] != null)
@@ -211,6 +217,234 @@ public partial class Tstruct : System.Web.UI.Page
     /// <param name="e"></param>
     protected void Page_Load(object sender, EventArgs e)
     {
+        if (Request.QueryString["dummyload"] != null && (Request.QueryString["dummyload"].ToString() == "true" || Request.QueryString["dummyload"].ToString().StartsWith("true♠")) && Request.QueryString["theMode"] == null)
+        {
+            isServerSide = "false";
+            isServerDummyRec = "&dummyload=" + Request.QueryString["dummyload"].ToString();
+            isServerDummyPost = "true";
+            string _thistrId = Request.QueryString["transid"].ToString();
+            if (Request.QueryString["dummyload"].ToString().StartsWith("true♠"))
+            {
+                string _tstKey = Request.QueryString["dummyload"].ToString();
+                string _thisKey = _tstKey.Split('♠')[1];
+                if (Request.QueryString["recordid"] != null && Request.QueryString["recordid"].ToString() != "")
+                {
+                    string isDupTab = "";
+                    if (Request.QueryString["isDupTab"] != null)
+                        isDupTab = Request.QueryString["isDupTab"].ToString();
+                    string _thisRecId = Request.QueryString["recordid"].ToString();
+                    string _strQuery = GetQueryStringList();
+                    hdnTstLoadDummy.Value = GetLoadDataValues(_thisKey, _thisRecId, _strQuery, isDupTab, _thistrId, "true");
+                    if (Session["project"] != null)
+                        hdnTstSInfo.Value = Session["project"].ToString() + "~" + Session["user"].ToString() + "~" + _thistrId + "~" + Session["nsessionid"].ToString() + "~" + Session["AxRole"].ToString() + "~" + Session["AxTrace"].ToString();
+                    ScriptManager.RegisterStartupScript(this, this.GetType(), "dummyload", "tstDummyLoad(true);", true);
+                    return;
+                }
+                else
+                {
+
+                    FDR fdrObj = (FDR)HttpContext.Current.Session["FDR"];
+                    string _flKey = fdrObj.MakeKeyName(Constants.FORMLOADRES, _thistrId);
+                    string _thisFlSubKey = _thistrId + "♦" + DateTime.Now.ToString("dd/MM/yyyy");
+                    string result = fdrObj.HashGetKey(_flKey, _thisFlSubKey);
+                    if (result == "true")
+                    {
+                        string _thsHtml = GetLsTstHtml(_thistrId, _thisFlSubKey);
+                        if (_thsHtml.Contains("*loaddata*"))
+                        {
+                            FDW fdwObjNew = FDW.Instance;
+                            fdwObjNew.HashDeletekey(_flKey, _thisFlSubKey);
+                            isServerSide = "true";
+                            isServerDummyPost = "false";
+                        }
+                        else
+                        {
+                            string isDupTab = "";
+                            if (Request.QueryString["isDupTab"] != null)
+                                isDupTab = Request.QueryString["isDupTab"].ToString();
+                            string _strQuery = GetQueryStringList();
+                            hdnTstLoadDummy.Value = GetFormLoadValues(_thisKey, _strQuery, "false", "false", isDupTab, _thistrId, "true");
+                            if (Session["project"] != null)
+                                hdnTstSInfo.Value = Session["project"].ToString() + "~" + Session["user"].ToString() + "~" + _thistrId + "~" + Session["nsessionid"].ToString() + "~" + Session["AxRole"].ToString() + "~" + Session["AxTrace"].ToString();
+                            ScriptManager.RegisterStartupScript(this, this.GetType(), "dummyload", "tstDummyLoad(true);", true);
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        string isDupTab = "";
+                        if (Request.QueryString["isDupTab"] != null)
+                            isDupTab = Request.QueryString["isDupTab"].ToString();
+                        string _strQuery = GetQueryStringList();
+                        hdnTstLoadDummy.Value = GetFormLoadValues(_thisKey, _strQuery, "false", "false", isDupTab, _thistrId, "true");
+                        if (Session["project"] != null)
+                            hdnTstSInfo.Value = Session["project"].ToString() + "~" + Session["user"].ToString() + "~" + _thistrId + "~" + Session["nsessionid"].ToString() + "~" + Session["AxRole"].ToString() + "~" + Session["AxTrace"].ToString();
+                        ScriptManager.RegisterStartupScript(this, this.GetType(), "dummyload", "tstDummyLoad(true);", true);
+                        return;
+                    }
+                }
+            }
+            else
+            {
+                if (Session["project"] != null)
+                    hdnTstSInfo.Value = Session["project"].ToString() + "~" + Session["user"].ToString() + "~" + _thistrId + "~" + Session["nsessionid"].ToString() + "~" + Session["AxRole"].ToString() + "~" + Session["AxTrace"].ToString();
+                ScriptManager.RegisterStartupScript(this, this.GetType(), "dummyload", "tstDummyLoad(false);", true);
+                return;
+            }
+        }
+        else if (Request.QueryString["dummyload"] != null && (Request.QueryString["dummyload"].ToString() == "false" || Request.QueryString["dummyload"].ToString().StartsWith("false♠")) && Request.QueryString["theMode"] == null)
+        {
+            isServerDummyRec = "&dummyload=" + Request.QueryString["dummyload"].ToString();
+            string _thisTrId = Request.QueryString["transid"].ToString();
+
+            string _thisdttKey = "";
+            bool forceCall = false;
+            if (Request.QueryString["dummyload"].ToString().StartsWith("false♠"))
+            {
+                string _tstKey = Request.QueryString["dummyload"].ToString();
+                if (_tstKey.Split('♠')[1] == "forcecall")
+                    forceCall = true;
+                else
+                    _thisdttKey = _tstKey.Split('♠')[1];
+            }
+
+            string isDupTab = "";
+            if (Request.QueryString["isDupTab"] != null)
+                isDupTab = Request.QueryString["isDupTab"].ToString();
+
+            string _thisRecId = "";
+            if (Request.QueryString["recordid"] != null)
+                _thisRecId = Request.QueryString["recordid"].ToString();
+
+            string tstglobaVars = GetTstHtmllsGlobalVars(_thisTrId);
+            if (tstglobaVars != "")
+            {
+                FDR fdrObj = (FDR)HttpContext.Current.Session["FDR"];
+                string _flKey = fdrObj.MakeKeyName(Constants.FORMLOADRES, _thisTrId);
+                string _thisFlSubKey = _thisTrId + "♦" + DateTime.Now.ToString("dd/MM/yyyy");
+                if (forceCall)
+                {
+                    FDW fdwObjNew = FDW.Instance;
+                    fdwObjNew.HashDeletekey(_flKey, _thisFlSubKey);
+                    isServerSide = "true";
+                    isServerDummyPost = "false";
+                }
+                else
+                {
+                    string result = fdrObj.HashGetKey(_flKey, _thisFlSubKey);
+                    if (result == "true")
+                    {
+                        string _thsHtml = GetLsTstHtml(_thisTrId, _thisFlSubKey);
+                        if (_thsHtml != "" && _thsHtml.Contains("*loaddata*"))
+                        {
+                            FDW fdwObjNew = FDW.Instance;
+                            fdwObjNew.HashDeletekey(_flKey, _thisFlSubKey);
+                            isServerSide = "true";
+                            isServerDummyPost = "false";
+                        }
+                        else if (_thsHtml != "")
+                        {
+                            string qryStrVars = GetQueryStringList();
+                            if (_thisRecId != "")
+                                hdnTstLoadDummy.Value = GetLoadDataValues(_thisdttKey, _thisRecId, qryStrVars, isDupTab, _thisTrId, "true");
+                            else
+                                hdnTstLoadDummy.Value = GetFormLoadValues(_thisdttKey, qryStrVars, "false", "false", isDupTab, _thisTrId, "true");
+
+                            isServerSide = "false";
+                            isServerDummyPost = "true";
+                            hdntstHtmlDummy.Value = _thsHtml;
+                            if (Session["project"] != null)
+                                hdnTstSInfo.Value = Session["project"].ToString() + "~" + Session["user"].ToString() + "~" + _thisTrId + "~" + Session["nsessionid"].ToString() + "~" + Session["AxRole"].ToString() + "~" + Session["AxTrace"].ToString();
+                            ScriptManager.RegisterStartupScript(this, this.GetType(), "dummyload", "tstHtmlDummyLoad('" + _thisTrId + "');", true);
+                            return;
+                        }
+                    }
+                    else if (result == "false")
+                    {
+                        string _thsHtml = GetLsTstHtml(_thisTrId, _thisFlSubKey);
+                        if (_thsHtml != "")
+                        {
+                            if (_thisRecId != "")
+                            {
+                                string qryStrVars = GetQueryStringList();
+                                hdnTstLoadDummy.Value = GetLoadDataValues(_thisdttKey, _thisRecId, qryStrVars, isDupTab, _thisTrId, "true");
+                            }
+
+                            isServerSide = "false";
+                            isServerDummyPost = "true";
+                            hdntstHtmlDummy.Value = _thsHtml;
+                            if (Session["project"] != null)
+                                hdnTstSInfo.Value = Session["project"].ToString() + "~" + Session["user"].ToString() + "~" + _thisTrId + "~" + Session["nsessionid"].ToString() + "~" + Session["AxRole"].ToString() + "~" + Session["AxTrace"].ToString();
+                            ScriptManager.RegisterStartupScript(this, this.GetType(), "dummyload", "tstHtmlDummyLoad('" + _thisTrId + "');", true);
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        string tstglobaVarKey = CreatetstGlbVarKey(tstglobaVars);
+                        string strDopTime = "";
+                        try
+                        {
+                            string fldKeyDop = Constants.REDISTSTRUCTDOPTIME;
+                            string schemaName = string.Empty;
+                            if (HttpContext.Current.Session["dbuser"] != null)
+                                schemaName = HttpContext.Current.Session["dbuser"].ToString();
+                            FDR fObj = (FDR)HttpContext.Current.Session["FDR"];
+                            if (fObj != null)
+                                strDopTime = fObj.StringFromRedis(util.GetRedisServerkey(fldKeyDop, _thisTrId, tstglobaVarKey), schemaName);
+                        }
+                        catch (Exception ex) { }
+
+                        if (strDopTime != "")
+                            tstglobaVarKey = strDopTime;
+                        else
+                            tstglobaVarKey += "♦" + DateTime.Now.ToString("dd/MM/yyyy");
+                        if (tstglobaVars != "novars")
+                        {
+                            string _thsHtml = GetLsTstHtml(_thisTrId, tstglobaVarKey);
+                            if (_thsHtml != "")
+                            {
+                                if (_thisRecId != "")
+                                {
+                                    string qryStrVars = GetQueryStringList();
+                                    hdnTstLoadDummy.Value = GetLoadDataValues(_thisdttKey, _thisRecId, qryStrVars, isDupTab, _thisTrId, "true");
+                                }
+
+                                isServerSide = "false";
+                                isServerDummyPost = "true";
+                                hdntstHtmlDummy.Value = _thsHtml;
+                                if (Session["project"] != null)
+                                    hdnTstSInfo.Value = Session["project"].ToString() + "~" + Session["user"].ToString() + "~" + _thisTrId + "~" + Session["nsessionid"].ToString() + "~" + Session["AxRole"].ToString() + "~" + Session["AxTrace"].ToString();
+                                ScriptManager.RegisterStartupScript(this, this.GetType(), "dummyload", "tstHtmlDummyLoad('" + _thisTrId + "');", true);
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            string _thsHtml = GetLsTstHtml(_thisTrId, tstglobaVarKey);
+                            if (_thsHtml != "")
+                            {
+                                if (_thisRecId != "")
+                                {
+                                    string qryStrVars = GetQueryStringList();
+                                    hdnTstLoadDummy.Value = GetLoadDataValues(_thisdttKey, _thisRecId, qryStrVars, isDupTab, _thisTrId, "true");
+                                }
+
+                                isServerSide = "false";
+                                isServerDummyPost = "true";
+                                hdntstHtmlDummy.Value = _thsHtml;
+                                if (Session["project"] != null)
+                                    hdnTstSInfo.Value = Session["project"].ToString() + "~" + Session["user"].ToString() + "~" + _thisTrId + "~" + Session["nsessionid"].ToString() + "~" + Session["AxRole"].ToString() + "~" + Session["AxTrace"].ToString();
+                                ScriptManager.RegisterStartupScript(this, this.GetType(), "dummyload", "tstHtmlDummyLoad('" + _thisTrId + "');", true);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
         if (!IsPostBack && Request.QueryString["hdnbElapsTime"] != null)
         {
             string browserElapsTime = Request.QueryString["hdnbElapsTime"] != null ? Request.QueryString["hdnbElapsTime"] : "0";
@@ -323,11 +557,28 @@ public partial class Tstruct : System.Web.UI.Page
         }
         catch (Exception ex)
         { }
-        Page.ClientScript.RegisterStartupScript(GetType(), "set Grid DC Pop Up Visible On Save", "<script>var dcGridOnSave = '" + dcGridOnSave.ToString() + "';var theModeDesign = '" + theModeDesign.ToString().ToLower() + "';var AxpIsAutoSplit = '" + AxpIsAutoSplit.ToLower() + "';var AxpIviewDisableSplit = '" + AxpIviewDisableSplit.ToLower() + "';var AxpFileUploadlmt='" + AxpFileUploadlmt.ToString() + "';var AxpCameraOption ='" + AxpCameraOption.ToString() + "';var AxpNotFillDepFields='" + AxpNotFillDepFields.ToString() + "';var AxpFillDepFields='" + AxpFillDepFields.ToString() + "';var AxpFillDepEnabled='" + AxpFillDepEnabled.ToString() + "';var AutosaveDraft='" + AutosaveDraftt.ToLower() + "';var AutosaveDraftTime='" + AutosaveDraftTime.ToLower() + "';var UploadFileTypes='" + UploadFileTypess.ToLower() + "';var UploadFileTypesVal='" + UploadFileTypesVal.ToLower() + "';var savedraftKeyCreatedtime='" + savedraftKeyCreatedtime.ToLower() + "';var IsObjCustomHtml='" + strObj.IsObjCustomHtml + "';var gridScrollBar='" + gridScrollBar.ToLower() + "';var gridFixedHeader='" + gridFixedHeader.ToLower() + "';var AxpGridFormCols='" + AxpGridFormCols.ToString() + "';var axpShowKeyboard='" + axpShowKeyboard + "';var breadCrumbStr='" + menuBreadCrumb.Replace("'", "\\'") + "';var mobileCardLayout='" + mobileCardLayout + "';var openFastReportInNewWindow = " + openFastReportInNewWindow.ToString().ToLower() + ";var fillGridDataQueryOrder=" + fillGridDataQueryOrder.ToString().ToLower() + ";var fillGridDataShowAll=" + fillGridDataShowAll.ToString().ToLower() + ";var googleMapsZoom = " + googleMapsZoom.ToString() + ";var AxMemVarClient=" + AxMemVarClient + ";var gloAxDecimal=" + axDecimal + ";var DropdownSStartsWith='" + DropdownSearchStartsWith.ToString() + "';var AxpForceValidation='" + AxpForceValidation.ToString() + "';var isPegEditMode='" + isPegEdit + "';var AxFillAutoSelectFlds='" + AxFillAutoSelectFlds + "';var tstConfigurations = " + StructConfigs.ToString(Newtonsoft.Json.Formatting.None) + ";var AxEnableCheckbox='" + AxEnableCheckbox + "';var AxCustomTranSaveSuccess='" + AxCustomTranSaveSuccess + "';var AxtstAttachFSDB='" + AxtstAttachFSDB + "';var AxHideSelectAll='" + AxHideSelectAll + "';var gridFreezeColName='" + FreezeGridCols + "';</script>");
+        //Page.ClientScript.RegisterStartupScript(GetType(), "set Grid DC Pop Up Visible On Save", "<script>var dcGridOnSave = '" + dcGridOnSave.ToString() + "';var theModeDesign = '" + theModeDesign.ToString().ToLower() + "';var AxpIsAutoSplit = '" + AxpIsAutoSplit.ToLower() + "';var AxpIviewDisableSplit = '" + AxpIviewDisableSplit.ToLower() + "';var AxpFileUploadlmt='" + AxpFileUploadlmt.ToString() + "';var AxpCameraOption ='" + AxpCameraOption.ToString() + "';var AxpNotFillDepFields='" + AxpNotFillDepFields.ToString() + "';var AxpFillDepFields='" + AxpFillDepFields.ToString() + "';var AxpFillDepEnabled='" + AxpFillDepEnabled.ToString() + "';var AutosaveDraft='" + AutosaveDraftt.ToLower() + "';var AutosaveDraftTime='" + AutosaveDraftTime.ToLower() + "';var UploadFileTypes='" + UploadFileTypess.ToLower() + "';var UploadFileTypesVal='" + UploadFileTypesVal.ToLower() + "';var savedraftKeyCreatedtime='" + savedraftKeyCreatedtime.ToLower() + "';var IsObjCustomHtml='" + strObj.IsObjCustomHtml + "';var gridScrollBar='" + gridScrollBar.ToLower() + "';var gridFixedHeader='" + gridFixedHeader.ToLower() + "';var AxpGridFormCols='" + AxpGridFormCols.ToString() + "';var axpShowKeyboard='" + axpShowKeyboard + "';var breadCrumbStr='" + menuBreadCrumb.Replace("'", "\\'") + "';var mobileCardLayout='" + mobileCardLayout + "';var openFastReportInNewWindow = " + openFastReportInNewWindow.ToString().ToLower() + ";var fillGridDataQueryOrder=" + fillGridDataQueryOrder.ToString().ToLower() + ";var fillGridDataShowAll=" + fillGridDataShowAll.ToString().ToLower() + ";var googleMapsZoom = " + googleMapsZoom.ToString() + ";var AxMemVarClient=" + AxMemVarClient + ";var gloAxDecimal=" + axDecimal + ";var DropdownSStartsWith='" + DropdownSearchStartsWith.ToString() + "';var AxpForceValidation='" + AxpForceValidation.ToString() + "';var isPegEditMode='" + isPegEdit + "';var AxFillAutoSelectFlds='" + AxFillAutoSelectFlds + "';var tstConfigurations = " + StructConfigs.ToString(Newtonsoft.Json.Formatting.None) + ";var AxEnableCheckbox='" + AxEnableCheckbox + "';var AxCustomTranSaveSuccess='" + AxCustomTranSaveSuccess + "';var AxtstAttachFSDB='" + AxtstAttachFSDB + "';var AxHideSelectAll='" + AxHideSelectAll + "';var gridFreezeColName='" + FreezeGridCols + "';var AxMandatoryWfComments='" + AxMandatoryWfComments + "';var TstPopupCloseOnSubmit='" + TstPopupCloseOnSubmit + "';</script>");
+        tstScript.Append("<script>var dcGridOnSave = '" + dcGridOnSave.ToString() + "';var theModeDesign = '" + theModeDesign.ToString().ToLower() + "';var AxpIsAutoSplit = '" + AxpIsAutoSplit.ToLower() + "';var AxpIviewDisableSplit = '" + AxpIviewDisableSplit.ToLower() + "';var AxpFileUploadlmt='" + AxpFileUploadlmt.ToString() + "';var AxpCameraOption ='" + AxpCameraOption.ToString() + "';var AxpNotFillDepFields='" + AxpNotFillDepFields.ToString() + "';var AxpFillDepFields='" + AxpFillDepFields.ToString() + "';var AxpFillDepEnabled='" + AxpFillDepEnabled.ToString() + "';var AutosaveDraft='" + AutosaveDraftt.ToLower() + "';var AutosaveDraftTime='" + AutosaveDraftTime.ToLower() + "';var UploadFileTypes='" + UploadFileTypess.ToLower() + "';var UploadFileTypesVal='" + UploadFileTypesVal.ToLower() + "';var savedraftKeyCreatedtime='" + savedraftKeyCreatedtime.ToLower() + "';var IsObjCustomHtml='" + strObj.IsObjCustomHtml + "';var gridScrollBar='" + gridScrollBar.ToLower() + "';var gridFixedHeader='" + gridFixedHeader.ToLower() + "';var AxpGridFormCols='" + AxpGridFormCols.ToString() + "';var axpShowKeyboard='" + axpShowKeyboard + "';var breadCrumbStr='" + menuBreadCrumb.Replace("'", "\\'") + "';var mobileCardLayout='" + mobileCardLayout + "';var openFastReportInNewWindow = " + openFastReportInNewWindow.ToString().ToLower() + ";var fillGridDataQueryOrder=" + fillGridDataQueryOrder.ToString().ToLower() + ";var fillGridDataShowAll=" + fillGridDataShowAll.ToString().ToLower() + ";var googleMapsZoom = " + googleMapsZoom.ToString() + ";var AxMemVarClient=" + AxMemVarClient + ";var gloAxDecimal=" + axDecimal + ";var DropdownSStartsWith='" + DropdownSearchStartsWith.ToString() + "';var AxpForceValidation='" + AxpForceValidation.ToString() + "';var isPegEditMode='" + isPegEdit + "';var AxFillAutoSelectFlds='" + AxFillAutoSelectFlds + "';var tstConfigurations = " + StructConfigs.ToString(Newtonsoft.Json.Formatting.None) + ";var AxEnableCheckbox='" + AxEnableCheckbox + "';var AxCustomTranSaveSuccess='" + AxCustomTranSaveSuccess + "';var AxtstAttachFSDB='" + AxtstAttachFSDB + "';var AxHideSelectAll='" + AxHideSelectAll + "';var gridFreezeColName='" + FreezeGridCols + "';var AxMandatoryWfComments='" + AxMandatoryWfComments + "';var TstPopupCloseOnSubmit='" + TstPopupCloseOnSubmit + "';</script>");
         requestProcess_logtime += ObjExecTr.RequestProcessTime("Response");
         serverprocesstime = ObjExecTr.TotalServerElapsTime();
     }
 
+
+    protected string GetQueryStringList()
+    {
+        string res = string.Empty;
+        if (Request.QueryString["dummyload"].ToString().StartsWith("false♠") || Request.QueryString["dummyload"].ToString().StartsWith("true♠"))
+        {
+            foreach (string _key in Request.QueryString)
+            {
+                if (Request.QueryString[_key] != "" && Request.QueryString[_key].ToString().Contains("♠"))
+                    res += _key + "=" + Request.QueryString[_key].Split('♠')[0] + "♠";
+                else
+                    res += _key + "=" + Request.QueryString[_key] + "♠";
+            }
+        }
+        return res;
+    }
     private void UpdateTstAttLoad()
     {
         try
@@ -477,7 +728,10 @@ public partial class Tstruct : System.Web.UI.Page
         //Design json and Config string will be retrieved from direct db instead of node js
         Boolean designMode = false;
         if (HttpContext.Current.Session[transId + "IsDesignMode"] != null && HttpContext.Current.Session[transId + "IsDesignMode"].ToString() != string.Empty)
+        {
             designMode = Convert.ToBoolean(HttpContext.Current.Session[transId + "IsDesignMode"]);
+            ClearCacheDesignKeys(transId);
+        }
         GetDesignModeData();
         //GetStructDesignAndConfig(); //Design & Config data merged into structure XML(service call), so this direct db call not required for run mode. 
         CacheManager cacheMgr = GetCacheObject();
@@ -791,8 +1045,13 @@ public partial class Tstruct : System.Web.UI.Page
                 {
                     AutosaveDraftt = AutosaveDraft[0].autosavedraft;
                     AutosaveDraftTime = AutosaveDraft[0].AutosaveDraftTime == "" ? "120000" : AutosaveDraft[0].AutosaveDraftTime;
-
+                    Session["tstautosaveDraftt"] = AutosaveDraftt;
                 }
+                else if (Session["tstautosaveDraftt"] != null)
+                {
+                    Session.Remove("tstautosaveDraftt");
+                }
+
                 var UploadFileTypes = axpConfigStr.AsEnumerable().Where(x => x.Field<string>("PROPS").ToLower() == "upload file types")
                    .Select(x => new { autosavedraft = x.Field<string>("PROPSVAL"), UploadFileTypesVal = x.Field<string>("PROPVALUE2") }).ToList();
                 if (UploadFileTypes.Count > 0)
@@ -964,6 +1223,14 @@ public partial class Tstruct : System.Web.UI.Page
                 if (hideselectall.Count > 0)
                     AxHideSelectAll = hideselectall[0].val + "♦" + hideselectall[0].sfld;
 
+                var workflowComments = axpConfigStr.AsEnumerable().Where(x => x.Field<string>("PROPS").ToLower() == "mandatory workflow comments").Select(x => new { val = x.Field<string>("PROPSVAL"), sfld = x.Field<string>("SFIELD") }).ToList();
+                if (workflowComments.Count > 0)
+                    AxMandatoryWfComments = workflowComments[0].val;
+
+                var TstPopupClose = axpConfigStr.AsEnumerable().Where(x => x.Field<string>("PROPS").ToLower() == "tstructs popup close on submit").Select(x => new { val = x.Field<string>("PROPSVAL"), sfld = x.Field<string>("SFIELD") }).ToList();
+                if (TstPopupClose.Count > 0)
+                    TstPopupCloseOnSubmit = TstPopupClose[0].val;
+
                 try
                 {
                     DataSet ds = new DataSet();
@@ -1089,13 +1356,20 @@ public partial class Tstruct : System.Web.UI.Page
         }
         if ((Request.QueryString["act"] != null))
         {
-            actstr = " act='" + Request.QueryString["act"].ToString() + "'";
-            actstrType = Request.QueryString["act"].ToString();
+            actstr = " act='" + Request.QueryString["act"].ToString().ToLower() + "'";
+            actstrType = Request.QueryString["act"].ToString().ToLower();
         }
         if (actstr == string.Empty && (Request.QueryString["hltype"] != null))
         {
-            actstr = " act='" + Request.QueryString["hltype"].ToString() + "'";
-            actstrType = Request.QueryString["hltype"].ToString();
+            actstr = " act='" + Request.QueryString["hltype"].ToString().ToLower() + "'";
+            actstrType = Request.QueryString["hltype"].ToString().ToLower();
+        }
+
+        if ((Request.QueryString["loadformdata"] != null))
+        {
+            formFoadData = Request.QueryString["loadformdata"].ToString();
+            if (formFoadData != string.Empty)
+                formFoadData = " loadformdata='" + formFoadData + "' ";
         }
 
         if (Request.QueryString["AxSplit"] != null)
@@ -1283,7 +1557,7 @@ public partial class Tstruct : System.Web.UI.Page
         if (strObj.flds.Count > 0)
         {
             tstJsArrays.Append("var FNames = new Array();var FldsFrmLst = new Array();var ExprPosArray= new Array();var FLowerNames = new Array();var FToolTip = new Array();var FDataType = new Array();var FTableTypeVal = new Array();");
-            tstJsArrays.Append("var FMaxLength = new Array();var FDecimal = new Array();var FDupDecimals=new Array(); var FldValidateExpr = new Array();var FCaption = new Array();var HTMLFldNames = new Array();var FCustDecimal=new Array();");
+            tstJsArrays.Append("var FMaxLength = new Array();var FDecimal = new Array();var FDupDecimals=new Array(); var FldValidateExpr = new Array();var FCaption = new Array();var HTMLFldNames = new Array();var FCustDecimal=new Array();var FNumDisplayTot=new Array();");
             tstJsArrays.Append("var FldFrameNo = new Array();var FldDcRange = new Array();var FProps = new Array(); var ExpFldNames = new Array();");
             tstJsArrays.Append("var Expressions = new Array();var Formcontrols = new Array();var tstActionName=new Array();var actParRefresh=new Array();var actSaveTask=new Array();var PatternNames = new Array();var Patterns = new Array();var SFormControls=new Array();var SFCFldNames=new Array();var SFCApply=new Array();var SFCActionName=new Array();var actScriptTask=new Array();var actScriptCancel=new Array();");
             tstJsArrays.Append("var FMoe = new Array();var FldDependents = new Array();var FldParents = new Array();var ClientFldParents = new Array();var FldAutoSelect = new Array();var FldIsSql = new Array();var FldAlignType = new Array();var FldIsAPI = new Array();");
@@ -1879,6 +2153,12 @@ public partial class Tstruct : System.Web.UI.Page
     /// <param name="strObj"></param>
     private void ParseStructure(TStructDef strObj, CacheManager cacheMgr)
     {
+        if (Session["Build"] != null && Session["Build"].ToString() == "T")
+        {
+            string _btnFunction = " onclick=\"javascript:clearCacheReloadForm('" + transId + "');\" ";
+            string _title = "Clear Cache and Reload Form";
+            modernToolbarBtnHtml.Append("<a id='btnClearCacheReloadForm' " + _btnFunction.ToString() + " title='" + _title + "' href=\"javascript:void(0)\" class=\"btn btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm me-2\"><span class=\"material-icons material-icons-style\">refresh</span></a>");
+        }
         if (!strObj.IsObjCustomHtml || theModeDesign)
         {
             if (!strObj.hideToolBar)
@@ -4103,7 +4383,7 @@ public partial class Tstruct : System.Web.UI.Page
         for (int qs = 0; qs <= paramNames.Count - 1; qs++)
         {
             paramValues[qs] = CheckSpecialChars(paramValues[qs].ToString());
-            if (paramNames[qs].ToString().ToLower() != "transid" && paramNames[qs].ToString().ToLower() != "themode" && paramNames[qs].ToString().ToLower() != "hltype" && paramNames[qs].ToString().ToLower() != "torecid" && paramNames[qs].ToString().ToLower() != "layout" && paramNames[qs].ToString().ToLower() != "act")
+            if (paramNames[qs].ToString().ToLower() != "transid" && paramNames[qs].ToString().ToLower() != "themode" && paramNames[qs].ToString().ToLower() != "hltype" && paramNames[qs].ToString().ToLower() != "torecid" && paramNames[qs].ToString().ToLower() != "layout" && paramNames[qs].ToString().ToLower() != "act" && paramNames[qs].ToString().ToLower() != "loadformdata")
             {
                 paramXml.Append("<" + paramNames[qs].ToString() + ">" + paramValues[qs].ToString() + "</" + paramNames[qs].ToString() + ">");
             }
@@ -4129,6 +4409,7 @@ public partial class Tstruct : System.Web.UI.Page
         UpdateParamsFrmQueryStr();
         string dvRefreshFromLoadModern = "false";
         bool wsPerfFormLoad = strObj.wsPerfFormLoadCall;
+        bool isDoFormload = false;
         if (Session["DraftName"] != null)
         {
             isDraft = true;
@@ -4220,6 +4501,10 @@ public partial class Tstruct : System.Web.UI.Page
                 //logobj.CreateLog("LoadData-" + stTime.Subtract(edTime).TotalMilliseconds.ToString(), sid, "LogTimeTaken", "");               
                 Page.Title = "Load Tstruct";
                 Session["axp_lockonrecid"] = transId + "~" + rid;
+
+                dynamic flGblExistingKeys = util.GetFormLoadKey(transId, strObj.FormLoadGlobalVarNode);
+                util.SetFormLoadData("true", transId, flGblExistingKeys);
+                hdnisHtmlLsLoad.Value = "*loaddata*";
             }
             else
             {
@@ -4244,7 +4529,7 @@ public partial class Tstruct : System.Web.UI.Page
                     isTstParamLoad = "true";
                 else if (queryString != "" && actstrType.ToLower() == "open")
                     isTstParamLoad = "false";
-                loadXml = loadXml + "<root" + actstr + " axpapp='" + proj + "' sessionid='" + sid + "' transid='" + transId + "' recordid='" + rid + "' dcname='" + visibleDCs + "' trace='" + errorLog + "' appsessionkey='" + Session["AppSessionKey"].ToString() + "' username='" + Session["username"].ToString() + "'>";
+                loadXml = loadXml + "<root" + actstr + formFoadData + " axpapp='" + proj + "' sessionid='" + sid + "' transid='" + transId + "' recordid='" + rid + "' dcname='" + visibleDCs + "' trace='" + errorLog + "' appsessionkey='" + Session["AppSessionKey"].ToString() + "' username='" + Session["username"].ToString() + "'>";
                 logobj.CreateLog("    Opening Tstruct.", sid, fileName, "");
                 loadXml += queryString;
                 loadXml += Session["axApps"].ToString() + Application["axProps"].ToString() + Session["axGlobalVars"].ToString() + Session["axUserVars"].ToString();
@@ -4312,6 +4597,10 @@ public partial class Tstruct : System.Web.UI.Page
                             FDW fdwObj = FDW.Instance;
                             fdwObj.SaveInRedisServer(util.GetRedisServerkey(fdKey, transId), strObj, Constants.REDISTSTRUCT, schemaName);
                         }
+                        else if (flKey == "none")
+                        {
+                            util.SetFormLoadData("true", transId, flGblExistingKeys);
+                        }
                     }
                     else if (loadRes != string.Empty)
                     {
@@ -4324,6 +4613,8 @@ public partial class Tstruct : System.Web.UI.Page
                 {
                     try
                     {
+                        util.SetFormLoadData("false", transId, "");
+
                         if (Session["forms_transids"] != null && Session["forms_transids"].ToString() != "")
                         {
                             string[] dbVarformloadList = Session["forms_transids"].ToString().Split(',');
@@ -4344,8 +4635,10 @@ public partial class Tstruct : System.Web.UI.Page
                     Page.Title = "Load TStruct with QS";
                 else
                     Page.Title = "Tstruct";
+                hdnisHtmlLsLoad.Value = "*formload*";
             }
 
+            isDoFormload = true;
             loadRes = loadRes.Trim();
             //loadRes = loadRes.Replace("\\n", "");
             loadRes = loadRes.Replace("\n", "");
@@ -4471,6 +4764,35 @@ public partial class Tstruct : System.Web.UI.Page
 
         tstScript.Append("<script language='javascript' type='text/javascript' >function setDocht(){ }</script>");
         tstScript.Append(loadResult + xHtm.ToString());
+
+        if (isDoFormload)
+        {
+            string ImgVals = "";
+            if (rid != "0")
+                ImgVals = GetImageArraysNew(strDataObj);
+            string tstVarScript = string.Empty;
+            tstVarScript = wsPerfFormLoad.ToString().ToLower() + ";";
+            tstVarScript += strObj.wsPerfEvalExpClient + ";";// strObjwsPerfEvalExpClient + ";";
+            tstVarScript += strDataObj.attachDir;
+
+            string thisResult = key + "*$*" + loadRes;
+
+            string dcHmtl = GetTabDcHTMLFormLoad(strObj, strDataObj, "0");
+            string wbdrHtml = string.Empty;
+            wbdrHtml = GetTstHtml(transId, strObj, errorLog);
+            string tabDCStatus = string.Join(",", strObj.tabDCStatus.ToArray());
+            string tstCancelled = strObj.tstCancelled;
+
+            string _Thisresult = wbdrHtml + "*$*" + dcHmtl + "*$*" + tstVarScript.ToString() + "*$*" + ImgVals + "*$*" + tabDCStatus + "*$*" + AxDisplayAutoGenVal + "*$*" + tstCancelled;
+            _Thisresult += "*$*" + strObj.ArrFFieldHidden.ToString() + "*$*" + strObj.ArrFFieldReadOnly.ToString() + "*$*" + thisResult;
+
+            hdnTstHtmLs.Value = _Thisresult;
+        }
+        else
+        {
+            hdnTstHtmLs.Value = "";
+        }
+
         logobj.CreateLog("Loading tstruct.aspx completed", sid, fileName, "");
         logobj.CreateLog("End Time : " + DateTime.Now.ToString(), sid, fileName, "");
     }
@@ -4616,7 +4938,7 @@ public partial class Tstruct : System.Web.UI.Page
             }
             else
             {
-                if (Request.QueryString.AllKeys[qn].ToLower() == "axfromhyperlink" || Request.QueryString.AllKeys[qn].ToLower() == "axpop" || Request.QueryString.AllKeys[qn].ToLower() == "axhyptstrefresh" || Request.QueryString.AllKeys[qn].ToLower() == "recpos" || Request.QueryString.AllKeys[qn].ToLower() == "pagetype" || Request.QueryString.AllKeys[qn].ToLower() == "curpage" || Request.QueryString.AllKeys[qn].ToLower() == "dynnavtst" || Request.QueryString.AllKeys[qn].ToLower() == "openeriv" || Request.QueryString.AllKeys[qn].ToLower() == "isduptab" || Request.QueryString.AllKeys[qn].ToLower() == "fromprocess" || Request.QueryString.AllKeys[qn].ToLower() == "ispegedit" || Request.QueryString.AllKeys[qn].ToLower() == "isiv" || Request.QueryString.AllKeys[qn].ToLower() == "axsplit" || Request.QueryString.AllKeys[qn].ToLower() == "hdnbelapstime" || Request.QueryString.AllKeys[qn].ToLower() == "reqproc_logtime" || Request.QueryString.AllKeys[qn].ToLower() == "hltype" || Request.QueryString.AllKeys[qn].ToLower() == "torecid" || Request.QueryString.AllKeys[qn].ToLower() == "act")
+                if (Request.QueryString.AllKeys[qn].ToLower() == "axfromhyperlink" || Request.QueryString.AllKeys[qn].ToLower() == "axpop" || Request.QueryString.AllKeys[qn].ToLower() == "axhyptstrefresh" || Request.QueryString.AllKeys[qn].ToLower() == "recpos" || Request.QueryString.AllKeys[qn].ToLower() == "pagetype" || Request.QueryString.AllKeys[qn].ToLower() == "curpage" || Request.QueryString.AllKeys[qn].ToLower() == "dynnavtst" || Request.QueryString.AllKeys[qn].ToLower() == "openeriv" || Request.QueryString.AllKeys[qn].ToLower() == "isduptab" || Request.QueryString.AllKeys[qn].ToLower() == "fromprocess" || Request.QueryString.AllKeys[qn].ToLower() == "ispegedit" || Request.QueryString.AllKeys[qn].ToLower() == "isiv" || Request.QueryString.AllKeys[qn].ToLower() == "axsplit" || Request.QueryString.AllKeys[qn].ToLower() == "hdnbelapstime" || Request.QueryString.AllKeys[qn].ToLower() == "reqproc_logtime" || Request.QueryString.AllKeys[qn].ToLower() == "hltype" || Request.QueryString.AllKeys[qn].ToLower() == "torecid" || Request.QueryString.AllKeys[qn].ToLower() == "act" || Request.QueryString.AllKeys[qn].ToLower() == "dummyload" || Request.QueryString.AllKeys[qn].ToLower() == "loadformdata")
                     continue;
                 // eliminate Name from querystring            
                 paramNames.Add(Request.QueryString.Keys[qn]);
@@ -5633,7 +5955,7 @@ public partial class Tstruct : System.Web.UI.Page
         return json;
     }
     [WebMethod]
-    public static string GetAutoCompleteData(string tstDataId, string FldName, string FltValue, ArrayList ChangedFields, ArrayList ChangedFieldDbRowNo, ArrayList ChangedFieldValues, ArrayList DeletedDCRows, string pageData, string fastdll, string fldNameAc, string refreshAC, string pickArrow, string parentsFlds, string rfSave, string IsApiFld, string tblSourceParams)
+    public static string GetAutoCompleteData(string tstDataId, string FldName, string FltValue, ArrayList ChangedFields, ArrayList ChangedFieldDbRowNo, ArrayList ChangedFieldValues, ArrayList DeletedDCRows, string pageData, string fastdll, string fldNameAc, string refreshAC, string pickArrow, string parentsFlds, string rfSave, string IsApiFld, string tblSourceParams, string isTstHtmlLs)
     {
         string requestProcess_logtime = string.Empty;
         ExecTrace ObjExecTrace = ExecTrace.Instance;
@@ -5644,7 +5966,7 @@ public partial class Tstruct : System.Web.UI.Page
         try
         {
             ASB.WebService objws = new ASB.WebService();
-            json = objws.GetdllAutoComplete(tstDataId, FldName, FltValue, ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, DeletedDCRows, pageData, fastdll, fldNameAc, refreshAC, pickArrow, parentsFlds, rfSave, IsApiFld, tblSourceParams);
+            json = objws.GetdllAutoComplete(tstDataId, FldName, FltValue, ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, DeletedDCRows, pageData, fastdll, fldNameAc, refreshAC, pickArrow, parentsFlds, rfSave, IsApiFld, tblSourceParams, isTstHtmlLs);
             if (json.IndexOf('♠') > -1)
             {
                 requestProcess_logtime += json.Split('♠')[1];
@@ -5821,28 +6143,34 @@ public partial class Tstruct : System.Web.UI.Page
     }
     public static void ClearCacheDesignKeys(string Transid)
     {
-        FDW fdwObj = FDW.Instance;
-        if (HttpContext.Current.Session["dbuser"] != null)
-            fdwObj.Initialize(HttpContext.Current.Session["dbuser"].ToString());
-        string fdKey = Constants.REDISTSTRUCT;
-        string fdKeyMob = Constants.REDISTSTRUCTMOB;
-        string designKey = Constants.REDISTSTRUCTAXDESIGN;
-        string designCustHtmlKey = Constants.REDISTSTRUCTAXCUSTHTML;
-        //string fdkey1 = Constants.AXPAGETITLE;
-        string schemaName = string.Empty;
-        if (HttpContext.Current.Session["dbuser"] != null)
-            schemaName = HttpContext.Current.Session["dbuser"].ToString();
-        Util.Util utilObj = new Util.Util();
-        //fdwObj.ClearRedisServerDataByKey(utilObj.GetRedisServerkey(fdkey1, Transid), "", false, schemaName);
-        fdwObj.ClearRedisServerDataByKey(utilObj.GetRedisServerkey(fdKey, Transid), "", false, schemaName);
-        fdwObj.ClearRedisServerDataByKey(utilObj.GetRedisServerkey(fdKeyMob, Transid), "", false, schemaName);
-        fdwObj.ClearRedisServerDataByKey(utilObj.GetRedisServerkey(designKey, Transid), "", false, schemaName);
-        fdwObj.ClearRedisServerDataByKey(utilObj.GetRedisServerkey(designCustHtmlKey, Transid), "", false, schemaName);
+        try
+        {
+            FDW fdwObj = FDW.Instance;
+            if (HttpContext.Current.Session["dbuser"] != null)
+                fdwObj.Initialize(HttpContext.Current.Session["dbuser"].ToString());
+            string fdKey = Constants.REDISTSTRUCT;
+            string fdKeyMob = Constants.REDISTSTRUCTMOB;
+            string designKey = Constants.REDISTSTRUCTAXDESIGN;
+            string designCustHtmlKey = Constants.REDISTSTRUCTAXCUSTHTML;
+            string designREDISTSTHTMLLS = Constants.REDISTSTHTMLLS;
+            //string fdkey1 = Constants.AXPAGETITLE;
+            string schemaName = string.Empty;
+            if (HttpContext.Current.Session["dbuser"] != null)
+                schemaName = HttpContext.Current.Session["dbuser"].ToString();
+            Util.Util utilObj = new Util.Util();
+            //fdwObj.ClearRedisServerDataByKey(utilObj.GetRedisServerkey(fdkey1, Transid), "", false, schemaName);
+            fdwObj.ClearRedisServerDataByKey(utilObj.GetRedisServerkey(fdKey, Transid), "", false, schemaName);
+            fdwObj.ClearRedisServerDataByKey(utilObj.GetRedisServerkey(fdKeyMob, Transid), "", false, schemaName);
+            fdwObj.ClearRedisServerDataByKey(utilObj.GetRedisServerkey(designKey, Transid), "", false, schemaName);
+            fdwObj.ClearRedisServerDataByKey(utilObj.GetRedisServerkey(designCustHtmlKey, Transid), "", false, schemaName);
+            fdwObj.ClearRedisServerDataByKey(utilObj.GetRedisServerkey(designREDISTSTHTMLLS, Transid), "", false, schemaName);
+        }
+        catch (Exception ex) { }
     }
 
 
     [WebMethod]
-    public static string GetFormLoadValues(string key, string tstQureystr, string isDraft, string forceRefresh, string isDupTab)
+    public static string GetFormLoadValues(string key, string tstQureystr, string isDraft, string forceRefresh, string isDupTab, string isTstHtmlLs, string isFromDummytrue = "false")
     {
         string requestProcess_logtime = string.Empty;
         ExecTrace ObjExecTrace = ExecTrace.Instance;
@@ -5854,6 +6182,9 @@ public partial class Tstruct : System.Web.UI.Page
         string queryString = string.Empty;
         string isTstParamLoad = string.Empty;
         string actstrType = string.Empty;
+        string formFoadData = "";
+        string _strParamName = string.Empty;
+        string _strParamValue = string.Empty;
         string AxDisplayAutoGenVal = HttpContext.Current.Session["AxDisplayAutoGenVal"].ToString();
         bool wsPerfFormLoad = false;
         try
@@ -5865,6 +6196,11 @@ public partial class Tstruct : System.Web.UI.Page
             string queryStringParamsData = QueryStringParams(tstQureystr);
             queryString = queryStringParamsData.Split('♠')[0];
             actstrType = queryStringParamsData.Split('♠')[1];
+            formFoadData = queryStringParamsData.Split('♠')[3];
+            _strParamName = queryStringParamsData.Split('♠')[4];
+            _strParamValue = queryStringParamsData.Split('♠')[5];
+            if (formFoadData != string.Empty)
+                formFoadData = " loadformdata='" + formFoadData + "' ";
             DateTime sTime1 = DateTime.Now;
             if (HttpContext.Current.Session["project"] == null)
                 return utils.SESSTIMEOUT;
@@ -5872,6 +6208,11 @@ public partial class Tstruct : System.Web.UI.Page
                 HttpContext.Current.Session["isDupTab"] = isDupTab;
             else
                 HttpContext.Current.Session["isDupTab"] = "false";
+            if (isTstHtmlLs != "" && HttpContext.Current.Session[key] == null)
+            {
+                utils.DeleteTstIvObject(key.Split('_')[0]);
+                key = utils.GetReGenTstDataObj(key, isTstHtmlLs);
+            }
             TStructData tstData = (TStructData)HttpContext.Current.Session[key];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
@@ -5905,7 +6246,7 @@ public partial class Tstruct : System.Web.UI.Page
             }
             catch (Exception ex) { }
             string loadXml = string.Empty;
-            loadXml += "<root" + actstr + " axpapp='" + HttpContext.Current.Session["project"].ToString() + "' sessionid='" + HttpContext.Current.Session["nsessionid"].ToString() + "' transid='" + transId + "' recordid='" + rid + "' dcname='" + strObj.GetVisibleDCs() + "' trace='" + errorLog + "' appsessionkey='" + HttpContext.Current.Session["AppSessionKey"].ToString() + "' username='" + HttpContext.Current.Session["username"].ToString() + "'>";
+            loadXml += "<root" + actstr + formFoadData + " axpapp='" + HttpContext.Current.Session["project"].ToString() + "' sessionid='" + HttpContext.Current.Session["nsessionid"].ToString() + "' transid='" + transId + "' recordid='" + rid + "' dcname='" + strObj.GetVisibleDCs() + "' trace='" + errorLog + "' appsessionkey='" + HttpContext.Current.Session["AppSessionKey"].ToString() + "' username='" + HttpContext.Current.Session["username"].ToString() + "'>";
             loadXml += queryString;
             loadXml += HttpContext.Current.Session["axApps"].ToString() + HttpContext.Current.Application["axProps"].ToString() + HttpContext.Current.Session["axGlobalVars"].ToString() + HttpContext.Current.Session["axUserVars"].ToString();
             loadXml += "</root>";
@@ -6003,6 +6344,10 @@ public partial class Tstruct : System.Web.UI.Page
                         FDW fdwObj = FDW.Instance;
                         fdwObj.SaveInRedisServer(utils.GetRedisServerkey(fdKey, transId), strObj, Constants.REDISTSTRUCT, schemaName);
                     }
+                    else if (flKey == "none")
+                    {
+                        utils.SetFormLoadData("true", transId, flGblExistingKeys);
+                    }
                 }
                 else if (result != string.Empty)
                 {
@@ -6015,6 +6360,8 @@ public partial class Tstruct : System.Web.UI.Page
             {
                 try
                 {
+                    utils.SetFormLoadData("false", transId, "");
+
                     if (HttpContext.Current.Session["forms_transids"] != null && HttpContext.Current.Session["forms_transids"].ToString() != "")
                     {
                         string[] dbVarformloadList = HttpContext.Current.Session["forms_transids"].ToString().Split(',');
@@ -6038,13 +6385,6 @@ public partial class Tstruct : System.Web.UI.Page
 
             TStructData strDataObj = null;
             strDataObj = new TStructData(result, transId, "0", strObj);
-            string dcHmtl = GetTabDcHTMLFormLoad(strObj, strDataObj, "0");
-            key = utils.GetTstDataId(transId);
-            result = result.Trim();
-            result = result.Replace("\\n", "");
-            result = result.Replace("\\", ";bkslh");
-            result = result.Replace("'", "&quot;");
-            strDataObj.transid = transId.ToString();
             try
             {
                 var axp_recid1 = strDataObj.GetFieldValue("1", "axp_recid1");
@@ -6055,6 +6395,13 @@ public partial class Tstruct : System.Web.UI.Page
             {
                 logobj.CreateLog("Exception in Tstruct data get axp_recid1 from dataset :--- " + ex.StackTrace, HttpContext.Current.Session["nsessionid"].ToString(), "Exception-" + transId, "");
             }
+            string dcHmtl = GetTabDcHTMLFormLoad(strObj, strDataObj, rid);
+            key = utils.GetTstDataId(transId);
+            result = result.Trim();
+            result = result.Replace("\\n", "");
+            result = result.Replace("\\", ";bkslh");
+            result = result.Replace("'", "&quot;");
+            strDataObj.transid = transId.ToString();
             strDataObj.recordid = rid.ToString();
 
             bool isTstPop = (HttpContext.Current.Session["isTstPop"] != null && HttpContext.Current.Session["isTstPop"].ToString() == "true") ? true : false;
@@ -6080,34 +6427,40 @@ public partial class Tstruct : System.Web.UI.Page
             }
 
             if (strDataObj.attachDirPath != string.Empty && rid != "0" && strObj.tstAttachment == "True")
-                result += LoadAttachFromLocNew(transId, rid, strDataObj);
+                result += LoadAttachFromLocNew(transId, rid, strDataObj, result);
             string ImgVals = "";
             if (rid != "0")
                 ImgVals = GetImageArraysNew(strDataObj);
             string tstVarScript = string.Empty;
             string strObjwsPerfEvalExpClient = string.Empty;
+            string _strParamNamevals = string.Empty;
             string isAxVarAndConfigEnabled = "false";
             if (HttpContext.Current.Session["ExpFldsForAxVarsandCOnfig"] != null)
                 isAxVarAndConfigEnabled = HttpContext.Current.Session["ExpFldsForAxVarsandCOnfig"].ToString();
 
             if ((strObj.wsPerfEvalExpClient != null && (wsPerfFormLoad == false || isDraft == "true")) || isAxVarAndConfigEnabled == "true")
                 strObjwsPerfEvalExpClient = string.Join(",", strObj.wsPerfEvalExpClient.Split(','));
+            if (wsPerfFormLoad == false && isTstParamLoad == "false")
+                _strParamNamevals = _strParamName + ";" + _strParamValue;
+            else
+                _strParamNamevals = ";";
             tstVarScript = wsPerfFormLoad.ToString().ToLower() + ";";
             tstVarScript += strObjwsPerfEvalExpClient + ";";
-            tstVarScript += strDataObj.attachDir;
+            tstVarScript += strDataObj.attachDir + ";" + _strParamNamevals;
 
-            result = key + "*$*" + result;
+            string thisResult = key + "*$*" + result;
             DateTime sTime2 = DateTime.Now;
             DateTime eTime2 = DateTime.Now;
             if (tstData.logTimeTaken)
                 tstData.strServerTime = (tstData.webTime1 + (eTime1.Subtract(sTime1).TotalMilliseconds)) + "," + tstData.asbTime + "," + (tstData.webTime2 + (eTime2.Subtract(sTime2).TotalMilliseconds));
             logobj.CreateLog("Form Load Service completed", HttpContext.Current.Session["nsessionid"].ToString(), "FormData-" + transId, "");
             string wbdrHtml = string.Empty;
-            wbdrHtml = GetTstHtml(transId, strObj, errorLog);
+            if (isFromDummytrue == "false")
+                wbdrHtml = GetTstHtml(transId, strObj, errorLog);
             string tabDCStatus = string.Join(",", strObj.tabDCStatus.ToArray());
             string tstCancelled = strObj.tstCancelled;
-            result = wbdrHtml + "*$*" + dcHmtl + "*$*" + tstVarScript.ToString() + "*$*" + ImgVals + "*$*" + tabDCStatus + "*$*" + AxDisplayAutoGenVal + "*$*" + tstCancelled + "*$*" + result;
-            result += "*$*" + strObj.ArrFFieldHidden.ToString() + "*$*" + strObj.ArrFFieldReadOnly.ToString();
+            result = wbdrHtml + "*$*" + dcHmtl + "*$*" + tstVarScript.ToString() + "*$*" + ImgVals + "*$*" + tabDCStatus + "*$*" + AxDisplayAutoGenVal + "*$*" + tstCancelled;
+            result += "*$*" + strObj.ArrFFieldHidden.ToString() + "*$*" + strObj.ArrFFieldReadOnly.ToString() + "*$*" + thisResult;
             requestProcess_logtime += ObjExecTrace.RequestProcessTime("Response", result);
             string serverprocesstm = ObjExecTrace.TotalServerElapsTime();
             result = result + "*♠♦*" + serverprocesstm + "*♠♦*" + requestProcess_logtime;
@@ -6118,7 +6471,6 @@ public partial class Tstruct : System.Web.UI.Page
         }
         return result;
     }
-
     private static string GetAxMemVarsNew(TStructDef objSts, string resJson, string transId)
     {
         string result = resJson;
@@ -6271,7 +6623,7 @@ public partial class Tstruct : System.Web.UI.Page
     }
 
     [WebMethod]
-    public static string GetLoadDataValues(string key, string recordid, string tstQureystr, string isDupTab)
+    public static string GetLoadDataValues(string key, string recordid, string tstQureystr, string isDupTab, string isTstHtmlLs, string isFromDummytrue = "false")
     {
         string requestProcess_logtime = string.Empty;
         ExecTrace ObjExecTrace = ExecTrace.Instance;
@@ -6290,13 +6642,20 @@ public partial class Tstruct : System.Web.UI.Page
                 HttpContext.Current.Session["isDupTab"] = isDupTab;
             else
                 HttpContext.Current.Session["isDupTab"] = "false";
+            //if (isTstHtmlLs != "")
+            //    key = utils.GetReGenTstDataObj(key, isTstHtmlLs);
+            if (isTstHtmlLs != "" && HttpContext.Current.Session[key] == null)
+            {
+                utils.DeleteTstIvObject(key.Split('_')[0]);
+                key = utils.GetReGenTstDataObj(key, isTstHtmlLs);
+            }
             TStructData tstData = (TStructData)HttpContext.Current.Session[key];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
             string transId = tstData.transID;
             Util.Util.DeletedraftRediskeys(transId);
             string errorLog = logobj.CreateLog("Load Data service.", HttpContext.Current.Session["nsessionid"].ToString(), "LoadData-" + transId, "new");
-            LoadRecidFromListNew(transId, recordid);
+            //LoadRecidFromListNew(transId, recordid); // Not required to call here because this session getting updated through webservice method
             result = tstData.CallGetLoadData(tstData, recordid, errorLog);
             requestProcess_logtime += result.Split('♠')[0];
             result = result.Split('♠')[1];
@@ -6342,12 +6701,12 @@ public partial class Tstruct : System.Web.UI.Page
                 strDcHtml = GetFormatGridHtmlNew(strObj, strDataObj);
 
             if (strDataObj.attachDirPath != string.Empty && recordid != "0" && strObj.tstAttachment == "True")
-                result += LoadAttachFromLocNew(transId, recordid, strDataObj);
+                result += LoadAttachFromLocNew(transId, recordid, strDataObj, result);
 
             if (recordid != "0" && strObj.tstAttachment == "True" && result != "")
                 LoadAttachFromDbFileNew(result);
 
-            result = key + "*$*" + result;
+            string thisResult = key + "*$*" + result;
             string ImgVals = GetImageArraysNew(strDataObj);
             string tstVarScript = string.Empty;
             string strObjwsPerfEvalExpClient = string.Empty;
@@ -6355,12 +6714,13 @@ public partial class Tstruct : System.Web.UI.Page
             tstVarScript += strObjwsPerfEvalExpClient + ";";
             tstVarScript += strDataObj.attachDir;
             string wbdrHtml = string.Empty;
-            wbdrHtml = GetTstHtml(transId, strObj, errorLog);
+            if (isFromDummytrue == "false")
+                wbdrHtml = GetTstHtml(transId, strObj, errorLog);
             string AxGANotExistList = string.Join(",", strDataObj.AxGridAttNotExistList.ToArray());
             string tabDCStatus = string.Join(",", strObj.tabDCStatus.ToArray());
             string tstCancelled = strObj.tstCancelled;
-            result = wbdrHtml + "*$*" + dcHmtl + "*$*" + tstVarScript.ToString() + "*$*" + ImgVals + "*$*" + tabDCStatus + "*$*" + tstCancelled + "*$*" + AxGANotExistList + "*$*" + result;
-            result += "*$*" + strObj.ArrFFieldHidden.ToString() + "*$*" + strObj.ArrFFieldReadOnly.ToString();
+            result = wbdrHtml + "*$*" + dcHmtl + "*$*" + tstVarScript.ToString() + "*$*" + ImgVals + "*$*" + tabDCStatus + "*$*" + tstCancelled + "*$*" + AxGANotExistList;
+            result += "*$*" + strObj.ArrFFieldHidden.ToString() + "*$*" + strObj.ArrFFieldReadOnly.ToString() + "*$*" + thisResult;
             requestProcess_logtime += ObjExecTrace.RequestProcessTime("Response", result);
             string serverprocesstm = ObjExecTrace.TotalServerElapsTime();
             result = result + "*♠♦*" + serverprocesstm + "*♠♦*" + requestProcess_logtime;
@@ -6449,8 +6809,13 @@ public partial class Tstruct : System.Web.UI.Page
         StringBuilder returnString = new StringBuilder();
         string hltype = "open";
         string isAxSplit = "false";
+        string Isloadformdata = "";
+        ArrayList paramNames = new ArrayList();
+        ArrayList clientParamValues = new ArrayList();
         if (tstQureystr != string.Empty)
         {
+            if (tstQureystr != "")
+                tstQureystr = tstQureystr.Replace("♠dummyload=true♠", "♠dummyload=true").Replace("♠dummyload=false♠", "♠dummyload=false");
             string[] quertStr = tstQureystr.Split('?');
             string[] arrParams = null;
             if (quertStr.Length > 0)
@@ -6505,18 +6870,31 @@ public partial class Tstruct : System.Web.UI.Page
                             case "openeriv":
                             case "isiv":
                             case "hdnbelapstime":
+                            case "dummyload":
                             case "fromprocess":
                             case "ispegedit":
                                 break;
+                            case "loadformdata":
+                                Isloadformdata = prValue;
+                                break;
                             default:
                                 returnString.Append("<" + prName.ToString() + ">" + CheckSpecialChars(prValue.ToString()) + "</" + prName.ToString() + ">");
+                                paramNames.Add(prName);
+                                clientParamValues.Add(CheckSpecialChars(prValue.ToString()));
                                 break;
                         }
                     }
                 }
             UpdateNavigationNew();
         }
-        return returnString.ToString() + "♠" + hltype + "♠" + isAxSplit;
+        string _strParamName = string.Empty;
+        string _strParamValue = string.Empty;
+        if (paramNames.Count > 0)
+        {
+            _strParamName = string.Join(",", paramNames.ToArray());
+            _strParamValue = string.Join(",", clientParamValues.ToArray());
+        }
+        return returnString.ToString() + "♠" + hltype + "♠" + isAxSplit + "♠" + Isloadformdata + "♠" + _strParamName + "♠" + _strParamValue;
     }
 
     private static void UpdateNavigationNew()
@@ -6606,26 +6984,29 @@ public partial class Tstruct : System.Web.UI.Page
         return strDcHtml.ToString();
     }
 
-    private static string LoadAttachFromLocNew(string transId, string recId, TStructData strDataObj)
+    private static string LoadAttachFromLocNew(string transId, string recId, TStructData strDataObj, string strloadRes)
     {
-        string attachDirPath = strDataObj.attachDirPath;
-        if (!attachDirPath.Contains(":\\") && !attachDirPath.StartsWith("\\"))
-        {
-            strDataObj.CreateDirectoryInCommonDir(ref attachDirPath);
-        }
-
-        DirectoryInfo dir = new DirectoryInfo(attachDirPath + "\\" + transId + "\\");
-        string fileValues = string.Empty;
         string attachJson = string.Empty;
-        if (dir.Exists)
+        if (strloadRes != "" && strloadRes.IndexOf("*$*{\"attachment\":[{") == -1)
         {
-            FileInfo[] info = dir.GetFiles(recId + "-*.*");
-            foreach (FileInfo FI in info)
-                fileValues += FI.ToString().Substring(FI.ToString().IndexOf("-") + 1) + ",";
-            if (fileValues.Length > 0)
+            string attachDirPath = strDataObj.attachDirPath;
+            if (!attachDirPath.Contains(":\\") && !attachDirPath.StartsWith("\\"))
             {
-                fileValues = fileValues.TrimEnd(',');
-                attachJson = "*$*{\"attachment\":[{\"att\":\"" + fileValues + "\"}]}";
+                strDataObj.CreateDirectoryInCommonDir(ref attachDirPath);
+            }
+
+            DirectoryInfo dir = new DirectoryInfo(attachDirPath + "\\" + transId + "\\");
+            string fileValues = string.Empty;
+            if (dir.Exists)
+            {
+                FileInfo[] info = dir.GetFiles(recId + "-*.*");
+                foreach (FileInfo FI in info)
+                    fileValues += FI.ToString().Substring(FI.ToString().IndexOf("-") + 1) + ",";
+                if (fileValues.Length > 0)
+                {
+                    fileValues = fileValues.TrimEnd(',');
+                    attachJson = "*$*{\"attachment\":[{\"att\":\"" + fileValues + "\"}]}";
+                }
             }
         }
         return attachJson;
@@ -6661,13 +7042,13 @@ public partial class Tstruct : System.Web.UI.Page
     }
 
     [WebMethod]
-    public static string GetMultiSelectValues(string tstDataId, string FldName, ArrayList ChangedFields, ArrayList ChangedFieldDbRowNo, ArrayList ChangedFieldValues, ArrayList DeletedDCRows, string fldNameMs, string refreshMs, string parentsFlds, string rfSave, string pageData)
+    public static string GetMultiSelectValues(string tstDataId, string FldName, ArrayList ChangedFields, ArrayList ChangedFieldDbRowNo, ArrayList ChangedFieldValues, ArrayList DeletedDCRows, string fldNameMs, string refreshMs, string parentsFlds, string rfSave, string pageData, string isTstHtmlLs)
     {
         string json = string.Empty;
         try
         {
             ASB.WebService objws = new ASB.WebService();
-            json = objws.GetMultiSelectValues(tstDataId, FldName, "", ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, DeletedDCRows, fldNameMs, refreshMs, parentsFlds, rfSave, pageData);
+            json = objws.GetMultiSelectValues(tstDataId, FldName, "", ChangedFields, ChangedFieldDbRowNo, ChangedFieldValues, DeletedDCRows, fldNameMs, refreshMs, parentsFlds, rfSave, pageData, isTstHtmlLs);
         }
         catch (Exception ex)
         {
@@ -7050,7 +7431,7 @@ public partial class Tstruct : System.Web.UI.Page
     #endregion
 
     [WebMethod]
-    public static string GetCloneFormLoadValues(string key, string tstQureystr)
+    public static string GetCloneFormLoadValues(string key, string tstQureystr, string isTstHtmlLs)
     {
         string requestProcess_logtime = string.Empty;
         ExecTrace ObjExecTrace = ExecTrace.Instance;
@@ -7065,13 +7446,20 @@ public partial class Tstruct : System.Web.UI.Page
             QueryStringParams(tstQureystr);
             if (HttpContext.Current.Session["project"] == null)
                 return utils.SESSTIMEOUT;
+            //if (isTstHtmlLs != "")
+            //    key = utils.GetReGenTstDataObj(key, isTstHtmlLs);
+            if (isTstHtmlLs != "")
+            {
+                utils.DeleteTstIvObject(key.Split('_')[0]);
+                key = utils.GetReGenTstDataObj(key, isTstHtmlLs);
+            }
             TStructData tstData = (TStructData)HttpContext.Current.Session[key];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
             string transId = tstData.transID;
             string errorLog = logobj.CreateLog("Load Data service.", HttpContext.Current.Session["nsessionid"].ToString(), "LoadData-" + transId, "new");
             string recordid = "0";
-            LoadRecidFromListNew(transId, recordid);
+            //LoadRecidFromListNew(transId, recordid);// Not required to call here because this session getting updated through webservice method
             TStructDef strObj = tstData.tstStrObj;
             tstData.recordID = "";
             string dcHmtl = GetTabDcHTMLFormLoad(strObj, tstData, recordid);
@@ -7080,9 +7468,9 @@ public partial class Tstruct : System.Web.UI.Page
                 strDcHtml = GetFormatGridHtmlNew(strObj, tstData);
 
             if (tstData.attachDirPath != string.Empty && recordid != "0" && strObj.tstAttachment == "True")
-                result += LoadAttachFromLocNew(transId, recordid, tstData);
+                result += LoadAttachFromLocNew(transId, recordid, tstData, result);
 
-            result = key + "*$*" + result;
+            string thisResult = key + "*$*" + result;
             string ImgVals = GetImageArraysNew(tstData);
             string tstVarScript = string.Empty;
             string strObjwsPerfEvalExpClient = string.Empty;
@@ -7094,8 +7482,8 @@ public partial class Tstruct : System.Web.UI.Page
             string AxGANotExistList = string.Join(",", tstData.AxGridAttNotExistList.ToArray());
             string tabDCStatus = string.Join(",", strObj.tabDCStatus.ToArray());
             string tstCancelled = strObj.tstCancelled;
-            result = wbdrHtml + "*$*" + dcHmtl + "*$*" + tstVarScript.ToString() + "*$*" + ImgVals + "*$*" + tabDCStatus + "*$*" + tstCancelled + "*$*" + AxGANotExistList + "*$*" + result;
-            result += "*$*" + strObj.ArrFFieldHidden.ToString() + "*$*" + strObj.ArrFFieldReadOnly.ToString();
+            result = wbdrHtml + "*$*" + dcHmtl + "*$*" + tstVarScript.ToString() + "*$*" + ImgVals + "*$*" + tabDCStatus + "*$*" + tstCancelled + "*$*" + AxGANotExistList;
+            result += "*$*" + strObj.ArrFFieldHidden.ToString() + "*$*" + strObj.ArrFFieldReadOnly.ToString() + "*$*" + thisResult;
             requestProcess_logtime += ObjExecTrace.RequestProcessTime("Response", result);
             string serverprocesstm = ObjExecTrace.TotalServerElapsTime();
             result = result + "*♠♦*" + serverprocesstm + "*♠♦*" + requestProcess_logtime;
@@ -7109,7 +7497,7 @@ public partial class Tstruct : System.Web.UI.Page
     }
 
     [WebMethod]
-    public static string GetLoadDataForDiscard(string key, string recordid, string tstQureystr, string isDupTab)
+    public static string GetLoadDataForDiscard(string key, string recordid, string tstQureystr, string isDupTab, string isTstHtmlLs)
     {
         string requestProcess_logtime = string.Empty;
         ExecTrace ObjExecTrace = ExecTrace.Instance;
@@ -7128,16 +7516,27 @@ public partial class Tstruct : System.Web.UI.Page
                 HttpContext.Current.Session["isDupTab"] = isDupTab;
             else
                 HttpContext.Current.Session["isDupTab"] = "false";
+            //if (isTstHtmlLs != "")
+            //    key = utils.GetReGenTstDataObj(key, isTstHtmlLs);
+            if (isTstHtmlLs != "")
+            {
+                utils.DeleteTstIvObject(key.Split('_')[0]);
+                key = utils.GetReGenTstDataObj(key, isTstHtmlLs);
+            }
             TStructData tstData = (TStructData)HttpContext.Current.Session[key];
             if (tstData == null)
                 return Constants.DUPLICATESESS;
             string transId = tstData.transID;
             Util.Util.DeletedraftRediskeys(transId);
             string errorLog = logobj.CreateLog("Load Data service.", HttpContext.Current.Session["nsessionid"].ToString(), "LoadData-" + transId, "new");
-            LoadRecidFromListNew(transId, recordid);
-            result = tstData.loadDataRes;//  tstData.CallGetLoadData(tstData, recordid, errorLog);
-            //requestProcess_logtime += result.Split('♠')[0];
-            //result = result.Split('♠')[1];
+            //LoadRecidFromListNew(transId, recordid);// Not required to call here because this session getting updated through webservice method
+            result = tstData.loadDataRes;
+            if (result == "")
+            {
+                result = tstData.CallGetLoadData(tstData, recordid, errorLog);
+                requestProcess_logtime += result.Split('♠')[0];
+                result = result.Split('♠')[1];
+            }
             TStructData strDataObj = null;
             TStructDef strObj = tstData.tstStrObj;
             strDataObj = new TStructData(result, transId, recordid, strObj);
@@ -7180,12 +7579,12 @@ public partial class Tstruct : System.Web.UI.Page
                 strDcHtml = GetFormatGridHtmlNew(strObj, strDataObj);
 
             if (strDataObj.attachDirPath != string.Empty && recordid != "0" && strObj.tstAttachment == "True")
-                result += LoadAttachFromLocNew(transId, recordid, strDataObj);
+                result += LoadAttachFromLocNew(transId, recordid, strDataObj, result);
 
             if (recordid != "0" && strObj.tstAttachment == "True" && result != "")
                 LoadAttachFromDbFileNew(result);
 
-            result = key + "*$*" + result;
+            string thisResult = key + "*$*" + result;
             string ImgVals = GetImageArraysNew(strDataObj);
             string tstVarScript = string.Empty;
             string strObjwsPerfEvalExpClient = string.Empty;
@@ -7197,8 +7596,8 @@ public partial class Tstruct : System.Web.UI.Page
             string AxGANotExistList = string.Join(",", strDataObj.AxGridAttNotExistList.ToArray());
             string tabDCStatus = string.Join(",", strObj.tabDCStatus.ToArray());
             string tstCancelled = strObj.tstCancelled;
-            result = wbdrHtml + "*$*" + dcHmtl + "*$*" + tstVarScript.ToString() + "*$*" + ImgVals + "*$*" + tabDCStatus + "*$*" + tstCancelled + "*$*" + AxGANotExistList + "*$*" + result;
-            result += "*$*" + strObj.ArrFFieldHidden.ToString() + "*$*" + strObj.ArrFFieldReadOnly.ToString();
+            result = wbdrHtml + "*$*" + dcHmtl + "*$*" + tstVarScript.ToString() + "*$*" + ImgVals + "*$*" + tabDCStatus + "*$*" + tstCancelled + "*$*" + AxGANotExistList;
+            result += "*$*" + strObj.ArrFFieldHidden.ToString() + "*$*" + strObj.ArrFFieldReadOnly.ToString() + "*$*" + thisResult;
             requestProcess_logtime += ObjExecTrace.RequestProcessTime("Response", result);
             string serverprocesstm = ObjExecTrace.TotalServerElapsTime();
             result = result + "*♠♦*" + serverprocesstm + "*♠♦*" + requestProcess_logtime;
@@ -7325,6 +7724,7 @@ public partial class Tstruct : System.Web.UI.Page
             FDW fdwObj = FDW.Instance;
             string freezeCols = Constants.REDISFREEZEGRDCOLS;
             fdwObj.SaveInRedisServer(utilobj.GetRedisServerkey(freezeCols, transid, user), freezcols, Constants.REDISFREEZEGRDCOLS, schemaname);
+            ClearCacheDesignKeys(transid);
         }
         catch (Exception ex) { }
     }
@@ -7343,5 +7743,331 @@ public partial class Tstruct : System.Web.UI.Page
                 FreezeGridCols = fObj.StringFromRedis(util.GetRedisServerkey(freezeCols, transid, user), schemaName);
         }
         catch (Exception) { }
+    }
+
+    [WebMethod]
+    public static string GetTstSearchData(string key, string transId, string hdnSearchStr, string ddlSearch, string pageNo, string pageSize, string isTstHtmlLs)
+    {
+        Util.Util utils = new Util.Util();
+        LogFile.Log logobjs = new LogFile.Log();
+        try
+        {
+            string searchVal = hdnSearchStr;
+            searchVal = utils.CheckReverseUrlSpecialChars(searchVal);
+            searchVal = utils.CheckSpecialChars(searchVal);
+            if (HttpContext.Current.Session["nsessionid"] == null)
+                return "Error♠Error occurred(2). Please try again or contact administrator.";
+            float f;
+            if (isTstHtmlLs != "")
+            {
+                utils.DeleteTstIvObject(key.Split('_')[0]);
+                key = utils.GetReGenTstDataObj(key, isTstHtmlLs);
+            }
+            TStructData _tstData = (TStructData)HttpContext.Current.Session[key];
+            if (_tstData != null)
+            {
+                string sid = HttpContext.Current.Session["nsessionid"].ToString();
+                TStructDef strObj = _tstData.tstStrObj;
+                int fIdx = strObj.GetFieldIndex(ddlSearch);
+                TStructDef.FieldStruct fld = (TStructDef.FieldStruct)strObj.flds[fIdx];
+
+                string _errorLog = logobjs.CreateLog("Loading Search List.", sid, "GetTstSearchData-" + transId, "new");
+
+                if (fld.datatype != "Date/Time" && fld.datatype != "Numeric" && ((fld.datatype == "Character" && !(searchVal.GetType().Name == "String" || searchVal.GetType().Name == "Character")) || (fld.datatype != "Character" && searchVal.GetType().Name != fld.datatype)))
+                {
+                    return "Error♠records:Enter " + fld.datatype.ToLower() + " values";
+                }
+
+                else if (fld.datatype == "Numeric" && (!IsAllDigitsNew(searchVal) && !float.TryParse(searchVal, out f)))
+                {
+                    return "Error♠records:Enter " + fld.datatype.ToLower() + " values";
+                }
+
+                string iXml = string.Empty;
+                iXml = "<sqlresultset axpapp=\"" + HttpContext.Current.Session["project"].ToString() + "\" transid=\"" + transId + "\" sessionid=\"" + sid + "\" trace=\"" + _errorLog + "\" pageno=\"" + pageNo + "\" pagesize=\"" + int.Parse(pageSize) + "\" appsessionkey='" + HttpContext.Current.Session["AppSessionKey"].ToString() + "' username='" + HttpContext.Current.Session["username"].ToString() + "'>";
+                iXml = iXml + "<fields></fields><searchfor>" + ddlSearch + "</searchfor><value>" + searchVal + "</value>";
+
+                string dbmemvarsXML = string.Empty;
+                dbmemvarsXML = utils.GetDBMemVarsXML(transId);
+                string cdVarsXML = utils.GetConfigDataVarsXML(transId);
+                iXml = iXml + HttpContext.Current.Session["axApps"].ToString() + HttpContext.Current.Application["axProps"].ToString() + HttpContext.Current.Session["axGlobalVars"].ToString() + dbmemvarsXML + cdVarsXML + HttpContext.Current.Session["axUserVars"].ToString() + "</sqlresultset>";
+                string res = string.Empty;
+
+                ASBExt.WebServiceExt _objWebServiceExt = new ASBExt.WebServiceExt();
+                res = _objWebServiceExt.CallGetSearchValWS(transId, iXml, strObj.structRes);
+                res = res.Split('♠')[1];
+                if (res.ToLower().Contains("ora-"))
+                {
+                    string strErrMsg = "Error occurred(2). Please try again or contact administrator.";
+                    return "Error♠" + strErrMsg;
+                }
+                if ((res.IndexOf(Constants.ERROR) == -1))
+                {
+                    XmlDocument xmlDoc1 = new XmlDocument();
+                    xmlDoc1.LoadXml(res);
+
+                    XmlNode cNode = default(XmlNode);
+                    cNode = xmlDoc1.SelectSingleNode("//response");
+
+                    int totalRows = 0;
+                    if (pageNo == "1")
+                    {
+                        XmlNode tnode = cNode.Attributes["totalrows"];
+                        if (tnode == null)
+                        {
+                            totalRows = 0;
+                        }
+                        else
+                        {
+                            totalRows = Convert.ToInt32(tnode.Value);
+                            cNode.Attributes.RemoveNamedItem("totalrows");
+                        }
+                        HttpContext.Current.Session["s_noofpages"] = totalRows;
+                    }
+                    else
+                    {
+                        totalRows = Convert.ToInt32(HttpContext.Current.Session["s_noofpages"]);
+                    }
+
+                    StringWriter sw = new StringWriter();
+                    XmlTextWriter xw = new XmlTextWriter(sw);
+                    cNode.WriteTo(xw);
+
+                    string ires2 = null;
+                    ires2 = sw.ToString();
+
+                    XmlDocument xmlDoc2 = new XmlDocument();
+                    XmlNodeList productNodes2 = default(XmlNodeList);
+                    XmlNodeList baseDataNodes2 = default(XmlNodeList);
+                    xmlDoc2.LoadXml(ires2);
+
+                    productNodes2 = xmlDoc2.SelectNodes("//row");
+                    ArrayList headNames = new ArrayList();
+                    int p = 0;
+                    foreach (XmlNode productNode2 in productNodes2)
+                    {
+                        if (p > 0)
+                        {
+                            break; // TODO: might not be correct. Was : Exit For
+                        }
+                        baseDataNodes2 = productNode2.ChildNodes;
+                        foreach (XmlNode baseDataNode2 in baseDataNodes2)
+                        {
+                            headNames.Add(baseDataNode2.Attributes["cap"].Value);
+                        }
+                        p = p + 1;
+                    }
+                    string headRow = "";
+                    string fgRows = "";
+                    int idx = 0;
+                    for (idx = 0; idx <= headNames.Count - 1; idx++)
+                    {
+                        if (idx == 0)
+                            headRow = headRow + "<th style='display:none;'>Select</th>";
+                        else
+                            headRow = headRow + "<th>" + headNames[idx].ToString() + "</th>";
+                    }
+
+                    //Remove attribute Cap
+                    XmlDocument xmlDoc3 = new XmlDocument();
+                    xmlDoc3.LoadXml(sw.ToString());
+
+                    XmlNodeList productNodes3 = default(XmlNodeList);
+                    XmlNodeList baseDataNodes3 = default(XmlNodeList);
+
+                    productNodes3 = xmlDoc3.SelectNodes("//row");
+
+                    foreach (XmlNode productNode3 in productNodes3)
+                    {
+                        baseDataNodes3 = productNode3.ChildNodes;
+                        foreach (XmlNode baseDataNode3 in baseDataNodes3)
+                        {
+                            baseDataNode3.Attributes.RemoveNamedItem("cap");
+                        }
+                    }
+
+                    string nXml = null;
+                    nXml = xmlDoc3.OuterXml;
+
+                    XmlNodeList dataNodes;
+                    dataNodes = xmlDoc3.SelectNodes("//response/row");
+                    foreach (XmlNode dataNode in dataNodes)
+                    {
+                        XmlNodeList baseDataNodes = dataNode.ChildNodes;
+                        ArrayList ExitFld = new ArrayList();
+                        ArrayList ExitFldVal = new ArrayList();
+                        string cRows = "";
+                        int ii = 0;
+                        foreach (XmlNode baseDataNode in baseDataNodes)
+                        {
+                            if (ii == 0)
+                            {
+                                cRows = "<td><div class=\"form-check form-check-custom form-check-solid\"><input type=radio name='radioselect' value=" + baseDataNode.InnerText + " class=\"form-check-input\" onclick=loadTstruct(this.value);></div></td>";
+                            }
+                            else
+                            {
+                                string strVal = CheckSpecialChars(baseDataNode.InnerText);
+                                cRows = cRows + "<td><label>" + strVal + "</label></td>";
+                            }
+                            ii++;
+                        }
+
+                        fgRows = fgRows + "<tr>" + cRows + "</tr>";
+                    }
+
+                    string fgHTML = "<table id='grdSearchRes' class='gridData dataTable table border-gray-300 overflow-auto'><thead><tr><th></th>" + headRow + "</tr></thead><tbody>" + fgRows + "</tbody></table>";
+
+                    int _pageSize = int.Parse(pageSize);
+                    double pg = (int)totalRows / (int)_pageSize;
+                    int pg1 = (int)Math.Floor(pg);
+                    if ((totalRows % _pageSize) > 0)
+                    {
+                        pg1 += 1;
+                    }
+                    string _lbltext = "";
+                    int pgNo = 0;
+                    if (pageNo == "1")
+                    {
+                        for (pgNo = 1; pgNo <= pg1; pgNo++)
+                        {
+                            _lbltext += "," + pgNo.ToString();
+                        }
+                    }
+                    if (totalRows > 0)
+                        _lbltext += "♠Total no. of records: " + totalRows + "♠" + " of " + pg1;
+
+                    return _lbltext + "♠♠" + fgHTML;
+                }
+                else
+                {
+                    res = res.Replace(Constants.ERROR, string.Empty);
+                    res = res.Replace("</error>", string.Empty);
+                    res = res.Replace("\n", string.Empty);
+                    return "Error♠" + res;
+                }
+            }
+            else
+            {
+                return "Error♠" + Constants.DUPLICATESESS;
+            }
+        }
+        catch (Exception ex)
+        {
+            string sid = HttpContext.Current.Session["nsessionid"].ToString();
+            logobjs.CreateLog("Loading Search List." + ex.Message, sid, "GetTstSearchData-error", "new");
+            return "Error♠" + Constants.DUPLICATESESS;
+        }
+    }
+
+    public static bool IsAllDigitsNew(string s)
+    {
+        return s.All(char.IsDigit);
+    }
+
+    [WebMethod]
+    public static void StoreLsTstHtml(string _transid, string _tstHtml)
+    {
+        try
+        {
+            FDR fdrObj = (FDR)HttpContext.Current.Session["FDR"];
+            string _flKey = fdrObj.MakeKeyName(Constants.REDISTSTHTMLLS, _transid);
+            string formloadsbuKey = HttpContext.Current.Session["formloadsubkey-" + _transid].ToString();
+            HttpContext.Current.Session.Remove("formloadsubkey-" + _transid);
+
+
+            FDW fdwObj = FDW.Instance;
+            fdwObj.HashSetKey(_flKey, formloadsbuKey, _tstHtml);
+        }
+        catch (Exception ex) { }
+    }
+
+    public string GetLsTstHtml(string _transid, string _thisFlSubKey)
+    {
+        string _tstHtml = string.Empty;
+        try
+        {
+            FDR fdrObj = (FDR)HttpContext.Current.Session["FDR"];
+            string _flKey = fdrObj.MakeKeyName(Constants.REDISTSTHTMLLS, _transid);
+            _tstHtml = fdrObj.HashGetKey(_flKey, _thisFlSubKey);
+        }
+        catch (Exception) { }
+        return _tstHtml;
+    }
+
+    public static string GetTstHtmllsGlobalVars(string transId)
+    {
+        string _res = string.Empty;
+        try
+        {
+            Util.Util utilobj = new Util.Util();
+            string _storetstHtml = Constants.REDISTSTHTMLLSGLOBALVARS;
+            string schemaName = string.Empty;
+            if (HttpContext.Current.Session["dbuser"] != null)
+                schemaName = HttpContext.Current.Session["dbuser"].ToString();
+            FDR fObj = (FDR)HttpContext.Current.Session["FDR"];
+            if (fObj != null)
+            {
+                _res = fObj.StringFromRedis(utilobj.GetRedisServerkey(_storetstHtml, transId), schemaName);
+            }
+
+            if (_res == string.Empty && HttpContext.Current.Session["tstHtmlLsGlbVars-" + transId] != null)
+            {
+                _res = HttpContext.Current.Session["tstHtmlLsGlbVars-" + transId].ToString();
+            }
+        }
+        catch (Exception ex)
+        { }
+        return _res;
+    }
+
+    public string CreatetstGlbVarKey(string _res)
+    {
+        string res = string.Empty;
+        try
+        {
+            XmlDocument xmlDocgbl = new XmlDocument();
+            if (HttpContext.Current.Session["axGlobalVars"] != null)
+                xmlDocgbl.LoadXml(HttpContext.Current.Session["axGlobalVars"].ToString());
+            string[] _theseVars = _res.Split(',');
+            foreach (string glbVar in _theseVars)
+            {
+                XmlNodeList parms = xmlDocgbl.SelectNodes("globalvars/" + glbVar);
+                if (parms.Count > 0)
+                    res += glbVar + ":" + parms[0].InnerText + "♦";
+            }
+            if (res != "")
+            {
+                res = res.TrimEnd('♦');
+            }
+        }
+        catch (Exception ex)
+        {
+
+        }
+        return res;
+    }
+
+    [WebMethod]
+    public static void ClearCacheTstKeys(string Transid)
+    {
+        try
+        {
+            FDW fdwObj = FDW.Instance;
+            if (HttpContext.Current.Session["dbuser"] != null)
+                fdwObj.Initialize(HttpContext.Current.Session["dbuser"].ToString());
+
+            string schemaName = string.Empty;
+            if (HttpContext.Current.Session["dbuser"] != null)
+                schemaName = HttpContext.Current.Session["dbuser"].ToString();
+            FDR fObj = (FDR)HttpContext.Current.Session["FDR"];
+            string tKey = schemaName + "-" + Transid + "-*";
+            ArrayList tstCachedKeys = fObj.GetAllKeys(tKey, true);
+            for (int i = 0; i < tstCachedKeys.Count; i++)
+            {
+                string keyName = tstCachedKeys[i].ToString();
+                fdwObj.DeleteAllKeys(keyName, schemaName);
+            }
+        }
+        catch (Exception ex) { }
     }
 }

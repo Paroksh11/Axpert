@@ -69,7 +69,7 @@
         <script type="text/javascript" src="../Js/noConflict.min.js?v=1"></script>
         <script type="text/javascript" src="../ThirdParty/jquery-confirm-master/jquery-confirm.min.js?v=2"></script>
         <script type="text/javascript" src="../Js/alerts.min.js?v=32"></script>
-        <script type="text/javascript" src="../Js/common.min.js?v=141"></script>
+        <script type="text/javascript" src="../Js/common.min.js?v=144"></script>
         <script type="text/javascript">
             $(document).ready(function () {
                 try {

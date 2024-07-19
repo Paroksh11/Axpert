@@ -54,9 +54,9 @@
     <script src="../Js/thirdparty/bootstrap/3.3.6/bootstrap.min.js" type="text/javascript"></script>
     <link id="themecss" type="text/css" rel="Stylesheet" />
     <link href="../Css/GridTable.min.css?v=1" rel="stylesheet" />
-    <script type="text/javascript" src="../Js/tstruct.min.js?v=584"></script>
-    <script type="text/javascript" src="../Js/helper.min.js?v=159"></script>
-    <script type="text/javascript" src="../Js/jsclient.min.js?v=104"></script>
+    <script type="text/javascript" src="../Js/tstruct.min.js?v=599"></script>
+    <script type="text/javascript" src="../Js/helper.min.js?v=165"></script>
+    <script type="text/javascript" src="../Js/jsclient.min.js?v=105"></script>
     <script src="../Js/gen.min.js?v=14" type="text/javascript"></script>
 
     <script type="text/javascript">
@@ -135,7 +135,7 @@
     <form id="form1" runat="server">
         <asp:ScriptManager ID="ScriptManager1" runat="server">
             <Scripts>
-                <asp:ScriptReference Path="../Js/tstruct.min.js?v=584" />
+                <asp:ScriptReference Path="../Js/tstruct.min.js?v=599" />
             </Scripts>
             <Services>
                 <asp:ServiceReference Path="../WebService.asmx" />
@@ -317,6 +317,6 @@
         Sys.WebForms.PageRequestManager.getInstance().add_pageLoading(disposeTree);
 
     </script>
-    <script src="../Js/common.min.js?v=141"></script>
+    <script src="../Js/common.min.js?v=144"></script>
 </body>
 </html>

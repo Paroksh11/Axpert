@@ -579,8 +579,10 @@ public partial class iview : System.Web.UI.Page
                     {
                         flKey = GenerateGlobalSmartViewsKey(iName, Request.QueryString["tstcaption"] != null);
                     }
+                    if (objParams.isIviewParamCache)
+                        SetGlobalSmartViews(objIview, iName, flKey);
 
-                    SetGlobalSmartViews(objIview, iName, flKey);
+                    hdnisIviewParamCache.Value = objParams.isIviewParamCache.ToString();
                 }
 
                 setPageDirection();
@@ -661,6 +663,10 @@ public partial class iview : System.Web.UI.Page
             {
                 string url = Convert.ToString(HttpContext.Current.Application["SessExpiryPath"]);
                 Response.Redirect(url);
+            }
+            else if (ex.Message != "" && objIview == null)
+            {
+                Response.Redirect("err.aspx?errmsg=Needs logout and login again since in-memory is cleared.");
             }
         }
 
@@ -1480,7 +1486,9 @@ public partial class iview : System.Web.UI.Page
 
                     if (ires != string.Empty && callParamPlusStructure)
                     {
-                        string[] splitRes = ires.Split(new[] { "#$#" }, StringSplitOptions.None);
+                        if (ires.StartsWith("<"))
+                            ires = util.ReplaceFirstOccurrence(ires, "#$#", "#$♥#");
+                        string[] splitRes = ires.Split(new[] { "#$♥#" }, StringSplitOptions.None);
                         if (splitRes.Length == 2)
                         {
                             objParams.ParamXML = ires = splitRes[0];
@@ -1534,7 +1542,9 @@ public partial class iview : System.Web.UI.Page
 
                 if (ires != string.Empty)
                 {
-                    string[] splitRes = ires.Split(new[] { "#$#" }, StringSplitOptions.None);
+                    if (ires.StartsWith("<"))
+                        ires = util.ReplaceFirstOccurrence(ires, "#$#", "#$♥#");
+                    string[] splitRes = ires.Split(new[] { "#$♥#" }, StringSplitOptions.None);
                     if (splitRes.Length > 0)
                     {
                         objParams.ParamXML = ires = splitRes[0];
@@ -1738,6 +1748,10 @@ public partial class iview : System.Web.UI.Page
                     objIview.dataCache = dataCache;
                 }
             }
+            else
+            {
+                objIview.dataCache = "none";
+            }
         }
 
     }
@@ -1848,7 +1862,7 @@ public partial class iview : System.Web.UI.Page
                     string pgKey = Constants.AXPAGETITLE;
                     ArrayList redisvalues = new ArrayList();
                     cacheMgr.fdwObj.SaveInRedisServer(util.GetRedisServerkey(fdKey, iName), strObj, Constants.REDISTSTRUCT, schemaName);
-                    
+
                     var redisvalues1 = fObj.ObjectJsonFromRedis(util.GetRedisServerkey(pgKey, ""));
                     if (redisvalues1 == null)
                         redisvalues.Add(Title + "♠" + tstCaption + "♠" + iName);
@@ -2232,7 +2246,9 @@ public partial class iview : System.Web.UI.Page
 
                             if (cols != "" && hyp != "")
                             {
-                                string[] resultSplitter = idata.Split(new[] { "#$#" }, StringSplitOptions.None);
+                                if (idata.StartsWith("<"))
+                                    idata = util.ReplaceFirstOccurrence(idata, "#$#", "#$♥#");
+                                string[] resultSplitter = idata.Split(new[] { "#$♥#" }, StringSplitOptions.None);
                                 idata = resultSplitter[0];
                                 if (resultSplitter.Length > 1)
                                 {
@@ -2418,7 +2434,9 @@ public partial class iview : System.Web.UI.Page
     {
         if (objIview.requestJSON)
         {
-            string[] resultSplitter = result.Split(new[] { "#$#" }, StringSplitOptions.None);
+            if (result.StartsWith("<"))
+                result = util.ReplaceFirstOccurrence(result, "#$#", "#$♥#");
+            string[] resultSplitter = result.Split(new[] { "#$♥#" }, StringSplitOptions.None);
             JObject resultJSON = JObject.Parse(resultSplitter[0]);
 
             JObject resultData = null;
@@ -2680,7 +2698,9 @@ public partial class iview : System.Web.UI.Page
                     string data = fObj.StringFromRedis(key.Substring(key.IndexOf("-") + 1), schemaName);
                     if (index > 0)
                     {
-                        data = data.Split(new[] { "#$#" }, StringSplitOptions.None)[0];
+                        if (data.StartsWith("<"))
+                            data = util.ReplaceFirstOccurrence(data, "#$#", "#$♥#");
+                        data = data.Split(new[] { "#$♥#" }, StringSplitOptions.None)[0];
                     }
                     respArray.Add(data);
                     index++;
@@ -2846,7 +2866,9 @@ public partial class iview : System.Web.UI.Page
 
                 if (errMsg == string.Empty)
                 {
-                    string[] resultSplitter = ds.ToString().Split(new[] { "#$#" }, StringSplitOptions.None);
+                    if (ds.ToString().StartsWith("<"))
+                        ds = util.ReplaceFirstOccurrence(ds.ToString(), "#$#", "#$♥#");
+                    string[] resultSplitter = ds.ToString().Split(new[] { "#$♥#" }, StringSplitOptions.None);
                     ds = resultSplitter[0];
                 }
                 else
@@ -3204,8 +3226,8 @@ public partial class iview : System.Web.UI.Page
                 hdnparamValues.Value = Session["paramValues" + iName].ToString();
                 hdnSelParamsAftrChWin.Value = Session["paramValues" + iName].ToString();
             }
-            if (delFromSession)
-                Session["IsFromChildWindow"] = null;
+            //if (delFromSession)
+            Session["IsFromChildWindow"] = null;
         }
     }
 
@@ -4851,7 +4873,7 @@ public partial class iview : System.Web.UI.Page
             {
                 objIview.IviewCaption = ivCaption;
             }
-           
+
             foreach (XmlNode productNode in productNodes)
             {
                 baseDataNodes = productNode.ChildNodes;
@@ -5020,6 +5042,8 @@ public partial class iview : System.Web.UI.Page
 
                         }
                         objParams.ParamNameType.Add(parameterName + "♣" + paramType);
+                        if (paramMOE == "Accept" && paramSql != "")
+                            objParams.isIviewParamCache = false;
                     }
 
                     if (paramType == "Date/Time" && clientCulture.ToLower() == "en-us")
@@ -5180,8 +5204,8 @@ public partial class iview : System.Web.UI.Page
                             {
                                 paramsBound = false;
                             }
-                            paramHtml.Append("</select>");                            
-                            paramHtml.Append("<div data-id='" + parameterName + "' class='btn btn-sm btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm px-6 h-40px border border-gray-400 input-group-text rounded-0 selectDfIcon' tabindex='0' title='Select'><span class='material-icons'>search</span></div>");                            
+                            paramHtml.Append("</select>");
+                            paramHtml.Append("<div data-id='" + parameterName + "' class='btn btn-sm btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm px-6 h-40px border border-gray-400 input-group-text rounded-0 selectDfIcon' tabindex='0' title='Select'><span class='material-icons'>search</span></div>");
                             paramHtml.Append("</div></div></td>");
                             arrFillList.Clear();
                             arrFillListDataAttr.Clear();
@@ -5191,8 +5215,8 @@ public partial class iview : System.Web.UI.Page
                         }
                         else if (paramMOE.ToLower() == "select" & isSqlFld == false & dynamicFilterString != string.Empty)
                         {
-                            paramHtml.Append("<td class='d-block d-sm-table-cell col-12 col-sm-4'><div class='agform pb-2 '><label for='" + parameterName + "' class='form-label col-form-label pb-1 fw-boldest paramtd1 cap '>" + paramCaption + "<span class=\"required ivparamselect\"></span></label><div class='input-group paramtd2 flex-nowrap'><select id='" + parameterName + "' name='" + parameterName + "' data-caption='" + paramCaption + "' class='form-select trySelectDF h-40px' " + CallValidateExpr + " ></select>");                          
-                            paramHtml.Append("<div data-id='" + parameterName + "' class='btn btn-sm btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm px-6 h-40px border border-gray-400 input-group-text rounded-0 selectDfIcon' tabindex='0' title='Select'><span class='material-icons'>search</span></div>");                            
+                            paramHtml.Append("<td class='d-block d-sm-table-cell col-12 col-sm-4'><div class='agform pb-2 '><label for='" + parameterName + "' class='form-label col-form-label pb-1 fw-boldest paramtd1 cap '>" + paramCaption + "<span class=\"required ivparamselect\"></span></label><div class='input-group paramtd2 flex-nowrap'><select id='" + parameterName + "' name='" + parameterName + "' data-caption='" + paramCaption + "' class='form-select trySelectDF h-40px' " + CallValidateExpr + " ></select>");
+                            paramHtml.Append("<div data-id='" + parameterName + "' class='btn btn-sm btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm px-6 h-40px border border-gray-400 input-group-text rounded-0 selectDfIcon' tabindex='0' title='Select'><span class='material-icons'>search</span></div>");
                             paramHtml.Append("</div></div></td>");
                         }
                         else if ((paramMOE.ToLower() == "select") & isSqlFld == true)
