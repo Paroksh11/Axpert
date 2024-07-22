@@ -50,9 +50,9 @@
     <script src="../ThirdParty/jquery-confirm-master/jquery-confirm.min.js?v=2" type="text/javascript"></script>
     <script src="../Js/noConflict.min.js?v=1" type="text/javascript"></script>
     <script src="../Js/alerts.min.js?v=32" type="text/javascript"></script>
-    <script type="text/javascript" src="../Js/login.min.js?v=83"></script>
+    <script type="text/javascript" src="../Js/login.min.js?v=82"></script>
     <script type="text/javascript" src="../Js/lang/content-<%=langType%>.js?v=64"></script>
-    <script src="../Js/common.min.js?v=144" type="text/javascript"></script>
+    <script src="../Js/common.min.js?v=141" type="text/javascript"></script>
     <script type="text/javascript">
         history.go(1);
         var cdt = new Date();
@@ -273,16 +273,11 @@
                                             </button>
                                             <button id="OpenIdBtnclick" class="d-none" runat="server" text="OpenId" onserverclick="OpenIdBtnclick_Click"></button>
 
-                                            <%--<button id="WindowsBtn" class="btn btn-icon btn-light-windows me-2 btn-sm" runat="server" onclick="CheckWindowsBtn();" visible="false" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-dismiss="click" data-bs-trigger="hover" data-bs-original-title="Windows">
-                                                <span class="svg-icon svg-icon-4">
-                                                    <svg xmlns="" width="64" height="64" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" fill-rule="evenodd" clip-rule="evenodd" viewBox="0 0 640 640">
-                                                        <path d="M.2 298.669L0 90.615l256.007-34.76v242.814H.201zM298.658 49.654L639.905-.012v298.681H298.657V49.654zM640 341.331l-.071 298.681L298.669 592V341.332h341.33zM255.983 586.543L.189 551.463v-210.18h255.794v245.26z" fill=""></path></svg></span></button>--%>
-                                            <button id="WindowsBtn" class="btn btn-icon btn-light-windows me-2 btn-sm" runat="server" onclick="CheckWindowsBtnUser();" visible="false" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-dismiss="click" data-bs-trigger="hover" data-bs-original-title="Windows">
+                                            <button id="WindowsBtn" class="btn btn-icon btn-light-windows me-2 btn-sm" runat="server" onclick="CheckWindowsBtn();" visible="false" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-dismiss="click" data-bs-trigger="hover" data-bs-original-title="Windows">
                                                 <span class="svg-icon svg-icon-4">
                                                     <svg xmlns="" width="64" height="64" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" fill-rule="evenodd" clip-rule="evenodd" viewBox="0 0 640 640">
                                                         <path d="M.2 298.669L0 90.615l256.007-34.76v242.814H.201zM298.658 49.654L639.905-.012v298.681H298.657V49.654zM640 341.331l-.071 298.681L298.669 592V341.332h341.33zM255.983 586.543L.189 551.463v-210.18h255.794v245.26z" fill=""></path></svg></span></button>
-                                            <%--<button id="WindowCloneBtn" class="d-none" runat="server" text="Windows" onserverclick="WindowsBtn_Click"></button>--%>
-                                            <button id="WindowCloneBtnOld" class="d-none" runat="server" text="Windows" onserverclick="btnNext_Click"></button>
+                                            <button id="WindowCloneBtn" class="d-none" runat="server" text="Windows" onserverclick="WindowsBtn_Click"></button>
 
                                             <button id="SamlBtn" class="btn btn-icon btn-light-saml me-2 btn-sm " runat="server" onclick="chkSSOLogin();" onserverclick="SamlBtn_Click" visible="false" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-dismiss="click" data-bs-trigger="hover" data-bs-original-title="SAML">
                                                 <span class="svg-icon svg-icon-4">
@@ -320,10 +315,9 @@ c-45 8 -53 30 -33 91 22 70 14 75 -11 7z"
 
                                 <asp:Literal ID="panelOtp" runat="server"></asp:Literal>
 
-                                <asp:Button runat="server" Text="Login" title="Login" TabIndex="6" ID="btnSubmit" class="d-none" OnClientClick="return chkLoginFormNew(this);" OnClick="btnSubmit_Click" />
+                                <asp:Button runat="server" Text="Login" title="Login" TabIndex="6" ID="btnSubmit" class="d-none" OnClientClick="return chkLoginFormNew();" OnClick="btnSubmit_Click" />
                                 <asp:Button runat="server" Text="OTP Login" title="OTP Login" TabIndex="6" ID="btnOTPLogin" class="d-none" OnClick="btnOTPLogin_Click" />
                                 <asp:Button runat="server" Text="Resend OTP" title="PWD OTP" TabIndex="6" ID="btnResendOtp" class="d-none" OnClick="btnResendOtp_Click" />
-                                <asp:Button runat="server" Text="Windows SSO" title="Windows SSO" TabIndex="6" ID="WindowCloneBtn" class="d-none" OnClientClick="return chkLoginFormNew(this);" OnClick="WindowsBtn_Click" />
                             </div>
                         </div>
                         <input type="hidden" runat="server" name="hdnAxProjs" id="hdnAxProjs" />
@@ -337,7 +331,6 @@ c-45 8 -53 30 -33 91 22 70 14 75 -11 7z"
                         <input type="hidden" runat="server" name="hdnPuser" id="hdnPuser" />
                         <input type="hidden" runat="server" name="hdnOtpauth" id="hdnOtpauth" />
                         <input type="hidden" runat="server" name="hdnClientDt" id="hdnClientDt" />
-                        <input type="hidden" runat="server" name="hdnWSSoBtn" id="hdnWSSoBtn" />
                         <asp:Label ID="lblCustomerror" runat="server" meta:resourcekey="lblCustomerror" Visible="false">Server error. Please try again.If the problem continues, please contact your administrator.</asp:Label>
 
                         <input type="hidden" id="browserElapsTime" runat="server" />

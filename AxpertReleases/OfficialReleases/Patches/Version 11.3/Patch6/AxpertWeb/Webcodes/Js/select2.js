@@ -105,8 +105,7 @@ function createFormSelect(fld) {
                             parentsFlds: parentFldVal,
                             rfSave: isrefreshsave,
                             IsApiFld: isApifld,
-                            tblSourceParams: "",
-                            isTstHtmlLs: resTstHtmlLS
+                            tblSourceParams: ""
                         });
                     }
                 } else {
@@ -130,10 +129,6 @@ function createFormSelect(fld) {
                 try {
                     var result = data.d.toString().replace(new RegExp("\\n", "g"), "");
                     if (result != "") {
-                        if (result != "" && result.split("♣*♣").length > 1) {
-                            tstDataId = result.split("♣*♣")[0];
-                            result = result.split("♣*♣")[1];
-                        }
                         if (result.split("*♠*").length > 1) {
                             serverprocesstime = result.split("*♠*")[1];
                             requestProcess_logtime = result.split("*♠*")[2];
@@ -146,7 +141,6 @@ function createFormSelect(fld) {
                     if (CheckSessionTimeout(result))
                         return;
                     result = result.toString().replace(new RegExp("\\t", "g"), "&#9;");
-                    resTstHtmlLS = "";
                     ChangedFields = new Array();
                     ChangedFieldDbRowNo = new Array();
                     ChangedFieldValues = new Array();
@@ -898,13 +892,7 @@ function clickEvents(fsFldName) {
             else
                 navigator.clipboard.writeText("");
         } catch (ex) {
-            if (typeof navigator.clipboard == "undefined" && $("#" + $(this).data("ids")).val() != null) {
-                var copyText = document.getElementById('tstddlCopyText');
-                copyText.value = $("#" + $(this).data("ids")).val();
-                copyText.select();
-                document.execCommand('copy');
-            } else if (typeof navigator.clipboard != "undefined")
-                navigator.clipboard.writeText("");
+            navigator.clipboard.writeText("");
         }
     });
 }
@@ -974,20 +962,15 @@ function createFormMultiSelect(msfldId) {
                 return JSON.stringify({
                     tstDataId: tstDataId, FldName: fieldName, ChangedFields: ChangedFields, ChangedFieldDbRowNo: ChangedFieldDbRowNo,
                     ChangedFieldValues: ChangedFieldValues, DeletedDCRows: DeletedDCRows, fldNameMs: fldNameMs, refreshMs: refreshMs,
-                    parentsFlds: parentFldVal, rfSave: isrefreshsave, pageData: pageData, isTstHtmlLs: resTstHtmlLS
+                    parentsFlds: parentFldVal, rfSave: isrefreshsave, pageData: pageData
                 });
             },
             processResults: function (data) {
                 select2EventType = "open";
                 var result = data.d.toString().replace(new RegExp("\\n", "g"), "");
-                if (result != "" && result.split("♣*♣").length > 1) {
-                    tstDataId = result.split("♣*♣")[0];
-                    result = result.split("♣*♣")[1];
-                }
                 if (CheckSessionTimeout(result))
                     return;
                 result = result.toString().replace(new RegExp("\\t", "g"), "&#9;");
-                resTstHtmlLS = "";
                 ChangedFields = new Array();
                 ChangedFieldDbRowNo = new Array();
                 ChangedFieldValues = new Array();
@@ -1130,12 +1113,6 @@ function createFormMultiSelect(msfldId) {
         }
         $(".select2-results a.fsautorefresh").remove();
         $(".select2-results a[id*=addOption]").remove();
-        $(".select2-results a[id^='copySelVal']").remove();
-        let _thisId = $(this).attr("id");
-        let iconBtn = '<a class="btn btn-sm btn-icon btn-white btn-color-gray-500 btn-active-primary me-2 shadow-sm float-end" id="advSearch' + _thisId + '" title="adv. search" data-ids=' + _thisId + '><span class="material-icons material-icons-style material-icons-3">search</span></a><input type=hidden id="pickIdVal_' + _thisId + '" value=\"\" />';
-
-        $(".select2-results:not(:has(a))").append(iconBtn);
-        clickEvents(_thisId);
     });
 
     formSelect.parent().find(".ms-render .select2-selection__rendered").addClass("text-wrap text-break p-0");
@@ -1186,24 +1163,19 @@ function AxGetCustSelectFldData(fieldId) {
         data: JSON.stringify({
             tstDataId: tstDataId, FldName: fieldName, FltValue: "", ChangedFields: ChangedFields, ChangedFieldDbRowNo: ChangedFieldDbRowNo,
             ChangedFieldValues: ChangedFieldValues, DeletedDCRows: DeletedDCRows, pageData: pageData, fastdll: fastdll, fldNameAc: fieldId, refreshAC: false,
-            pickArrow: false, parentsFlds: parentFldVal, rfSave: true, IsApiFld: isApifld, tblSourceParams: "", isTstHtmlLs: resTstHtmlLS
+            pickArrow: false, parentsFlds: parentFldVal, rfSave: true, IsApiFld: isApifld, tblSourceParams: ""
         }),
         dataType: 'json',
         contentType: "application/json",
         success: function (data) {
             try {
                 var result = data.d.toString().replace(new RegExp("\\n", "g"), "");
-                if (result != "" && result.split("♣*♣").length > 1) {
-                    tstDataId = result.split("♣*♣")[0];
-                    result = result.split("♣*♣")[1];
-                }
                 if (result != "") {
                     result = result.split("*♠*")[0];
                 }
                 if (CheckSessionTimeout(result))
                     return;
                 result = result.toString().replace(new RegExp("\\t", "g"), "&#9;");
-                resTstHtmlLS = "";
                 ChangedFields = new Array();
                 ChangedFieldDbRowNo = new Array();
                 ChangedFieldValues = new Array();
@@ -1259,8 +1231,7 @@ function createFormSelectMultiChecklist(fld) {
                 }
                 else if (select2IsFocused) {
                     select2EventType = "open";
-                    //termVal = params.term == "" ? undefined : (isSelectedValFocus ? undefined : params.term);
-                    termVal = params.term;
+                    termVal = params.term == "" ? undefined : (isSelectedValFocus ? undefined : params.term);
                     if (typeof termVal == "undefined" && $(this).val() != null)
                         termVal = "";
                 }
@@ -1307,8 +1278,7 @@ function createFormSelectMultiChecklist(fld) {
                             parentsFlds: parentFldVal,
                             rfSave: isrefreshsave,
                             IsApiFld: isApifld,
-                            tblSourceParams: "",
-                            isTstHtmlLs: resTstHtmlLS
+                            tblSourceParams: ""
                         });
                     }
                 } else {
@@ -1324,10 +1294,6 @@ function createFormSelectMultiChecklist(fld) {
                 try {
                     var result = data.d.toString().replace(new RegExp("\\n", "g"), "");
                     if (result != "") {
-                        if (result.split("♣*♣").length > 1) {
-                            tstDataId = result.split("♣*♣")[0];
-                            result = result.split("♣*♣")[1];
-                        }
                         if (result.split("*♠*").length > 1) {
                             serverprocesstime = result.split("*♠*")[1];
                             requestProcess_logtime = result.split("*♠*")[2];
@@ -1340,7 +1306,6 @@ function createFormSelectMultiChecklist(fld) {
                     if (CheckSessionTimeout(result))
                         return;
                     result = result.toString().replace(new RegExp("\\t", "g"), "&#9;");
-                    resTstHtmlLS = "";
                     ChangedFields = new Array();
                     ChangedFieldDbRowNo = new Array();
                     ChangedFieldValues = new Array();

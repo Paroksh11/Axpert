@@ -56,10 +56,10 @@
     <script src="../ThirdParty/jquery-confirm-master/jquery-confirm.min.js?v=2" type="text/javascript"></script>
     <%--<link href="../Css/animate.min.css" rel="stylesheet" />--%>
     <script src="../Js/alerts.min.js?v=32" type="text/javascript"></script>
-    <script type="text/javascript" src="../Js/login.min.js?v=83"></script>
+    <script type="text/javascript" src="../Js/login.min.js?v=82"></script>
     <link href="../ThirdParty/Linearicons/Font/library/linearIcons.css" rel="stylesheet" />
     <%--<script type="text/javascript" src="../Js/lang/content-<%=langType%>.js?v=54"></script>--%>
-    <script src="../Js/common.min.js?v=144" type="text/javascript"></script>
+    <script src="../Js/common.min.js?v=141" type="text/javascript"></script>
     <script src="../assets/plugins/jquery-1.10.1.min.js" type="text/javascript"></script>
     <script src="../assets/plugins/jquery-migrate-1.2.1.min.js" type="text/javascript"></script>
     <!-- IMPORTANT! Load jquery-ui-1.10.1.custom.min.js before bootstrap.min.js to fix bootstrap tooltip conflict with jquery ui tooltip -->
@@ -83,7 +83,7 @@
     <script src="../Js/msal.js" type="text/javascript"></script>
     <script src="../Js/okta-auth-js.min.js" type="text/javascript"></script>
     <script src="../Js/workflowNotification.min.js?v=4"></script>
-    <script type="text/javascript" src="../Js/common.min.js?v=144"></script>
+    <script type="text/javascript" src="../Js/common.min.js?v=141"></script>
 </head>
 <body class="page-header-fixed login" id="main_body" runat="server">
     <div class="row-fluid login-main">

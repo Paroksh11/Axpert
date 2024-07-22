@@ -61,7 +61,7 @@
     </script>
     <script src="../Js/Configuration.min.js?v=95"></script>
     <script src="../Js/AppSettings.min.js?v=12" type="text/javascript"></script>
-    <script src="../Js/common.min.js?v=144" type="text/javascript"></script>
+    <script src="../Js/common.min.js?v=141" type="text/javascript"></script>
     <script>
         var attchmentLimit = '<%=Session["AxAttachmentSize"]%>' == '' ? '1' : '<%=Session["AxAttachmentSize"]%>'
         callParentNew("axAttachmentSize=", attchmentLimit);

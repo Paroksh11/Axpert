@@ -27,11 +27,12 @@
     <script src="../UI/axpertUI/datatables.bundle.js"></script>
     <script src="../Js/noConflict.min.js"></script>
 
-    <script type="text/javascript" src="../Js/alerts.min.js?v=32"></script>
-    <script type="text/javascript" src="../Js/helper.min.js?v=165"></script>
+    <script type="text/javascript" src="../Js/tstruct.min.js?v=584"></script>
+    <script type="text/javascript" src="../Js/helper.min.js?v=159"></script>
+    <script type="text/javascript" src="../Js/jsclient.min.js?v=104"></script>
 
-    <script src="../Js/common.min.js?v=144" type="text/javascript"></script>
-    <script src="../Js/iviewAutoComplete.min.js?v=4" type="text/javascript"></script>
+    <script src="../Js/common.min.js?v=141" type="text/javascript"></script>
+    <script src="../Js/iviewAutoComplete.min.js?v=3" type="text/javascript"></script>
     <script type="text/javascript">
         var fldname = "<%=fldname.ToString()%>";        
     </script>   
@@ -159,11 +160,6 @@
                     </div>
                 </div>
 
-            </div>
-        </div>
-        <div id="waitDiv" class="page-loader rounded-2 bg-radial-gradient">
-            <div class="loader-box-wrapper d-flex bg-white p-20 shadow rounded">
-                <span class="loader"></span>
             </div>
         </div>
     </form>

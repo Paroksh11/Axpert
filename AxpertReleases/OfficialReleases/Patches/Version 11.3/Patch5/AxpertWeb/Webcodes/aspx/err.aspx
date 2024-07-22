@@ -61,7 +61,7 @@
     <%--custom alerts end--%>
 
     <script src="../Js/err.min.js?=4" type="text/javascript"></script>
-    <script src="../Js/common.min.js?v=144" type="text/javascript"></script>
+    <script src="../Js/common.min.js?v=141" type="text/javascript"></script>
     <script type="text/javascript">
         var serverprocesstime = '<%=serverprocesstime%>';
         var requestProcess_logtime = '<%=requestProcess_logtime%>';
@@ -80,7 +80,7 @@
         <div class="d-flex justify-content-center align-items-center p-10 vh-100">
             <asp:ScriptManager ID="ScriptManager1" runat="server">
                 <Scripts>
-                    <asp:ScriptReference Path="../Js/helper.min.js?v=165" />
+                    <asp:ScriptReference Path="../Js/helper.min.js?v=159" />
                 </Scripts>
                 <Services>
                     <asp:ServiceReference Path="../WebService.asmx" />

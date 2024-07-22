@@ -204,7 +204,7 @@ namespace ASBExt
                     string accessControlPlusStructure = string.Empty;
                     if (objIview.StructureXml != string.Empty)
                     {
-                        accessControlPlusStructure = objIview.AccessControlXml + "#$♥#" + objIview.StructureXml;
+                        accessControlPlusStructure = objIview.AccessControlXml + "#$#" + objIview.StructureXml;
                     }
                     result = asbIview.GetParamsNew(inputXML, accessControlPlusStructure);
                 }
@@ -330,7 +330,7 @@ namespace ASBExt
                     string accessControlPlusStructure = string.Empty;
                     if (iSTructure != string.Empty)
                     {
-                        accessControlPlusStructure = objIview.AccessControlXml + "#$♥#" + iSTructure;
+                        accessControlPlusStructure = objIview.AccessControlXml + "#$#" + iSTructure;
                     }
                     result = asbIview.GetIViewNew(inputXML, accessControlPlusStructure);
                 }

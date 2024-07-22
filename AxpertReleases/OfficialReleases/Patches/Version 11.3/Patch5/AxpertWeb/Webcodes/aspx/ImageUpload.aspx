@@ -54,7 +54,7 @@
     <script src="../Js/noConflict.min.js?v=1" type="text/javascript"></script>    
     <script type="text/javascript" src="../Js/iFrameHandler.min.js"></script>
     <script src="../Js/ImageUpload.min.js?v=14" type="text/javascript"></script>
-    <script src="../Js/common.min.js?v=144" type="text/javascript"></script>
+    <script src="../Js/common.min.js?v=141" type="text/javascript"></script>
     <script src="../Js/alerts.min.js?v=32" type="text/javascript"></script>
     <script type="text/javascript" src="../Js/lang/content-<%=langType%>.js?v=64"></script>
 

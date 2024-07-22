@@ -33,7 +33,6 @@ var axMemVarList = new Array();
 var axMemVarValue = new Array();
 var funclist = new Array();
 var forceBreak = false;
-var isexpApplyComma = false;
 funclist.push("abs", "addtodate", "addtomonth", "amtword");
 funclist.push("checkemail", "chkuniqchar", "cmonthyear", "convertmd5", "ctod", "curramtword");
 funclist.push("date", "datediff", "dayofdate", "dayselapsed", "daysinmonth", "decode", "dtoc");
@@ -161,7 +160,7 @@ function CallFunction(functionname, params) {
     else if (functionname == "formataccamount")
         result = 'n' + FormatAccAmount(params[0], params[1], params[2], params[3], params[4]);
     else if (functionname == "formatamount")
-        result = 'n' + FormatAmount(params[0], params[1], params[2], params[3], params[4], params[5]);
+        result = 'n' + FormatAmount(params[0], params[1], params[2], params[3], params[4]);
     else if (functionname == "triminbetwnspaces")
         result = 's' + TrimInbetwnSpaces(params[0]);
     else if (functionname == "date")
@@ -2758,7 +2757,7 @@ function FormatAccAmount(amount, declen, MillionRep, Malie, Rep) {
     return Result;
 }
 
-function FormatAmount(amount, declen, ApplyComma, MillionRep, NRep, PRep) {
+function FormatAmount(amount, declen, MillionRep, NRep, PRep) {
 
     var amt = 0;
     if (amount < 0)
@@ -2781,18 +2780,11 @@ function FormatAmount(amount, declen, ApplyComma, MillionRep, NRep, PRep) {
     if (s.indexOf('.') < 0) { s += '.00'; }
     if (s.indexOf('.') == (s.length - 2)) { s += '0'; }
     s = minus + s;
-    if (MillionRep == "true" || MillionRep == "T") {
+    if (MillionRep == "true")
         Result = CommaFormatted(s);
-        if (ApplyComma != "" && ApplyComma.toLowerCase() == "t")
-            isexpApplyComma = true;
-    }
     else {
-        if (ApplyComma != "" && ApplyComma.toLowerCase() == "t") {
-            isexpApplyComma = true;
-            Result = CommaFormatted(s);
-        }
-        else
-            Result = s;
+        // Result = addCommas(s);
+        Result = s;
     }
 
     if ((NRep == "br") || (PRep == "br")) {
@@ -3602,18 +3594,14 @@ function AxValueExits(sDcNo, sFldName, tDcNo, tFldName) {
     let scanRow = "0";
     if (fldVal != "") {
         $("#gridHd" + tDcNo + " tbody tr").each(function (index, el) {
-            if (!isMobile && fldVal == (typeof $j(this).find('textarea[id^=' + tFldName + ']').val() != "undefined" ? $j(this).find('textarea[id^=' + tFldName + ']').val() : $j(this).find('div [id^=' + tFldName + ']').val())) {
-                let _thisId = typeof $j(this).find('textarea[id^=' + tFldName + ']').attr("id") != "undefined" ? $j(this).find('textarea[id^=' + tFldName + ']').attr("id") : $j(this).find('div [id^=' + tFldName + ']').attr("id");
-                scanRow = GetFieldsRowNo(_thisId);
-                scanRow = GetDbRowNo(scanRow, tDcNo);
-                //scanRow = parseInt(scanRow);
+            if (!isMobile && fldVal == $j(this).find('textarea[id^=' + tFldName + ']').val()) {
+                scanRow = GetFieldsRowNo($j(this).find('textarea[id^=' + tFldName + ']').attr("id"));
+                scanRow = parseInt(scanRow);
                 return false;
             }
-            else if (isMobile && fldVal == (typeof $j(this).find('textarea[id^=gr' + tFldName + ']').val() != "undefined" ? $j(this).find('textarea[id^=gr' + tFldName + ']').val() : $j(this).find('div [id^=gr' + tFldName + ']').val())) {
-                let _thisId = typeof $j(this).find('textarea[id^=gr' + tFldName + ']').attr("id") != "undefined" ? $j(this).find('textarea[id^=gr' + tFldName + ']').attr("id") : $j(this).find('div [id^=gr' + tFldName + ']').attr("id");
-                scanRow = GetFieldsRowNo(_thisId);
-                scanRow = GetDbRowNo(scanRow, tDcNo);
-                //scanRow = parseInt(scanRow);
+            else if (isMobile && fldVal == $j(this).find('textarea[id^=gr' + tFldName + ']').val()) {
+                scanRow = GetFieldsRowNo($j(this).find('textarea[id^=gr' + tFldName + ']').attr("id"));
+                scanRow = parseInt(scanRow);
                 return false;
             }
         });
@@ -3808,32 +3796,20 @@ function ParseParamValues(Params, calledFrom = "") {
                     if (fldInd > -1) {
                         let thisFldVal = "";
                         var thisDc = GetDcNo(srFldName);
-                        if (IsDcGrid(thisDc)) {
-                            let _clientRow = "001";
-                            if (typeof AxActRowNoForScript != "undefined" && AxActRowNoForScript != "") {
-                                AxActRowNoForScript = GetDbRowNo(AxActRowNoForScript, thisDc);
-                                _clientRow = GetClientRowNo(AxActRowNoForScript, thisDc);
-                            }
-                            else if (AxActiveRowNo != "" && AxActiveRowNo != "0")
-                                _clientRow = GetClientRowNo(AxActiveRowNo, thisDc);
-                            thisFldVal = GetFieldValue(srFldName + _clientRow + "F" + thisDc);
-                        }
+                        if (IsDcGrid(thisDc))
+                            thisFldVal = GetFieldValue(srFldName + "001F" + thisDc);
                         else
                             thisFldVal = GetFieldValue(srFldName + "000F" + thisDc);
-                        thisFldVal = CheckUrlSpecialChars(thisFldVal);
                         repParamVal += "=" + thisFldVal + "&";
                     } else {
                         let glbParamVal = Parameters.filter(word => word.startsWith(srFldName + "~"))[0];
                         if (typeof glbParamVal != "undefined") {
-                            let _thisPVal = CheckUrlSpecialChars(glbParamVal.split("~")[1]);
-                            repParamVal += "=" + _thisPVal + "&";
+                            repParamVal += "=" + glbParamVal.split("~")[1] + "&";
                         } else if (typeof glbParamVal == "undefined") {
                             if (typeof RegVarFldList != "undefined" && RegVarFldList.length > 0) {
                                 let regValVal = RegVarFldList.filter(word => word.startsWith(srFldName + ":"))[0];
-                                if (typeof regValVal != "undefined") {
-                                    let _thisPValg = CheckUrlSpecialChars(regValVal.split(':')[2]);
-                                    repParamVal += "=" + _thisPValg + "&";
-                                }
+                                if (typeof regValVal != "undefined")
+                                    repParamVal += "=" + regValVal.split(':')[2] + "&";
                             }
                         }
                     }
@@ -3842,8 +3818,6 @@ function ParseParamValues(Params, calledFrom = "") {
                     repParamVal += "=" + srFldName + "&";
                 }
             });
-            if (typeof AxActRowNoForScript != "undefined")
-                AxActRowNoForScript = "";
             if (repParamVal != "")
                 repParamVal = repParamVal.slice(0, -1)
             return repParamVal;
@@ -3855,8 +3829,6 @@ function ParseParamValues(Params, calledFrom = "") {
 
 function SetFieldCaption(fldName, fldCaption) {
     AxFormControlList.push("setfieldcaption~" + fldName + "^" + fldCaption);
-    if (typeof AxSetFldCaption != "undefined" && AxSetFldCaption.indexOf("setfieldcaption~" + fldName + "^" + fldCaption) == -1)
-        AxSetFldCaption.push("setfieldcaption~" + fldName + "^" + fldCaption);
     return "setfieldcaption~" + fldName + "^" + fldCaption;
 }
 

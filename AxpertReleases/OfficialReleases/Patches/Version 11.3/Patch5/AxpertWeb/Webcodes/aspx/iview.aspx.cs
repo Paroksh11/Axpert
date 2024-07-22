@@ -579,10 +579,8 @@ public partial class iview : System.Web.UI.Page
                     {
                         flKey = GenerateGlobalSmartViewsKey(iName, Request.QueryString["tstcaption"] != null);
                     }
-                    if (objParams.isIviewParamCache)
-                        SetGlobalSmartViews(objIview, iName, flKey);
 
-                    hdnisIviewParamCache.Value = objParams.isIviewParamCache.ToString();
+                    SetGlobalSmartViews(objIview, iName, flKey);
                 }
 
                 setPageDirection();
@@ -663,10 +661,6 @@ public partial class iview : System.Web.UI.Page
             {
                 string url = Convert.ToString(HttpContext.Current.Application["SessExpiryPath"]);
                 Response.Redirect(url);
-            }
-            else if (ex.Message != "" && objIview == null)
-            {
-                Response.Redirect("err.aspx?errmsg=Needs logout and login again since in-memory is cleared.");
             }
         }
 
@@ -1743,10 +1737,6 @@ public partial class iview : System.Web.UI.Page
                     string dataCache = xmldoc.SelectSingleNode("//iview/b39").InnerText;
                     objIview.dataCache = dataCache;
                 }
-            }
-            else
-            {
-                objIview.dataCache = "none";
             }
         }
 
@@ -3214,8 +3204,8 @@ public partial class iview : System.Web.UI.Page
                 hdnparamValues.Value = Session["paramValues" + iName].ToString();
                 hdnSelParamsAftrChWin.Value = Session["paramValues" + iName].ToString();
             }
-            //if (delFromSession)
-            Session["IsFromChildWindow"] = null;
+            if (delFromSession)
+                Session["IsFromChildWindow"] = null;
         }
     }
 
@@ -5030,8 +5020,6 @@ public partial class iview : System.Web.UI.Page
 
                         }
                         objParams.ParamNameType.Add(parameterName + "♣" + paramType);
-                        if (paramMOE == "Accept" && paramSql != "")
-                            objParams.isIviewParamCache = false;
                     }
 
                     if (paramType == "Date/Time" && clientCulture.ToLower() == "en-us")
@@ -5192,8 +5180,8 @@ public partial class iview : System.Web.UI.Page
                             {
                                 paramsBound = false;
                             }
-                            paramHtml.Append("</select>");
-                            paramHtml.Append("<div data-id='" + parameterName + "' class='btn btn-sm btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm px-6 h-40px border border-gray-400 input-group-text rounded-0 selectDfIcon' tabindex='0' title='Select'><span class='material-icons'>search</span></div>");
+                            paramHtml.Append("</select>");                            
+                            paramHtml.Append("<div data-id='" + parameterName + "' class='btn btn-sm btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm px-6 h-40px border border-gray-400 input-group-text rounded-0 selectDfIcon' tabindex='0' title='Select'><span class='material-icons'>search</span></div>");                            
                             paramHtml.Append("</div></div></td>");
                             arrFillList.Clear();
                             arrFillListDataAttr.Clear();
@@ -5203,8 +5191,8 @@ public partial class iview : System.Web.UI.Page
                         }
                         else if (paramMOE.ToLower() == "select" & isSqlFld == false & dynamicFilterString != string.Empty)
                         {
-                            paramHtml.Append("<td class='d-block d-sm-table-cell col-12 col-sm-4'><div class='agform pb-2 '><label for='" + parameterName + "' class='form-label col-form-label pb-1 fw-boldest paramtd1 cap '>" + paramCaption + "<span class=\"required ivparamselect\"></span></label><div class='input-group paramtd2 flex-nowrap'><select id='" + parameterName + "' name='" + parameterName + "' data-caption='" + paramCaption + "' class='form-select trySelectDF h-40px' " + CallValidateExpr + " ></select>");
-                            paramHtml.Append("<div data-id='" + parameterName + "' class='btn btn-sm btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm px-6 h-40px border border-gray-400 input-group-text rounded-0 selectDfIcon' tabindex='0' title='Select'><span class='material-icons'>search</span></div>");
+                            paramHtml.Append("<td class='d-block d-sm-table-cell col-12 col-sm-4'><div class='agform pb-2 '><label for='" + parameterName + "' class='form-label col-form-label pb-1 fw-boldest paramtd1 cap '>" + paramCaption + "<span class=\"required ivparamselect\"></span></label><div class='input-group paramtd2 flex-nowrap'><select id='" + parameterName + "' name='" + parameterName + "' data-caption='" + paramCaption + "' class='form-select trySelectDF h-40px' " + CallValidateExpr + " ></select>");                          
+                            paramHtml.Append("<div data-id='" + parameterName + "' class='btn btn-sm btn-icon btn-white btn-color-gray-600 btn-active-primary shadow-sm px-6 h-40px border border-gray-400 input-group-text rounded-0 selectDfIcon' tabindex='0' title='Select'><span class='material-icons'>search</span></div>");                            
                             paramHtml.Append("</div></div></td>");
                         }
                         else if ((paramMOE.ToLower() == "select") & isSqlFld == true)

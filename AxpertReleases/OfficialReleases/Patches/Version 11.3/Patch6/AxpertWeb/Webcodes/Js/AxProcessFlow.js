@@ -734,64 +734,6 @@ class AxProcessFlow {
                 document.querySelector("#pd_timeline").classList.add("d-none");
                 this.openMessageLinkCachedSave(hLinkPage, hLinkParam, taskId);
                 break;
-            case "EXPORT":
-                this.DownloadExportFile(hLinkParam);
-                break;
-        }
-    };
-
-    
-    DownloadExportFile(eLink) {
-        if (eLink != "" && (eLink.startsWith('http:') || eLink.startsWith('https:'))) {
-            let fileUrl = eLink;
-            let fileName = eLink.substring(eLink.lastIndexOf('/') + 1);
-
-            const lastUnderscoreIndex = fileName.lastIndexOf('_');
-            const filenameWithoutExtension = fileName.substring(0, lastUnderscoreIndex);
-            const fileExtension = fileName.substring(fileName.lastIndexOf('.'));
-            const finalFilename = filenameWithoutExtension + fileExtension;
-
-            var anchor = document.createElement('a');
-            anchor.href = fileUrl;
-            anchor.download = finalFilename;
-            document.body.appendChild(anchor);
-            anchor.click();
-            document.body.removeChild(anchor);
-            ShowDimmer(false);
-        } else {
-            let filePath = eLink.substring(0, eLink.lastIndexOf('\\') + 1);
-            let fileName = eLink.substring(eLink.lastIndexOf('\\') + 1);
-
-            $.ajax({
-                type: "POST",
-                url: "../WebService.asmx/LoadExportFileToScript",
-                cache: false,
-                async: false,
-                contentType: "application/json;charset=utf-8",
-                data: JSON.stringify({
-                    filePath: filePath, fileName: fileName
-                }),
-                dataType: "json",
-                success: (data) => {
-                    if (data.d && data.d != "") {
-                        var fileUrl = data.d;
-                        var fileName = data.d.substring(data.d.lastIndexOf('/') + 1);
-                        var anchor = document.createElement('a');
-                        anchor.href = fileUrl;
-                        anchor.download = fileName;
-                        document.body.appendChild(anchor);
-                        anchor.click();
-                        document.body.removeChild(anchor);
-                        ShowDimmer(false);
-                    } else
-                        ShowDimmer(false);
-                }, error: (error) => {
-                    ShowDimmer(false);
-                },
-                failure: (error) => {
-                    ShowDimmer(false);
-                },
-            });
         }
     };
 
@@ -819,10 +761,10 @@ class AxProcessFlow {
         /* Variables from mainpage */
 
 
-        files.js.push("/../ThirdParty/lodash.min.js?v=1");
+        files.js.push("/../ThirdParty/lodash.min.js");
         files.js.push("/../ThirdParty/deepdash.min.js");
 
-        files.js.push("/../Js/handlebars.min.js?v=2");
+        files.js.push("/../Js/handlebars.min.js?v=1");
         files.js.push("/../Js/handleBarsHelpers.min.js");
 
         files.js.push("/../ThirdParty/Highcharts/highcharts-3d.js");

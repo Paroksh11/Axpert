@@ -2568,9 +2568,6 @@ function createIvirDataTable(task, index, totalArray, grandTotalArray) {
         var lastScrollTop = 0;
         //if datatable scrolls bottom of the page then check if next db rows exists & call webservice and append the rows to the grid
         $(".dataTables_scrollBody").on("scroll", delay(function (e) {
-            try {
-                $(".axpFilePopOver").popover("hide");
-            } catch (error) { }
             var st = Math.round($(this).scrollTop());
             if (st > lastScrollTop) { //append rows to grid only if vertical scroll bar is moved
                 var $o = $(e.currentTarget);
@@ -3269,14 +3266,6 @@ function processCellData({ td, cellData, rowData, row, col, colID, rowDataAccess
                         cellData = Number(cellData).toFixed(decimalVal);
                     }
                 }
-                if (typeof ivHeadRows[colID]["@negativenorep"] != "undefined" && ivHeadRows[colID]["@negativenorep"] != "" && cellData < 0) {
-                    if (ivHeadRows[colID]["@negativenorep"] == "cr")
-                        cellData = cellData.slice(1) + " Cr";
-                    else if (ivHeadRows[colID]["@negativenorep"] == "db")
-                        cellData = cellData.slice(1) + " Db";
-                    else if (ivHeadRows[colID]["@negativenorep"] == "br")
-                        cellData = '(' + cellData.slice(1) + ")";
-                }
             }
             break;
         case "d":
@@ -3289,48 +3278,12 @@ function processCellData({ td, cellData, rowData, row, col, colID, rowDataAccess
         SetAxFontCondition($(td), "fontstyle=b");
         switch (rowData[getPropertyAccess("axrowtype")]) {
             case "stot":
-                let _subColr = rowData['axp__color'];
-                if (typeof _subColr != "undefined") {
-                    if (_subColr.startsWith('cl')) {
-                        _subColr = _subColr.slice(2);
-                        $(td).css({ 'color': _subColr });
-                    }
-                    else if (_subColr.startsWith('$')) {
-                        _subColr = argbToRgba(_subColr);
-                        $(td).css({ 'background-color': _subColr + "!important" });
-                    } else {
-                        $(td).css({ 'color': _subColr });
-                    }
-                } else if (typeof subtoaltColor != "undefined" && subtoaltColor == true) {
-                    let _subHeadClr = 'Maroon';
-                    $(td).css({ 'color': _subHeadClr });
-                }
                 $(td).addClass("fontBlue");
                 break;
             case "subhead":
-                let _subHeadClr = rowData['axp__color'];
-                if (typeof _subHeadClr != "undefined") {
-                    if (_subHeadClr.startsWith('cl')) {
-                        _subHeadClr = _subHeadClr.slice(2);
-                        $(td).css({ 'color': _subHeadClr });
-                    }
-                    else if (_subHeadClr.startsWith('$')) {
-                        _subHeadClr = argbToRgba(_subHeadClr);
-                        $(td).css({ 'background-color': _subHeadClr + "!important" });
-                    } else {
-                        $(td).css({ 'color': _subHeadClr });
-                    }
-                } else if (typeof subtoaltColor != "undefined" && subtoaltColor == true) {
-                    _subHeadClr = 'Maroon';
-                    $(td).css({ 'color': _subHeadClr });
-                }
                 $(td).addClass("fontBlack");
                 break;
             case "gtot":
-                if (typeof grandtoaltColor != "undefined" && grandtoaltColor == true) {
-                    let _gtotCl = 'Green';
-                    $(td).css({ 'color': _gtotCl });
-                }
                 $(td).addClass("fontGreen");
                 break;
         }
@@ -3418,52 +3371,25 @@ function processCellData({ td, cellData, rowData, row, col, colID, rowDataAccess
             }).join(",");
             var tempCellDataObj = $(cellData);
             var cellDataObj = $("<div></div>");
-            var popoverContent = "";
-
-            tempCellDataObj.each((indd, vall) => {
+            tempCellDataObj.filter((indd, vall) => {
                 if (indd < 2) {
-                    // Append the first two elements directly
                     cellDataObj.append(vall);
                 } else {
-                    if (cellDataObj.find(".axpFilePopOver").length == 0) {
-                        // Initialize popoverContent when encountering the first popover
-                        popoverContent = $("<div class='popover attachments'></div>");
-                        // Append the popoverContent to the popover element
-                        var attCount = tempCellDataObj.filter((inddd, valll) => { return $(valll).is("a") }).length - 1;
-                        cellDataObj.append(`<a href="#" class="badge badge-light-primary axpFilePopOver" data-bs-toggle="popover" data-bs-trigger="focus" data-bs-content="" data-bs-html="true">+${attCount}</a>`);
+                    if (cellDataObj.find(".popover").length == 0) {
+                        cellDataObj.append("<a href=\"#\" class=\"badge axpFilePopOver\">+" + (tempCellDataObj.filter((inddd, valll) => { return $(valll).is("a") }).length - 1) + "<div class=\"popover\"></div></a>");
                     }
                     if ($(vall).text() == ",") {
-                        // Replace commas with line breaks
-                        vall = $("<hr class=\"my-1 border border-1 border-gray-400\" />");
+                        vall = $("<br />");
                     }
-                    // Append the content to the popover content
-                    popoverContent.append(vall);
+                    cellDataObj.find("a.axpFilePopOver .popover").append(vall);
                 }
             });
-
-            // Set the HTML content of the popover
-            if (popoverContent != "")
-                cellDataObj.find(".axpFilePopOver").attr("data-bs-content", popoverContent.html());
-
-            cellData = cellDataObj.html();            
+            cellData = cellDataObj.html();
         }
     }
 
 
     return cellData;
-}
-
-
-// Convert ARGB to RGBA
-function argbToRgba(argb) {
-    // Extract components
-    var alpha = parseInt(argb.substr(1, 2), 16) / 255;
-    var red = parseInt(argb.substr(3, 2), 16);
-    var green = parseInt(argb.substr(5, 2), 16);
-    var blue = parseInt(argb.substr(7, 2), 16);
-
-    // Return RGBA string
-    return 'rgba(' + red + ', ' + green + ', ' + blue + ', ' + alpha + ')';
 }
 
 /**
@@ -4868,10 +4794,6 @@ function freezeColumn(index, elem) {
         });
     }
 
-    $('.DTFC_LeftBodyWrapper table tbody td').css({ 'background-color': "rgb(245 235 214)", "box-shadow": "none" });
-    $('.DTFC_LeftHeadWrapper table thead th').css({ 'background-color': "rgb(245 235 214)", "box-shadow": "none" });
-    $('.DTFC_LeftFootWrapper table tfooter td').css({ 'background-color': "rgb(245 235 214)", "box-shadow": "none" });
-
     $(".DTFC_LeftBodyWrapper .ivirCustomHighlight,.DTFC_LeftBodyWrapper .ivirCustomHighlightCell").removeClass("ivirCustomHighlight").css({
         "background-color": "",
         "color": ""
@@ -5469,7 +5391,7 @@ onContentReadyRef = (task, showValuesOnOpen, isEditPill) => {
                     "/Js/thirdparty/jquery/3.1.1/jquery.min.js",
                     "/Js/noConflict.min.js",
                     "/ThirdParty/lodash.min.js",
-                    "/Js/common.min.js?v=144",
+                    "/Js/common.min.js?v=141",
                     "/ThirdParty/DataTables-1.10.13/media/js/jquery.dataTables.min.js",
                     "/ThirdParty/DataTables-1.10.13/media/js/dataTables.bootstrap.min.js",
                     "/ThirdParty/DataTables-1.10.13/extensions/FixedHeader/js/dataTables.fixedHeader.min.js",
@@ -9408,7 +9330,7 @@ function injectProductColumnTemplate(iName, colID){
  * @param {*} row : Datatable row object : ivirDataTableApi.row(parseInt(ivDatas[0].rowno)-1)
  * @param {*} newRowData : New row data
  */
-function refreshRow(row, newRowData, iscrolldrill = true) {
+function refreshRow(row, newRowData) {
     try {
         newRowData = newRowData || row.data();
 
@@ -9430,8 +9352,7 @@ function refreshRow(row, newRowData, iscrolldrill = true) {
 
         try {
             KTMenu?.init();
-            if (iscrolldrill)
-                scrollToLastKnownDrilldown();
+            scrollToLastKnownDrilldown();
         } catch (error) { }
     } catch (ex) { }
 }

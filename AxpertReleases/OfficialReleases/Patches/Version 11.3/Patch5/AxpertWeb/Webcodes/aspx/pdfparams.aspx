@@ -56,8 +56,8 @@
     <link href="../ThirdParty/jquery-confirm-master/jquery-confirm.min.css?v=1" rel="stylesheet" />
     <script src="../ThirdParty/jquery-confirm-master/jquery-confirm.min.js?v=2" type="text/javascript"></script>
     <%--custom alerts end--%>
-    <script type="text/javascript" src="../Js/pdfparam.min.js?v=5"></script>
-    <script src="../Js/common.min.js?v=144" type="text/javascript"></script>
+    <script type="text/javascript" src="../Js/pdfparam.min.js?v=4"></script>
+    <script src="../Js/common.min.js?v=141" type="text/javascript"></script>
     <style type="text/css">
         .style1 {
             width: 153px;
@@ -69,7 +69,7 @@
         <div>
             <asp:ScriptManager ID="ScriptManager1" runat="server">
                 <Scripts>
-                    <asp:ScriptReference Path="../Js/pdfparam.min.js?v=5" />
+                    <asp:ScriptReference Path="../Js/pdfparam.min.js?v=4" />
                 </Scripts>
                 <Services>
                     <asp:ServiceReference Path="../WebService.asmx" />

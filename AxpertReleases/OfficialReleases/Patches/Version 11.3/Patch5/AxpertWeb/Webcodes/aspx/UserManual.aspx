@@ -48,7 +48,7 @@
             }
         } catch (ex) { }
     </script>
-    <script src="../Js/common.min.js?v=144"></script>
+    <script src="../Js/common.min.js?v=141"></script>
     <link href="../Css/aboutus.min.css?v=3" rel="stylesheet" />
     <script>
         $(document).ready(function () {
