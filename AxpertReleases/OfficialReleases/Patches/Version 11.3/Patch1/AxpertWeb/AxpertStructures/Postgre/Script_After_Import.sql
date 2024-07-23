@@ -40,7 +40,11 @@ ALTER TABLE axusergroups ADD apprequired varchar(1) ;
 
 <<
 INSERT INTO axoutqueuesmst (axoutqueuesmstid, cancel, sourceid, mapname, username, modifiedon, createdby, createdon, wkid, app_level, app_desc, app_slevel, cancelremarks, wfroles, axqueuename, axqueuedesc, defqueue) VALUES(1551110000000, 'F', 0, NULL, 'admin', '2023-08-25 11:18:27.000', 'admin', '2023-08-25 10:37:19.000', NULL, 1, 1, NULL, NULL, NULL, 'Data out queue', 'This default queue will export data from axpert and can be consumed from other applications', 'T');
+>>
+<<
 INSERT INTO axoutqueuesmst (axoutqueuesmstid, cancel, sourceid, mapname, username, modifiedon, createdby, createdon, wkid, app_level, app_desc, app_slevel, cancelremarks, wfroles, axqueuename, axqueuedesc, defqueue) VALUES(1550990000000, 'F', 0, NULL, 'admin', '2023-08-23 15:18:26.000', 'admin', '2023-08-23 15:18:26.000', NULL, 1, 1, NULL, NULL, NULL, 'Notification queue', 'This default queue will be used for notifications', 'T');
+>>
+<<
 INSERT INTO axoutqueuesmst (axoutqueuesmstid, cancel, sourceid, mapname, username, modifiedon, createdby, createdon, wkid, app_level, app_desc, app_slevel, cancelremarks, wfroles, axqueuename, axqueuedesc, defqueue) VALUES(1805660000000, 'F', 0, NULL, 'admin', '2024-01-25 15:33:26.000', 'admin', '2024-01-25 15:33:26.000', NULL, 1, 1, NULL, NULL, NULL, 'Cached save queue', 'This is default queue used for forms cached saving ', 'F');
 >>
 
@@ -52,6 +56,8 @@ INSERT INTO axinqueues (axinqueuesid, cancel, sourceid, mapname, username, modif
 
 <<
 INSERT INTO axinqueues (axinqueuesid, cancel, sourceid, mapname, username, modifiedon, createdby, createdon, wkid, app_level, app_desc, app_slevel, cancelremarks, wfroles, axqueuename, axqueuedesc, active, unameui, uname, secretkey, defqueu) VALUES(1540880000000, 'F', 0, NULL, 'admin', '2024-01-25 15:56:55.000', 'admin', '2023-07-31 09:51:04.000', NULL, 1, 1, NULL, NULL, NULL, 'Data import queue', 'This queue will import data into a given Db table in this application. The response will be given in DBTableImportResponse Queue.', 'T', '-(admin)', 'admin', '1112008377507290', 'T');
+>>
+<<
 INSERT INTO axinqueues (axinqueuesid, cancel, sourceid, mapname, username, modifiedon, createdby, createdon, wkid, app_level, app_desc, app_slevel, cancelremarks, wfroles, axqueuename, axqueuedesc, active, unameui, uname, secretkey, defqueu) VALUES(1540770000000, 'F', 0, NULL, 'admin', '2024-01-25 15:57:10.000', 'admin', '2023-07-31 09:50:40.000', NULL, 1, 1, NULL, NULL, NULL, 'Import broker queue', 'This queue will push data into Axpert. The result is pushed into RapidSaveResponse Queue. The request may contain file upload fields. In this case, the value will be a byte array. This will be stored into Axpert as per definition. Further, a request JSON may have a node named "PrintRequest" with print form names as value for this node. If this is present, the request response JSON will contain the requested print form in the requested file format as byte arrays.', 'T', '-(admin)', 'admin', '1269162265196150', 'T');
 >>
 
