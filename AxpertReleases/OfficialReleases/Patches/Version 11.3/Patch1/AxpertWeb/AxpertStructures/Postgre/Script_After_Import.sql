@@ -45,7 +45,9 @@ INSERT INTO axoutqueuesmst (axoutqueuesmstid, cancel, sourceid, mapname, usernam
 INSERT INTO axoutqueuesmst (axoutqueuesmstid, cancel, sourceid, mapname, username, modifiedon, createdby, createdon, wkid, app_level, app_desc, app_slevel, cancelremarks, wfroles, axqueuename, axqueuedesc, defqueue) VALUES(1550990000000, 'F', 0, NULL, 'admin', '2023-08-23 15:18:26.000', 'admin', '2023-08-23 15:18:26.000', NULL, 1, 1, NULL, NULL, NULL, 'Notification queue', 'This default queue will be used for notifications', 'T');
 >>
 <<
+
 INSERT INTO axoutqueuesmst (axoutqueuesmstid, cancel, sourceid, mapname, username, modifiedon, createdby, createdon, wkid, app_level, app_desc, app_slevel, cancelremarks, wfroles, axqueuename, axqueuedesc, defqueue) VALUES(1805660000000, 'F', 0, NULL, 'admin', '2024-01-25 15:33:26.000', 'admin', '2024-01-25 15:33:26.000', NULL, 1, 1, NULL, NULL, NULL, 'Cached save queue', 'This is default queue used for forms cached saving ', 'F');
+
 >>
 
 
