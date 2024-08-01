@@ -1,13 +1,13 @@
-drop view axp_appsearch;
+<< drop view axp_appsearch; >> 
 
 
 
 
-ALTER TABLE axuseraccess ALTER COLUMN rname TYPE varchar(50) USING rname::varchar(50);
+<< ALTER TABLE axuseraccess ALTER COLUMN rname TYPE varchar(50) USING rname::varchar(50); >>
 
 
 
-CREATE OR REPLACE VIEW axp_appsearch
+<< CREATE OR REPLACE VIEW axp_appsearch
 AS SELECT DISTINCT a.searchtext,
     a.params::text ||
         CASE
@@ -45,5 +45,5 @@ AS SELECT DISTINCT a.searchtext,
                    FROM axp_appsearch_data_new s
                      LEFT JOIN axuseraccess a_1 ON s.structname::text = a_1.sname::text AND (a_1.stype::text = ANY (ARRAY['t'::character varying::text, 'i'::character varying::text]))) b
           WHERE lg.usergroup::text = 'default'::text
-  ORDER BY 1, 6) a;
+  ORDER BY 1, 6) a; >>
 
