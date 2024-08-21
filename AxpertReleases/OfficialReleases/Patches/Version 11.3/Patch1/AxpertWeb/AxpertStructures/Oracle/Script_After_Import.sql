@@ -1,5 +1,5 @@
 <<
-CREATE OR REPLACE VIEW VW_PEGV2_PROCESSDEF_TREE AS 
+CREATE VIEW VW_PEGV2_PROCESSDEF_TREE AS 
   SELECT
     axprocessdefv2.processname,
     axprocessdefv2.taskname,
@@ -19,7 +19,9 @@ FROM
 
 
 <<
+
 ALTER TABLE AXPROCESSDEFV2  ADD   applicability_tbl varchar2(4000);
+
 >>
 
 
@@ -37,7 +39,6 @@ v_tablenames varchar2(4000);
 v_dc1table varchar2(50);
 v_finalqry nclob;
 BEGIN
-	
 	SELECT listagg(tablename||'.'||fname,',')WITHIN GROUP(ORDER BY DCNAME,ORDNO) INTO v_fname FROM axpflds 
 	WHERE TSTRUCT = ptransid AND ASGRID ='F' AND DATATYPE!='i' AND SAVEVALUE ='T' ;
 
