@@ -1,3 +1,4 @@
+<<
 CREATE OR REPLACE FUNCTION trg_axprocessdefv2()
  RETURNS trigger
  LANGUAGE plpgsql
@@ -37,4 +38,4 @@ AS $function$
 end; 
 $function$
 ;
-
+>>

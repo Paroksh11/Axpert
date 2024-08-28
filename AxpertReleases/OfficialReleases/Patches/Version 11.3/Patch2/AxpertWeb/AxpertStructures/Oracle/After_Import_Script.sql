@@ -1,3 +1,4 @@
+<<
 CREATE OR REPLACE TRIGGER trg_axprocessdefv2
 BEFORE INSERT OR UPDATE ON axprocessdefv2 
 REFERENCING NEW AS NEW OLD AS OLD
@@ -38,3 +39,4 @@ BEGIN
 	
 		end if;
 end;
+>>
